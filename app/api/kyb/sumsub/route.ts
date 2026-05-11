@@ -1,0 +1,28 @@
+import { NextResponse } from 'next/server';
+
+import { createSumsubKybSession, getSumsubConfig } from '@/lib/compliance/sumsub';
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const kybCaseId = String(body.kybCaseId ?? '');
+  const businessName = String(body.businessName ?? '');
+  const registrationNumber = String(body.registrationNumber ?? '');
+
+  if (!kybCaseId || !businessName || !registrationNumber) {
+    return NextResponse.json({ error: 'KYB case ID, business name, and registration number are required' }, { status: 400 });
+  }
+
+  if (!getSumsubConfig()) {
+    return NextResponse.json({ configured: false, error: 'Sumsub environment variables are not configured' }, { status: 200 });
+  }
+
+  try {
+    const session = await createSumsubKybSession({ kybCaseId, businessName, registrationNumber });
+
+    return NextResponse.json({ configured: true, ...session });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Sumsub KYB session failed';
+
+    return NextResponse.json({ configured: true, error: message }, { status: 502 });
+  }
+}

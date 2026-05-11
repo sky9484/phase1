@@ -1,0 +1,11 @@
+[package]
+name = "splash_protocol"
+version = "0.0.1"
+edition = "2024.beta"
+license = "Apache-2.0"
+authors = ["Splash Finance"]
+
+[dependencies]
+
+[addresses]
+splash_protocol = "0x0"

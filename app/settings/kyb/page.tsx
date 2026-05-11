@@ -1,0 +1,18 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
+import KybSettings from "@/components/KybSettings";
+
+export default function KybPage() {
+  return (
+    <main className="min-h-svh bg-[#F6F0ED] px-6 py-8 text-[#326273]">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-[#326273]/70 hover:text-[#326273]">
+          <ArrowLeft className="size-4" />
+          Back to landing
+        </Link>
+        <KybSettings />
+      </div>
+    </main>
+  );
+}
