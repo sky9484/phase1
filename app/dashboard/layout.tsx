@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#F6F0ED]">
-      <aside className={`hidden flex-col bg-[#326273] p-6 text-white transition-all duration-300 md:flex fixed h-screen ${collapsed ? 'w-24' : 'w-56'}`}>
+      <aside className={`hidden flex-col bg-[#326273] p-6 text-white transition-all duration-300 md:flex fixed left-0 top-0 z-30 h-screen ${collapsed ? 'w-24' : 'w-56'}`}>
         <button
           type="button"
           onClick={() => setCollapsed((value) => !value)}
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {!collapsed && <span>Log out</span>}
         </button>
       </aside>
-      <main className={`flex-1 p-8 transition-all duration-300 md:ml-0 ${collapsed ? 'md:ml-24' : 'md:ml-56'}`}>{children}</main>
+      <main className={`relative z-0 min-w-0 flex-1 overflow-x-hidden p-8 transition-all duration-300 md:ml-0 ${collapsed ? 'md:ml-24' : 'md:ml-56'}`}>{children}</main>
     </div>
   );
 }
