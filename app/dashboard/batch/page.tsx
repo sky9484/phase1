@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, FileWarning, Loader2, ShieldCheck, Upload, XCircle, type LucideIcon } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileWarning, Layers, Loader2, PercentCircle, ShieldCheck, Upload, Wallet, XCircle, type LucideIcon } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -35,6 +35,48 @@ type CsvRow = {
 
 const supportedCountries = new Set(["MY", "PH", "ID", "SG"]);
 const sentinelNames = ["sanction", "blocked", "pep hit", "watchlist"];
+
+const sampleCsvRows: Array<{ name: string; address: string; country: string; purpose: string; amount: string }> = [
+  { name: "Acme Philippines Corp", address: "PH1234567890", country: "PH", purpose: "Vendor invoice", amount: "12000.00" },
+  { name: "Jakarta Supplies PT", address: "ID9988776655", country: "ID", purpose: "Vendor invoice", amount: "8500.00" },
+  { name: "Global IT Solutions Pte", address: "SG5544332211", country: "SG", purpose: "Service fee", amount: "3200.00" },
+  { name: "Manila BPO Services", address: "PH4567891234", country: "PH", purpose: "Payroll", amount: "15000.00" },
+];
+
+const csvHeader = "name,address,country,purpose,amount";
+
+function buildSampleCsv() {
+  const rows = sampleCsvRows.map((row) => [row.name, row.address, row.country, row.purpose, row.amount].join(","));
+  return [csvHeader, ...rows].join("\n");
+}
+
+const batchBenefits = [
+  {
+    icon: PercentCircle,
+    title: "15–30 bps cheaper FX",
+    body: "Batched rows are netted against treasury inventory, so we quote one tighter rate instead of paying spread on every transfer.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "One signed authorization",
+    body: "Approve the whole payroll with a single TOTP. No re-keying per beneficiary, and an immutable approver trail on Sui.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Atomic compliance",
+    body: "AML, KYT, structuring and corridor checks run before any value moves. Bad rows are isolated; cleared rows still ship.",
+  },
+  {
+    icon: Wallet,
+    title: "One reconciliation entry",
+    body: "Operating account sees a single debit and a merkle-rooted receipt — your accountants stop reconciling 50 line items.",
+  },
+  {
+    icon: Layers,
+    title: "Off-peak window pricing",
+    body: "Batches can target the next settlement window where corridor fees drop further, saving on cross-border partner costs.",
+  },
+];
 
 function strongestResult(checks: ComplianceCheck[]): ComplianceResult {
   if (checks.some((check) => check.result === "BLOCK")) return "BLOCK";
@@ -139,6 +181,20 @@ export default function BatchPage() {
     });
   }
 
+  function downloadSampleCsv() {
+    const csv = buildSampleCsv();
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "splash-batch-sample.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Sample CSV downloaded");
+  }
+
   async function submitBatch() {
     if (!/^\d{6}$/.test(totp)) {
       toast.error("Enter your 6-digit authorization code");
@@ -207,12 +263,82 @@ export default function BatchPage() {
         </HoverPopup>
       </section>
 
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#5C9EAD]/40 bg-white p-10 text-center hover:border-[#5C9EAD]">
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#5C9EAD]/40 bg-white p-8 text-center hover:border-[#5C9EAD] md:p-10">
         <Upload className="text-[#5C9EAD]" />
         <span className="font-semibold text-[#326273]">{rows.length ? `${rows.length} rows loaded — upload another CSV to replace` : "Click to upload CSV"}</span>
         <span className="text-xs text-[#326273]/50">Supported corridors: MY, PH, ID, SG · Amounts in MYR</span>
         <input type="file" accept=".csv" className="hidden" onChange={(event) => event.target.files?.[0] && onFile(event.target.files[0])} />
       </label>
+
+      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="overflow-hidden rounded-2xl border border-[#326273]/10 bg-white">
+          <div className="flex flex-col gap-3 border-b border-[#326273]/10 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-[#326273]">CSV format example</h2>
+              <p className="mt-1 text-xs text-[#326273]/60">
+                Columns are <code className="font-mono text-[11px]">name,address,country,purpose,amount</code>. Amounts in MYR, country is ISO-2.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={downloadSampleCsv}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download sample
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-xs">
+              <thead className="bg-[#326273]/5">
+                <tr className="text-left text-[#326273]/65">
+                  <th className="p-3 font-bold uppercase tracking-wide">name</th>
+                  <th className="p-3 font-bold uppercase tracking-wide">address</th>
+                  <th className="p-3 font-bold uppercase tracking-wide">country</th>
+                  <th className="p-3 font-bold uppercase tracking-wide">purpose</th>
+                  <th className="p-3 text-right font-bold uppercase tracking-wide">amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sampleCsvRows.map((row) => (
+                  <tr key={row.address} className="border-t border-[#326273]/5">
+                    <td className="p-3 font-medium text-[#326273]">{row.name}</td>
+                    <td className="p-3 font-mono text-[11px] text-[#326273]/70">{row.address}</td>
+                    <td className="p-3 font-semibold text-[#326273]">{row.country}</td>
+                    <td className="p-3 text-[#326273]/70">{row.purpose}</td>
+                    <td className="p-3 text-right font-mono text-[#326273]">MYR {row.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="border-t border-[#326273]/10 bg-[#F6F0ED]/60 p-4">
+            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#326273]/55">Raw CSV</div>
+            <pre className="mt-2 overflow-x-auto rounded-lg bg-[#1F4452] p-3 font-mono text-[11px] leading-5 text-[#F6F0ED]">{`${csvHeader}
+${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.purpose},${row.amount}`).join("\n")}`}</pre>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-[#326273]">Why batch payout wins</h2>
+            <p className="mt-1 text-xs text-[#326273]/60">Concrete reasons treasury teams move payroll and vendor runs through Splash batches.</p>
+          </div>
+          <div className="space-y-3">
+            {batchBenefits.map(({ icon: Icon, title, body }) => (
+              <div key={title} className="flex items-start gap-3 rounded-xl bg-[#F6F0ED] p-3 transition-colors hover:bg-[#5C9EAD]/10">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#5C9EAD]">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-[#326273]">{title}</div>
+                  <p className="mt-0.5 text-[11px] leading-5 text-[#326273]/65">{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {rows.length > 0 && (
         <>

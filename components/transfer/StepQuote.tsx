@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import HoverPopup from '@/components/HoverPopup';
 import type { TransferState } from '@/app/dashboard/transfer/page';
 
-const BASE_RATES: Record<TransferState['amount']['targetCurrency'], number> = { MYR: 4.71, PHP: 56.4, IDR: 15780, SGD: 1.34 };
+const BASE_RATES: Record<TransferState['amount']['targetCurrency'], number> = { MYR: 1, PHP: 12.08, IDR: 3364, SGD: 0.285 };
 const banks = ['Maybank2u Biz', 'CIMB BizChannel', 'Public Bank PBe', 'RHB Reflex', 'Hong Leong ConnectFirst', 'AmBank Business'];
 
 export default function StepQuote({ state, set, prev, next }: { state: TransferState; set: (patch: Partial<TransferState>) => void; prev: () => void; next: () => void }) {
@@ -39,7 +39,7 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
           body: JSON.stringify({
             amount: source,
             targetCurrency: state.amount.targetCurrency,
-            recipientId: state.recipient.partnerReference ?? state.recipient.bank?.account,
+            recipientId: state.recipient.bank?.account,
           }),
         });
 
@@ -77,7 +77,7 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [state.amount.targetCurrency, state.amount.value, state.recipient.bank?.account, state.recipient.partnerReference, set]);
+  }, [state.amount.targetCurrency, state.amount.value, state.recipient.bank?.account, set]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -160,11 +160,11 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
         <HoverPopup title="Country" content="Destination country for this transfer. Supported corridors: MY, PH, ID, SG.">
           <Row label="Country" value={state.recipient.country} />
         </HoverPopup>
-        <HoverPopup title="Rail" content={state.recipient.rail === 'partner' ? 'Partner rail: Uses integrated payout partners like Coins.ph for faster settlement.' : 'Bank Account: Direct bank transfer to recipient account.'}>
-          <Row label="Rail" value={state.recipient.rail === 'partner' ? 'Partner rail' : 'Bank Account'} />
+        <HoverPopup title="Rail" content="Bank Account: Direct bank transfer to recipient account.">
+          <Row label="Rail" value="Bank Account" />
         </HoverPopup>
-        <HoverPopup title="Target reference" content="Recipient account number or partner reference ID.">
-          <Row label="Target" value={state.recipient.rail === 'partner' ? state.recipient.partnerReference ?? '—' : state.recipient.bank?.account ?? '—'} mono />
+        <HoverPopup title="Target reference" content="Recipient bank account number.">
+          <Row label="Target" value={state.recipient.bank?.account ?? '—'} mono />
         </HoverPopup>
         <hr className="border-[#326273]/10" />
         <HoverPopup title="Send amount" content="Amount you are sending in MYR. This will be debited from your business bank via FPX.">

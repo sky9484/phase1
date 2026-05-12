@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowUpRight,
   Banknote,
   CheckCircle2,
   Clock3,
-  FileText,
   Layers,
   LineChart,
   RefreshCw,
   Send,
   ShieldCheck,
   TrendingUp,
+  UserCircle,
   Users,
   XCircle,
 } from "lucide-react";
@@ -20,7 +21,7 @@ import Link from "next/link";
 
 import HoverPopup from "@/components/HoverPopup";
 import LiveExchangeTicker from "@/components/LiveExchangeTicker";
-import StatusBadge from "@/components/StatusBadge";
+import StatusBadge, { type Status } from "@/components/StatusBadge";
 
 const initialStats = [
   { label: "Total settled (30d)", value: "MYR 184,200.00", delta: "+12.4%", icon: Banknote, hoverTitle: "Settlement volume", hoverContent: "Total value settled across all corridors in the last 30 days. Updated every 5 minutes." },
@@ -32,6 +33,7 @@ const initialStats = [
 const quickActions = [
   { label: "New transfer", description: "Single beneficiary", href: "/dashboard/transfer", icon: Send, className: "bg-[#326273] hover:bg-[#264e5b]", iconClassName: "text-[#5C9EAD]" },
   { label: "Batch payout", description: "CSV authorization", href: "/dashboard/batch", icon: Layers, className: "bg-[#5C9EAD] hover:bg-[#4A8B9A]", iconClassName: "text-white" },
+  { label: "Recipients", description: "Manage beneficiaries", href: "/dashboard/recipients", icon: UserCircle, className: "bg-[#1F4452] hover:bg-[#143442]", iconClassName: "text-[#E39774]" },
   { label: "Compliance", description: "KYB and limits", href: "/dashboard/settings", icon: ShieldCheck, className: "bg-[#E39774] hover:bg-[#cd825f]", iconClassName: "text-white" },
 ];
 
@@ -47,11 +49,18 @@ const compliance = [
   { label: "Daily limit used", value: "43%", status: "pending" as const, hoverTitle: "Daily limits", hoverContent: "43% of daily transfer limit used. You can still transfer up to MYR 57,000 more today." },
 ];
 
-const activities = [
-  { title: "Coins.ph vendor payout settled", ref: "ti_m8q4_9b21fa", amount: "PHP 42,180.00", status: "Settled", hoverTitle: "Transfer settled", hoverContent: "Transfer ID: ti_m8q4_9b21fa. Recipient credited at 14:32. Receipt recorded on-chain." },
-  { title: "Batch payroll queued", ref: "batch_m8q2_12ac08", amount: "MYR 31,400.00", status: "Queued", hoverTitle: "Batch queued", hoverContent: "Batch ID: batch_m8q2_12ac08. 12 rows cleared. Awaiting TOTP authorization." },
-  { title: "KYB document hash recorded", ref: "kyb_m8pv_4d9e10", amount: "Compliance", status: "Review", hoverTitle: "KYB update", hoverContent: "Case ID: kyb_m8pv_4d9e10. New document uploaded and hashed. Sumsub verification in progress." },
-  { title: "FPX funding confirmation received", ref: "fpx_m8pr_77a932", amount: "MYR 18,000.00", status: "Matched", hoverTitle: "FPX confirmation", hoverContent: "Transaction ID: fpx_m8pr_77a932. Bank authorization confirmed via Maybank2u Biz." },
+const activities: Array<{
+  title: string;
+  ref: string;
+  amount: string;
+  status: Status;
+  hoverTitle: string;
+  hoverContent: string;
+}> = [
+  { title: "Coins.ph vendor payout settled", ref: "ti_m8q4_9b21fa", amount: "PHP 42,180.00", status: "verified", hoverTitle: "Transfer settled", hoverContent: "Transfer ID: ti_m8q4_9b21fa. Recipient credited at 14:32. Receipt recorded on-chain." },
+  { title: "Batch payroll queued", ref: "batch_m8q2_12ac08", amount: "MYR 31,400.00", status: "pending", hoverTitle: "Batch queued", hoverContent: "Batch ID: batch_m8q2_12ac08. 12 rows cleared. Awaiting TOTP authorization." },
+  { title: "KYB document hash recorded", ref: "kyb_m8pv_4d9e10", amount: "Compliance", status: "pending", hoverTitle: "KYB update", hoverContent: "Case ID: kyb_m8pv_4d9e10. New document uploaded and hashed. Sumsub verification in progress." },
+  { title: "FPX funding confirmation received", ref: "fpx_m8pr_77a932", amount: "MYR 18,000.00", status: "verified", hoverTitle: "FPX confirmation", hoverContent: "Transaction ID: fpx_m8pr_77a932. Bank authorization confirmed via Maybank2u Biz." },
 ];
 
 const corridors = [
@@ -120,224 +129,244 @@ export default function DashboardOverview() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <LiveExchangeTicker />
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+
+      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">Business console</div>
-          <h1 className="text-3xl font-extrabold text-[#326273]">Overview</h1>
-          <p className="mt-1 text-sm text-[#326273]/60">
+          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Business console</div>
+          <h1 className="text-2xl font-extrabold text-[#326273]">Overview</h1>
+          <p className="mt-0.5 text-xs text-[#326273]/60">
             Acme Trading Sdn Bhd · MY to PH corridor · Updated 2 minutes ago
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <StatusBadge status="verified" />
-          <Link href="/dashboard/settings" className="rounded-xl border border-[#326273]/10 bg-white px-4 py-2 text-sm font-semibold text-[#326273] hover:border-[#5C9EAD]">
+          <Link href="/dashboard/settings" className="rounded-lg border border-[#326273]/10 bg-white px-3 py-1.5 text-xs font-semibold text-[#326273] hover:border-[#5C9EAD]">
             Review limits
           </Link>
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map(({ label, value, delta, icon: Icon, hoverTitle, hoverContent }) => (
           <HoverPopup key={label} title={hoverTitle} content={hoverContent}>
-            <div className="cursor-pointer rounded-2xl border border-[#326273]/10 bg-white p-5 transition-all hover:shadow-lg hover:shadow-[#5C9EAD]/10 hover:border-[#5C9EAD]/30">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-xs uppercase tracking-wide text-[#326273]/60">{label}</div>
-                <div className="rounded-xl bg-[#F6F0ED] p-2 text-[#5C9EAD]">
-                  <Icon size={18} />
+            <div className="cursor-pointer rounded-xl border border-[#326273]/10 bg-white p-3 transition-all hover:shadow-md hover:shadow-[#5C9EAD]/10 hover:border-[#5C9EAD]/30">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] uppercase tracking-wide text-[#326273]/60">{label}</div>
+                <div className="rounded-lg bg-[#F6F0ED] p-1.5 text-[#5C9EAD]">
+                  <Icon size={14} />
                 </div>
               </div>
-              <div className="mt-3 text-2xl font-extrabold text-[#326273]">{value}</div>
-              <div className="mt-1 text-xs font-semibold text-[#5C9EAD]">{delta}</div>
+              <div className="mt-2 text-xl font-extrabold text-[#326273]">{value}</div>
+              <div className="mt-0.5 text-[11px] font-semibold text-[#5C9EAD]">{delta}</div>
             </div>
           </HoverPopup>
         ))}
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="grid grid-cols-2 gap-2 xl:grid-cols-4">
         {quickActions.map(({ label, description, href, icon: Icon, className, iconClassName }) => (
-          <Link key={href} href={href} className={`group flex min-h-24 items-center justify-between gap-4 rounded-2xl px-5 py-4 text-white transition-all hover:-translate-y-0.5 ${className}`}>
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-white/10 p-2.5">
-                <Icon className={`h-5 w-5 ${iconClassName}`} />
+          <Link key={href} href={href} className={`group flex min-h-16 items-center justify-between gap-2 rounded-xl px-3 py-3 text-white transition-all hover:-translate-y-0.5 sm:px-4 ${className}`}>
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="rounded-lg bg-white/10 p-2">
+                <Icon className={`h-4 w-4 ${iconClassName}`} />
               </div>
-              <div>
-                <div className="text-base font-bold">{label}</div>
-                <div className="mt-0.5 text-xs text-white/75">{description}</div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-bold">{label}</div>
+                <div className="mt-0.5 hidden truncate text-[11px] text-white/75 sm:block">{description}</div>
               </div>
             </div>
-            <ArrowUpRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+            <ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-1" />
           </Link>
         ))}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        {paymentStates.map(({ label, count, amount, icon: Icon, tone }) => (
-          <div key={label} className={`rounded-2xl border p-5 ${tone}`}>
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-bold uppercase tracking-wide">{label} payments</div>
-              <Icon className="h-5 w-5" />
-            </div>
-            <div className="mt-3 flex items-end justify-between gap-3">
-              <div className="text-3xl font-extrabold">{count}</div>
-              <div className="text-right text-sm font-bold">{amount}</div>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#326273]">Settlement pipeline</h2>
-              <p className="mt-1 text-sm text-[#326273]/60">Server-authorized transfers moving through funding, settlement, and off-ramp stages.</p>
-            </div>
-            <LineChart className="text-[#5C9EAD]" />
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {pipeline.map((item) => (
-              <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
-                <div className="cursor-pointer rounded-2xl bg-[#F6F0ED] p-5 transition-all hover:shadow-lg hover:shadow-[#5C9EAD]/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#326273]/70">{item.label}</span>
-                    <span className={`h-3 w-3 rounded-full ${item.tone}`} />
-                  </div>
-                  <div className="mt-4 text-3xl font-extrabold text-[#326273]">{item.count}</div>
-                  <div className="mt-1 text-sm font-semibold text-[#5C9EAD]">{item.amount}</div>
+      <section className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
+        <div className="space-y-5">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {paymentStates.map(({ label, count, amount, icon: Icon, tone }) => (
+              <div key={label} className={`rounded-xl border p-3 ${tone}`}>
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-bold uppercase tracking-wide">{label} payments</div>
+                  <Icon className="h-4 w-4" />
                 </div>
-              </HoverPopup>
+                <div className="mt-2 flex items-end justify-between gap-2">
+                  <div className="text-2xl font-extrabold">{count}</div>
+                  <div className="text-right text-xs font-bold">{amount}</div>
+                </div>
+              </div>
             ))}
           </div>
-          <div className="mt-6 rounded-2xl bg-[#326273] p-5 text-white">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-white/60">Next settlement window</div>
-                <div className="mt-1 text-2xl font-extrabold">Today, 16:30 MYT</div>
+                <h2 className="text-lg font-bold text-[#326273]">Settlement pipeline</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Server-authorized transfers moving through funding, settlement, and off-ramp stages.</p>
               </div>
-              <div className="rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold">
-                13 transfers · MYR 35,320.00
-              </div>
+              <LineChart className="text-[#5C9EAD]" size={18} />
             </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#326273]">Compliance posture</h2>
-              <p className="mt-1 text-sm text-[#326273]/60">Checks required before value moves.</p>
-            </div>
-            <ShieldCheck className="text-[#5C9EAD]" />
-          </div>
-          <div className="mt-6 space-y-4">
-            {compliance.map((item) => (
-              <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
-                <div className="grid min-h-20 cursor-pointer grid-cols-[1fr_auto] items-center gap-4 rounded-xl bg-[#F6F0ED] p-4 transition-all hover:shadow-lg hover:shadow-[#5C9EAD]/10">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-[#326273]">{item.label}</div>
-                    <div className="mt-1 text-xs text-[#326273]/60">{item.value}</div>
-                  </div>
-                  <div className="justify-self-end">
-                    <StatusBadge status={item.status} />
-                  </div>
-                </div>
-              </HoverPopup>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#326273]">Corridor performance</h2>
-              <p className="mt-1 text-sm text-[#326273]/60">Locked-rate activity by payout corridor.</p>
-            </div>
-            <TrendingUp className="text-[#5C9EAD]" />
-          </div>
-          <div className="mt-6 space-y-4">
-            {liveCorridors.map((corridor) => (
-              <HoverPopup key={corridor.pair} title={corridor.hoverTitle} content={corridor.hoverContent}>
-                <div className="cursor-pointer rounded-2xl border border-[#326273]/10 bg-[#F6F0ED] p-4 transition-all hover:-translate-y-0.5 hover:border-[#5C9EAD]/30">
-                  <div className="mb-3 flex items-start justify-between gap-3 text-sm">
-                    <div>
-                      <span className="font-bold text-[#326273]">{corridor.pair}</span>
-                      <div className="mt-1 text-xs text-[#326273]/50">{corridor.sla} SLA · {corridor.success.toFixed(1)}% success</div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {pipeline.map((item) => (
+                <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
+                  <div className="cursor-pointer rounded-xl bg-[#F6F0ED] p-3 transition-all hover:shadow-md hover:shadow-[#5C9EAD]/10">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[#326273]/70">{item.label}</span>
+                      <span className={`h-2.5 w-2.5 rounded-full ${item.tone}`} />
                     </div>
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#326273]/70">MYR {corridor.volume.toLocaleString()}</span>
+                    <div className="mt-2 text-2xl font-extrabold text-[#326273]">{item.count}</div>
+                    <div className="mt-0.5 text-xs font-semibold text-[#5C9EAD]">{item.amount}</div>
                   </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-white">
-                    <div className="h-full rounded-full bg-[#5C9EAD] transition-all" style={{ width: `${corridor.width}%` }} />
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-[#326273]/60">
-                    <span>Indicative rate</span>
-                    <span className="font-mono font-bold text-[#326273]">1 MYR → {corridor.rate.toLocaleString(undefined, { maximumFractionDigits: corridor.currency === 'IDR' ? 0 : 3 })} {corridor.currency}</span>
-                  </div>
-                </div>
-              </HoverPopup>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#326273]">Recent activity</h2>
-              <p className="mt-1 text-sm text-[#326273]/60">Latest operational events across transfer, batch, KYB, and funding rails.</p>
+                </HoverPopup>
+              ))}
             </div>
-            <FileText className="text-[#5C9EAD]" />
-          </div>
-          <div className="mt-6 divide-y divide-[#326273]/10">
-            {activities.map((activity) => (
-              <HoverPopup key={activity.ref} title={activity.hoverTitle} content={activity.hoverContent}>
-                <div className="cursor-pointer grid gap-3 py-4 md:grid-cols-[1fr_auto_auto] md:items-center transition-all hover:bg-[#F6F0ED]/50">
-                  <div>
-                    <div className="font-semibold text-[#326273]">{activity.title}</div>
-                    <div className="mt-1 font-mono text-xs text-[#326273]/50">{activity.ref}</div>
-                  </div>
-                  <div className="text-sm font-bold text-[#326273]">{activity.amount}</div>
-                  <div className="rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold text-[#5C9EAD]">{activity.status}</div>
+            <div className="mt-4 rounded-xl bg-[#326273] p-3 text-white">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="text-xs font-semibold text-white/60">Next settlement window</div>
+                  <div className="mt-0.5 text-lg font-extrabold">Today, 16:30 MYT</div>
                 </div>
-              </HoverPopup>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-2">
-        <HoverPopup title="Reconciliation" content="Automated matching between ledger entries and on-chain settlement receipts. Last check: 2 minutes ago.">
-          <div className="cursor-pointer rounded-2xl border border-[#326273]/10 bg-white p-6 transition-all hover:shadow-lg hover:shadow-[#5C9EAD]/10 hover:border-[#5C9EAD]/30">
-            <div className="flex items-start gap-4">
-              <div className="rounded-2xl bg-[#5C9EAD]/10 p-3 text-[#5C9EAD]">
-                <RefreshCw />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#326273]">Reconciliation status</h2>
-                <p className="mt-2 text-sm text-[#326273]/60">Ledger entries and settlement receipt mirrors are matched through the latest completed settlement window.</p>
-                <div className="mt-4 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold text-[#5C9EAD]">0 mismatches</div>
+                <div className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold">
+                  13 transfers · MYR 35,320.00
+                </div>
               </div>
             </div>
           </div>
-        </HoverPopup>
-        <HoverPopup title="Pending actions" content="Beneficiaries requiring attention before next batch payout. Purpose codes missing for 2 recipients.">
-          <div className="cursor-pointer rounded-2xl border border-[#326273]/10 bg-white p-6 transition-all hover:shadow-lg hover:shadow-[#E39774]/10 hover:border-[#E39774]/30">
-            <div className="flex items-start gap-4">
-              <div className="rounded-2xl bg-[#E39774]/10 p-3 text-[#E39774]">
-                <Clock3 />
-              </div>
+
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-[#326273]">Pending actions</h2>
-                <p className="mt-2 text-sm text-[#326273]/60">Two beneficiaries need updated purpose codes before the next batch payout can be authorized.</p>
-                <Link href="/dashboard/batch" className="mt-4 inline-flex rounded-full bg-[#E39774]/10 px-3 py-1 text-xs font-bold text-[#E39774] hover:bg-[#E39774]/20">
-                  Review batch readiness
+                <h2 className="text-lg font-bold text-[#326273]">Corridor performance</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Locked-rate activity by payout corridor.</p>
+              </div>
+              <TrendingUp className="text-[#5C9EAD]" size={18} />
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {liveCorridors.map((corridor) => (
+                <HoverPopup key={corridor.pair} title={corridor.hoverTitle} content={corridor.hoverContent}>
+                  <div className="cursor-pointer rounded-xl border border-[#326273]/10 bg-[#F6F0ED] p-3 transition-all hover:-translate-y-0.5 hover:border-[#5C9EAD]/30">
+                    <div className="mb-2 flex items-start justify-between gap-2 text-xs">
+                      <div>
+                        <span className="font-bold text-[#326273]">{corridor.pair}</span>
+                        <div className="mt-0.5 text-[11px] text-[#326273]/50">{corridor.sla} SLA · {corridor.success.toFixed(1)}% success</div>
+                      </div>
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-[#326273]/70">MYR {corridor.volume.toLocaleString()}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white">
+                      <div className="h-full rounded-full bg-[#5C9EAD] transition-all" style={{ width: `${corridor.width}%` }} />
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[11px] text-[#326273]/60">
+                      <span>Indicative rate</span>
+                      <span className="font-mono font-bold text-[#326273]">1 MYR → {corridor.rate.toLocaleString(undefined, { maximumFractionDigits: corridor.currency === 'IDR' ? 0 : 3 })} {corridor.currency}</span>
+                    </div>
+                  </div>
+                </HoverPopup>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-[#326273]">Reconciliation status</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Treasury balance and settlement window health.</p>
+              </div>
+              <CheckCircle2 className="text-[#5C9EAD]" size={18} />
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg bg-[#F6F0ED] p-3">
+                <div className="text-[11px] uppercase tracking-wide text-[#326273]/60">Operating balance</div>
+                <div className="mt-1 text-xl font-extrabold text-[#326273]">MYR 52,440.00</div>
+                <div className="mt-0.5 text-[11px] font-semibold text-[#5C9EAD]">Reconciled</div>
+              </div>
+              <div className="rounded-lg bg-[#F6F0ED] p-3">
+                <div className="text-[11px] uppercase tracking-wide text-[#326273]/60">Pending inflow</div>
+                <div className="mt-1 text-xl font-extrabold text-[#326273]">MYR 21,400.00</div>
+                <div className="mt-0.5 text-[11px] font-semibold text-[#E39774]">Awaiting FPX</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside className="space-y-5">
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-[#326273]">Compliance posture</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Checks required before value moves.</p>
+              </div>
+              <ShieldCheck className="text-[#5C9EAD]" size={18} />
+            </div>
+            <div className="mt-4 space-y-3">
+              {compliance.map((item) => (
+                <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
+                  <div className="grid min-h-16 cursor-pointer grid-cols-[1fr_auto] items-center gap-3 rounded-lg bg-[#F6F0ED] p-3 transition-all hover:shadow-md hover:shadow-[#5C9EAD]/10">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-[#326273]">{item.label}</div>
+                      <div className="mt-0.5 text-[11px] text-[#326273]/60">{item.value}</div>
+                    </div>
+                    <div className="justify-self-end">
+                      <StatusBadge status={item.status} />
+                    </div>
+                  </div>
+                </HoverPopup>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-[#326273]">Recent activity</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Latest transfer, batch, and compliance events.</p>
+              </div>
+              <RefreshCw className="text-[#5C9EAD]" size={18} />
+            </div>
+            <div className="mt-4 space-y-3">
+              {activities.map((activity) => (
+                <HoverPopup key={activity.ref} title={activity.hoverTitle} content={activity.hoverContent}>
+                  <div className="cursor-pointer rounded-lg bg-[#F6F0ED] p-3 transition-all hover:shadow-md hover:shadow-[#5C9EAD]/10">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-[#326273]">{activity.title}</div>
+                        <div className="mt-0.5 text-[11px] text-[#326273]/60">{activity.ref}</div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <StatusBadge status={activity.status} />
+                        <div className="mt-0.5 text-[11px] font-bold text-[#5C9EAD]">{activity.amount}</div>
+                      </div>
+                    </div>
+                  </div>
+                </HoverPopup>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-[#326273]">Pending actions</h2>
+                <p className="mt-0.5 text-xs text-[#326273]/60">Items requiring your attention.</p>
+              </div>
+              <AlertTriangle className="text-[#E39774]" size={18} />
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between rounded-lg bg-[#F6F0ED] p-3">
+                <div className="text-xs font-semibold text-[#326273]">Batch payroll awaiting TOTP</div>
+                <Link href="/dashboard/batch" className="rounded-md bg-[#5C9EAD] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#4A8895]">
+                  Authorize
+                </Link>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-[#F6F0ED] p-3">
+                <div className="text-xs font-semibold text-[#326273]">KYB document review</div>
+                <Link href="/dashboard/settings" className="rounded-md bg-[#5C9EAD] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#4A8895]">
+                  Review
                 </Link>
               </div>
             </div>
           </div>
-        </HoverPopup>
+        </aside>
       </section>
     </div>
   );

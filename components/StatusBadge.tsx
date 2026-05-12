@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-type Status = 'unverified' | 'pending' | 'verified' | 'failed';
+export type Status = 'unverified' | 'pending' | 'verified' | 'failed';
 
 export default function StatusBadge({ status }: { status: Status }) {
   const map = {

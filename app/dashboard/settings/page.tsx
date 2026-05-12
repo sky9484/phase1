@@ -13,9 +13,12 @@ export default function DashboardSettingsPage() {
     password: true,
     roles: true,
   });
-  const [lastSync, setLastSync] = useState(() => new Date());
+  const [lastSync, setLastSync] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Initial date is set on mount to avoid SSR hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLastSync(new Date());
     const interval = window.setInterval(() => {
       setLimits((current) => current.map((value) => Math.min(96, Math.max(8, value + Math.round(Math.random() * 4 - 1)))));
       setLastSync(new Date());
@@ -36,7 +39,7 @@ export default function DashboardSettingsPage() {
         </div>
         <div className="rounded-2xl border border-[#326273]/10 bg-white px-4 py-3 text-sm font-semibold text-[#326273]">
           Organization: Acme Trading Sdn Bhd
-          <div className="mt-1 text-xs font-normal text-[#326273]/50">Live sync {lastSync.toLocaleTimeString()}</div>
+          <div className="mt-1 text-xs font-normal text-[#326273]/50">Live sync {lastSync?.toLocaleTimeString() ?? '—'}</div>
         </div>
       </header>
 

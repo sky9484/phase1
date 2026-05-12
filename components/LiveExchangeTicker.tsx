@@ -17,9 +17,12 @@ const RATES = [
 
 export default function LiveExchangeTicker() {
   const [rates, setRates] = useState(() => RATES.map((rate) => ({ ...rate, change: 0 })));
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Initial date is set on mount to avoid SSR hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLastUpdate(new Date());
     const interval = window.setInterval(() => {
       setRates((prev) =>
         prev.map((r) => {
@@ -55,7 +58,7 @@ export default function LiveExchangeTicker() {
             </span>
             <Activity className="h-4 w-4 text-[#5C9EAD]" />
             <span>MYR LIVE FX</span>
-            <span className="hidden text-xs text-white/45 sm:inline">Updated {lastUpdate.toLocaleTimeString()}</span>
+            <span className="hidden text-xs text-white/45 sm:inline">Updated {lastUpdate?.toLocaleTimeString() ?? '—'}</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="flex w-max animate-[splashFxTicker_38s_linear_infinite] items-center gap-8 whitespace-nowrap">

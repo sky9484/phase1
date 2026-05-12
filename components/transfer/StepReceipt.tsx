@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import Receipt from '@/components/Receipt';
@@ -8,8 +8,15 @@ import type { TransferState } from '@/app/dashboard/transfer/page';
 
 export default function StepReceipt({ state, reset }: { state: TransferState; reset: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [issuedAt] = useState(() => new Date().toISOString());
-  const [reference] = useState(() => `SPL-${Date.now().toString(36).toUpperCase()}`);
+  const [issuedAt, setIssuedAt] = useState('');
+  const [reference, setReference] = useState('');
+
+  useEffect(() => {
+    // Initial values are set on mount to avoid SSR hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIssuedAt(new Date().toISOString());
+    setReference(`SPL-${Date.now().toString(36).toUpperCase()}`);
+  }, []);
   const print = useReactToPrint({ contentRef: ref, documentTitle: `splash-receipt-${state.txDigest?.slice(0, 8) ?? 'draft'}` });
 
   return (
@@ -18,7 +25,7 @@ export default function StepReceipt({ state, reset }: { state: TransferState; re
         ref={ref}
         txDigest={state.txDigest ?? state.receiptObjectId ?? 'Pending'}
         sender="Splash operator"
-        recipient={state.recipient.partnerReference ?? state.recipient.bank?.account ?? state.recipient.name}
+        recipient={state.recipient.bank?.account ?? state.recipient.name}
         amount={state.quote?.netReceived ?? state.amount.value}
         currency={state.amount.targetCurrency}
         fee={state.quote?.fee ?? '0.00'}

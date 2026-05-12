@@ -18,9 +18,6 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Splash - An Engine For Cross Border Payment",
   description: "The Stripe of SEA. Cross-border settlement on Sui.",
-  icons: {
-    icon: "/splash-icon.png",
-  },
 };
 
 export default function RootLayout({
@@ -34,7 +31,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${fontSans.variable} ${fontMono.variable} h-full font-sans antialiased`}
     >
-      <body className="min-h-full bg-[#F6F0ED] text-[#326273]">
+      <body suppressHydrationWarning className="min-h-full bg-[#F6F0ED] text-[#326273]">
         <ThemeProvider>
           <Providers>{children}</Providers>
         </ThemeProvider>
