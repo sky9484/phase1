@@ -4,6 +4,25 @@ import { useState } from 'react';
 import { Headphones, Send, Bug, MessageSquareWarning, MessageSquare, Mail, Phone, Clock3, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
+type SupportTicket = {
+  id: string;
+  type: string;
+  subject: string;
+  message: string;
+  email: string | null;
+  status: string;
+  priority: string;
+  createdAt: string;
+  updatedAt: string;
+  replies: {
+    id: string;
+    actor: string;
+    actorType: 'customer' | 'staff';
+    message: string;
+    createdAt: string;
+  }[];
+};
+
 const issueTypes = [
   { id: 'bug', label: 'Bug Report', icon: Bug, desc: 'Something is not working correctly' },
   { id: 'feature', label: 'Feature Request', icon: MessageSquare, desc: 'Suggest a new feature' },
@@ -29,14 +48,86 @@ export default function CustomerServicePage() {
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [ticket, setTicket] = useState<SupportTicket | null>(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
-  function submit() {
+  async function submit() {
     if (!subject || !message) {
       toast.error('Subject and message are required');
       return;
     }
-    setSubmitted(true);
-    toast.success('Ticket submitted successfully. We will respond within 24 hours.');
+
+    try {
+      const response = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, subject, message, email }),
+      });
+
+      const body = await response.json() as { ticket?: SupportTicket; error?: string };
+
+      if (!response.ok || !body.ticket) {
+        throw new Error(body.error ?? 'Ticket submission failed');
+      }
+
+      setTicket(body.ticket);
+      setSubmitted(true);
+      toast.success(`Ticket ${body.ticket.id} submitted to staff support`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Ticket submission failed';
+      toast.error(errorMessage);
+    }
+  }
+
+  async function refreshTicket() {
+    if (!ticket) return;
+
+    try {
+      const response = await fetch(`/api/support/tickets/${ticket.id}`, { cache: 'no-store' });
+      const body = await response.json() as { ticket?: SupportTicket; error?: string };
+
+      if (!response.ok || !body.ticket) {
+        throw new Error(body.error ?? 'Ticket refresh failed');
+      }
+
+      setTicket(body.ticket);
+      toast.success('Ticket thread refreshed');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Ticket refresh failed';
+      toast.error(errorMessage);
+    }
+  }
+
+  async function sendFollowUp() {
+    if (!ticket || !replyMessage.trim()) {
+      toast.error('Write a message before sending');
+      return;
+    }
+
+    setSendingReply(true);
+
+    try {
+      const response = await fetch(`/api/support/tickets/${ticket.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: replyMessage, email }),
+      });
+      const body = await response.json() as { ticket?: SupportTicket; error?: string };
+
+      if (!response.ok || !body.ticket) {
+        throw new Error(body.error ?? 'Follow-up message failed');
+      }
+
+      setTicket(body.ticket);
+      setReplyMessage('');
+      toast.success('Message sent to staff support');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Follow-up message failed';
+      toast.error(errorMessage);
+    } finally {
+      setSendingReply(false);
+    }
   }
 
   function reset() {
@@ -45,6 +136,8 @@ export default function CustomerServicePage() {
     setMessage('');
     setEmail('');
     setSubmitted(false);
+    setTicket(null);
+    setReplyMessage('');
   }
 
   return (
@@ -63,14 +156,59 @@ export default function CustomerServicePage() {
       <section className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
         <div>
           {submitted ? (
-            <div className="rounded-2xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-8 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#5C9EAD]/10 text-[#5C9EAD]">
-                <Send className="h-7 w-7" />
+            <div className="space-y-4 rounded-2xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="flex gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#5C9EAD]/10 text-[#5C9EAD]">
+                    <Send className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-[#326273]">Ticket Submitted</h2>
+                    <p className="mt-1 text-sm text-[#326273]/60">Your support request is now visible in the staff admin console.</p>
+                    {ticket && <p className="mt-2 break-all font-mono text-xs text-[#326273]/60">Ticket ID: {ticket.id}</p>}
+                  </div>
+                </div>
+                {ticket && <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#326273]">{ticket.status}</span>}
               </div>
-              <h2 className="mt-4 text-lg font-bold text-[#326273]">Ticket Submitted</h2>
-              <p className="mt-1 text-sm text-[#326273]/60">Your support request has been received. A confirmation email will be sent shortly.</p>
-              <button onClick={reset} className="mt-5 rounded-lg bg-[#5C9EAD] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#4A8B9A]">
-                Submit another
+
+              {ticket && (
+                <div className="rounded-2xl bg-white p-4 text-left">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">{ticket.type} · {ticket.priority}</div>
+                      <h3 className="mt-1 font-bold text-[#326273]">{ticket.subject}</h3>
+                    </div>
+                    <button type="button" onClick={() => void refreshTicket()} className="rounded-lg border border-[#5C9EAD]/30 px-3 py-2 text-xs font-bold text-[#326273] hover:border-[#5C9EAD]">
+                      Refresh thread
+                    </button>
+                  </div>
+                  <div className="mt-4 rounded-xl bg-[#F6F0ED] p-3 text-sm leading-6 text-[#326273]/70">{ticket.message}</div>
+
+                  <div className="mt-4 space-y-3">
+                    {ticket.replies.length === 0 && <div className="rounded-xl border border-dashed border-[#326273]/20 p-3 text-xs text-[#326273]/55">No staff reply yet. You can add more context below.</div>}
+                    {ticket.replies.map((reply) => (
+                      <div key={reply.id} className={`rounded-xl p-3 text-sm ${reply.actorType === 'staff' ? 'bg-[#5C9EAD]/10' : 'bg-[#F6F0ED]'}`}>
+                        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                          <span className="font-bold text-[#326273]">{reply.actorType === 'staff' ? 'Splash staff' : 'You'} · {reply.actor}</span>
+                          <span className="text-xs text-[#326273]/50">{new Date(reply.createdAt).toLocaleString()}</span>
+                        </div>
+                        <p className="mt-2 leading-6 text-[#326273]/70">{reply.message}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="text-xs font-semibold text-[#326273]/70">Add a follow-up message</label>
+                    <textarea value={replyMessage} onChange={(event) => setReplyMessage(event.target.value)} rows={3} className="mt-1 w-full resize-none rounded-lg border border-[#326273]/20 bg-[#F6F0ED] px-4 py-3 text-sm text-[#326273] focus:border-[#5C9EAD] focus:outline-none" placeholder="Add extra details for the support team..." />
+                    <button type="button" disabled={sendingReply} onClick={() => void sendFollowUp()} className="mt-3 rounded-lg bg-[#5C9EAD] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#4A8B9A] disabled:opacity-60">
+                      {sendingReply ? 'Sending…' : 'Send follow-up'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button onClick={reset} className="rounded-lg bg-[#326273] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#254e5c]">
+                Submit another ticket
               </button>
             </div>
           ) : (
@@ -127,7 +265,7 @@ export default function CustomerServicePage() {
               </div>
 
               <button
-                onClick={submit}
+                onClick={() => void submit()}
                 className="w-full rounded-lg bg-[#5C9EAD] px-4 py-3 font-bold text-white hover:bg-[#4A8B9A]"
               >
                 Submit Ticket

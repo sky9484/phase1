@@ -1,6 +1,10 @@
 import { createHash } from 'crypto';
 import { NextResponse } from 'next/server';
 
+import { recordKybSubmission, type KybDocumentRecord } from '@/lib/server/kyb';
+
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   const files = formData.getAll('documents').filter((item): item is File => item instanceof File);
@@ -16,7 +20,7 @@ export async function POST(request: Request) {
   }
 
   const kybCaseId = `kyb_${Date.now().toString(36)}_${createHash('sha256').update(`${legalName}:${registrationNumber}`).digest('hex').slice(0, 10)}`;
-  const documents = await Promise.all(
+  const documents: KybDocumentRecord[] = await Promise.all(
     files.map(async (file) => {
       const bytes = Buffer.from(await file.arrayBuffer());
       const hash = createHash('sha256').update(bytes).digest('hex');
@@ -33,10 +37,11 @@ export async function POST(request: Request) {
       };
     }),
   );
+  const kybCase = recordKybSubmission({ caseId: kybCaseId, businessName: legalName, registrationNumber, documents });
 
   return NextResponse.json({
     kybCaseId,
-    state: 'SUBMITTED',
+    state: kybCase.state,
     documents,
   });
 }

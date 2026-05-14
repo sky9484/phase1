@@ -12,6 +12,21 @@ type UploadResponse = {
   documents: { name: string; sha256: string; storageKey: string; virusScanResult: string }[];
 };
 
+type KybCaseStatus = {
+  id: string;
+  businessName: string;
+  registrationNumber: string;
+  state: 'SUBMITTED' | 'IN_REVIEW' | 'NEEDS_INFORMATION' | 'APPROVED' | 'REJECTED';
+  riskTier: string;
+  corridorAccess: string;
+  submittedAt: string;
+  updatedAt: string;
+  sumsubApplicantId: string | null;
+  reviewNotes: string | null;
+  decisionReason: string | null;
+  documents: { name: string; kind: string; type: string; size: number; sha256: string; virusScanResult: string; uploadedAt: string }[];
+};
+
 type SumsubResponse = {
   configured: boolean;
   provider?: 'SUMSUB';
@@ -51,6 +66,7 @@ export default function KybSettings() {
   const [sumsubStatus, setSumsubStatus] = useState<'idle' | 'starting' | 'ready' | 'completed' | 'unconfigured' | 'failed'>('idle');
   const [sumsubError, setSumsubError] = useState<string | null>(null);
   const [status, setStatus] = useState<'unverified' | 'pending' | 'verified' | 'failed'>('unverified');
+  const [caseStatus, setCaseStatus] = useState<KybCaseStatus | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function loadSumsubScript() {
@@ -89,6 +105,52 @@ export default function KybSettings() {
     }
 
     return body;
+  }
+
+  function applyCaseStatus(record: KybCaseStatus) {
+    setCaseStatus(record);
+    setKybCaseId(record.id);
+    setSumsubApplicantId(record.sumsubApplicantId);
+
+    if (record.state === 'APPROVED') {
+      setStatus('verified');
+      return;
+    }
+
+    if (record.state === 'REJECTED') {
+      setStatus('failed');
+      return;
+    }
+
+    setStatus('pending');
+  }
+
+  async function refreshCaseStatus() {
+    if (!kybCaseId) return;
+
+    try {
+      const response = await fetch(`/api/kyb/cases/${kybCaseId}`, { cache: 'no-store' });
+      const body = await response.json() as { case?: KybCaseStatus; error?: string };
+
+      if (!response.ok || !body.case) {
+        throw new Error(body.error ?? 'KYB case refresh failed');
+      }
+
+      applyCaseStatus(body.case);
+      toast.success(`KYB status: ${body.case.state.replace('_', ' ').toLowerCase()}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'KYB case refresh failed';
+      toast.error(message);
+    }
+  }
+
+  async function refreshUploadedCase(caseId: string) {
+    const response = await fetch(`/api/kyb/cases/${caseId}`, { cache: 'no-store' });
+    const body = await response.json() as { case?: KybCaseStatus };
+
+    if (response.ok && body.case) {
+      applyCaseStatus(body.case);
+    }
   }
 
   async function startSumsub(caseId: string) {
@@ -176,7 +238,8 @@ export default function KybSettings() {
       const uploaded = (await upload.json()) as UploadResponse;
       setKybCaseId(uploaded.kybCaseId);
       setStatus('pending');
-      toast.success('KYB case submitted for review');
+      toast.success(`KYB case ${uploaded.kybCaseId} submitted to staff review`);
+      await refreshUploadedCase(uploaded.kybCaseId);
       await startSumsub(uploaded.kybCaseId);
       setSubmitting(false);
     } catch (error) {
@@ -207,7 +270,33 @@ export default function KybSettings() {
           <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#326273]/10">
             <div className="h-full rounded-full bg-[#5C9EAD] transition-all" style={{ width: status === 'verified' ? '100%' : status === 'pending' ? '68%' : status === 'failed' ? '28%' : '18%' }} />
           </div>
-          {kybCaseId && <div className="mt-4 break-all rounded-xl bg-[#F6F0ED] p-3 font-mono text-xs text-[#326273]/70">KYB case: {kybCaseId}</div>}
+          {kybCaseId && (
+            <div className="mt-4 rounded-xl bg-[#F6F0ED] p-3 text-xs text-[#326273]/70">
+              <div className="break-all font-mono">KYB case: {kybCaseId}</div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => void refreshCaseStatus()} className="rounded-lg border border-[#5C9EAD]/40 px-3 py-1.5 font-bold text-[#326273] hover:border-[#5C9EAD]">
+                  Refresh admin decision
+                </button>
+                {caseStatus && <span className="font-bold uppercase tracking-wide text-[#5C9EAD]">{caseStatus.state.replace('_', ' ')}</span>}
+              </div>
+            </div>
+          )}
+          {caseStatus && (
+            <div className="mt-4 rounded-xl border border-[#326273]/10 bg-[#F6F0ED] p-4 text-sm text-[#326273]/75">
+              <div className="font-bold text-[#326273]">Staff review status</div>
+              <div className="mt-2 grid gap-2 text-xs md:grid-cols-2">
+                <div>Risk tier: {caseStatus.riskTier.replace('_', ' ')}</div>
+                <div>Corridor access: {caseStatus.corridorAccess}</div>
+                <div>Documents: {caseStatus.documents.length}</div>
+                <div>Updated: {new Date(caseStatus.updatedAt).toLocaleString()}</div>
+              </div>
+              {(caseStatus.reviewNotes || caseStatus.decisionReason) && (
+                <div className="mt-3 rounded-lg bg-white p-3 text-xs leading-5">
+                  {caseStatus.reviewNotes ?? caseStatus.decisionReason}
+                </div>
+              )}
+            </div>
+          )}
           <div className="mt-4 rounded-xl bg-[#F6F0ED] p-4 text-sm text-[#326273]/75">
             <div className="flex items-center gap-2 font-bold text-[#326273]">
               {sumsubStatus === 'starting' ? <Loader2 className="h-4 w-4 animate-spin text-[#5C9EAD]" /> : <CheckCircle2 className="h-4 w-4 text-[#5C9EAD]" />}
@@ -229,9 +318,6 @@ export default function KybSettings() {
               </button>
             )}
           </div>
-          <button type="button" onClick={() => setStatus((value) => (value === 'verified' ? 'pending' : 'verified'))} className="mt-4 rounded-lg border border-[#5C9EAD]/40 px-4 py-2 text-xs font-bold text-[#326273] hover:border-[#5C9EAD]">
-            Toggle admin verification preview
-          </button>
         </div>
       </section>
 

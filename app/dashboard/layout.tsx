@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F6F0ED]">
+    <div className="flex min-h-screen bg-[linear-gradient(rgba(50,98,115,0.055),rgba(50,98,115,0.055)),#F6F0ED]">
       {/* Desktop sidebar */}
       <aside
         className={`hidden flex-col bg-[#326273] p-6 text-white transition-all duration-300 md:flex fixed left-0 top-0 z-30 h-screen ${collapsed ? 'w-24' : 'w-56'}`}

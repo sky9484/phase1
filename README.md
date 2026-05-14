@@ -9,6 +9,7 @@ Splash Finance is a B2B cross-border settlement prototype for SEA exporters, mar
 - Seven-step single-transfer wizard with quote, TOTP authorization, server status polling, and printable receipt.
 - CSV batch payout flow with PapaParse and server-side batch authorization.
 - KYB upload API that records encrypted-storage metadata, document SHA-256 hashes, and a KYB case ID.
+- Separate staff admin console for KYB approvals, support replies, and complaint management.
 - Move package with `splash_protocol::business_account` and `splash_protocol::settlement` modules.
 
 ## Environment
@@ -31,6 +32,10 @@ SUMSUB_APP_TOKEN=
 SUMSUB_SECRET_KEY=
 SUMSUB_LEVEL_NAME=splash-kyb
 SUMSUB_BASE_URL=https://api.sumsub.com
+
+ADMIN_EMAIL=staff@splash.finance
+ADMIN_PASSWORD=
+ADMIN_SESSION_SECRET=
 ```
 
 Use a real coin type for `USDC_TYPE` after publishing or selecting a testnet USDC-compatible coin. The default SUI type is useful for local/test transactions only.
@@ -89,5 +94,9 @@ After publishing:
 - `/dashboard/batch`
 - `/dashboard/settings`
 - `/settings/kyb`
+- `/admin/login`
+- `/admin`
+- `/admin/kyb`
+- `/admin/support`
 - `/transfer/fpx`
 - `/api/kyb/upload`
