@@ -1,6 +1,8 @@
 module splash_protocol::settlement;
 
 use splash_protocol::business_account::{Self, BusinessAccount};
+use splash_protocol::peg_monitor::{Self, PegState};
+use sui::clock::Clock;
 use sui::balance::{Self, Balance};
 use sui::coin::{Self, Coin};
 use sui::event;
@@ -60,11 +62,14 @@ public fun deposit<T>(pool: &mut SettlementPool<T>, coin: Coin<T>) {
 public fun settle_payment<T>(
     pool: &mut SettlementPool<T>,
     business_account: &BusinessAccount,
+    peg_state: &PegState,
     payment: Coin<T>,
     recipient: address,
+    clock: &Clock,
     ctx: &mut TxContext,
 ) {
     assert!(business_account::is_verified(business_account), E_NOT_VERIFIED);
+    peg_monitor::assert_pegged(peg_state, clock);
 
     let gross = coin::value(&payment);
     let fee = gross * FEE_BPS / BPS_DENOMINATOR;
@@ -90,10 +95,13 @@ public fun settle_payment<T>(
 public fun settle_batch<T>(
     pool: &mut SettlementPool<T>,
     business_account: &BusinessAccount,
+    peg_state: &PegState,
     payments: vector<Payment>,
+    clock: &Clock,
     ctx: &mut TxContext,
 ) {
     assert!(business_account::is_verified(business_account), E_NOT_VERIFIED);
+    peg_monitor::assert_pegged(peg_state, clock);
     assert!(vector::length(&payments) > 0, E_EMPTY_BATCH);
 
     let business_owner = business_account::owner(business_account);
@@ -122,10 +130,12 @@ public fun settle_batch<T>(
 public fun settle_sui_batch(
     pool: &mut SettlementPool<SUI>,
     business_account: &BusinessAccount,
+    peg_state: &PegState,
     payments: vector<Payment>,
+    clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    settle_batch<SUI>(pool, business_account, payments, ctx);
+    settle_batch<SUI>(pool, business_account, peg_state, payments, clock, ctx);
 }
 
 public fun pool_balance<T>(pool: &SettlementPool<T>): u64 {
