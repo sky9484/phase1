@@ -68,7 +68,7 @@ async function updatePegOnSui(): Promise<void> {
     '--package', SPLASH_PACKAGE_ID,
     '--module', 'peg_monitor',
     '--function', 'update_peg',
-    '--args', SPLASH_PEG_STATE_ID, SPLASH_ADMIN_CAP_ID, usdcDeviationPpm, usdtDeviationPpm, '@0x6',
+    '--args', SPLASH_PEG_STATE_ID, SPLASH_ADMIN_CAP_ID, usdcDeviationPpm, usdtDeviationPpm, '0x6',
     '--gas-budget', process.env.SUI_PEG_UPDATE_GAS_BUDGET ?? '10000000',
     '--json',
   ], 1024 * 1024 * 5);
