@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server';
+
+import { getAdminSession } from '@/lib/server/admin-auth';
+import { listTransfers } from '@/lib/server/operations';
+
+export async function GET(request: Request) {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return NextResponse.json({ error: 'Staff authentication required' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10));
+  const pageSize = Math.min(100, Math.max(1, Number.parseInt(searchParams.get('pageSize') ?? '25', 10)));
+  const transfers = listTransfers();
+  const start = (page - 1) * pageSize;
+  const paginated = transfers.slice(start, start + pageSize);
+
+  return NextResponse.json({
+    transfers: paginated,
+    pagination: {
+      page,
+      pageSize,
+      total: transfers.length,
+      totalPages: Math.ceil(transfers.length / pageSize),
+    },
+  });
+}

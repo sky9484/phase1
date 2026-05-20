@@ -1,0 +1,367 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  RefreshCw,
+  XCircle,
+  AlertTriangle,
+  ArrowRight,
+  Loader2,
+  History,
+} from 'lucide-react';
+import Link from 'next/link';
+
+import type { TransferIntentRecord, TransferIntentState } from '@/lib/server/operations';
+
+type FilterType = 'all' | 'pending' | 'successful' | 'failed';
+
+type ApiResponse = {
+  items: TransferIntentRecord[];
+  total: number;
+  page: number;
+  perPage: number;
+};
+
+const STATE_ORDER: TransferIntentState[] = [
+  'AUTHORIZED',
+  'FPX_PAID',
+  'EXCHANGING',
+  'EXCHANGED',
+  'QUEUED',
+  'SETTLING',
+  'SETTLED',
+];
+
+function stateIndex(state: TransferIntentState) {
+  const idx = STATE_ORDER.indexOf(state);
+  return idx === -1 ? 0 : idx;
+}
+
+function StateIcon({ state }: { state: TransferIntentState }) {
+  if (state === 'SETTLED' || state === 'DISBURSED') {
+    return <CheckCircle2 className="text-[#5C9EAD]" size={18} />;
+  }
+  if (state === 'FAILED' || state === 'REFUNDED') {
+    return <XCircle className="text-red-500" size={18} />;
+  }
+  if (state === 'REFUNDING') {
+    return <AlertTriangle className="text-[#E39774]" size={18} />;
+  }
+  return <Loader2 className="animate-spin text-[#E39774]" size={18} />;
+}
+
+function StateBadge({ state }: { state: TransferIntentState }) {
+  if (state === 'SETTLED' || state === 'DISBURSED') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#5C9EAD]/10 px-2.5 py-0.5 text-xs font-semibold text-[#5C9EAD]">
+        <CheckCircle2 size={11} /> {state}
+      </span>
+    );
+  }
+  if (state === 'FAILED') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+        <XCircle size={11} /> FAILED
+      </span>
+    );
+  }
+  if (state === 'REFUNDING' || state === 'REFUNDED') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#E39774]/10 px-2.5 py-0.5 text-xs font-semibold text-[#E39774]">
+        <AlertTriangle size={11} /> {state}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#326273]/10 px-2.5 py-0.5 text-xs font-semibold text-[#326273]/70">
+      <Clock size={11} /> {state}
+    </span>
+  );
+}
+
+function ProgressSteps({ state }: { state: TransferIntentState }) {
+  if (state === 'FAILED' || state === 'REFUNDING' || state === 'REFUNDED') return null;
+  const current = stateIndex(state);
+  const steps = ['Authorized', 'FPX Paid', 'Exchanging', 'Exchanged', 'Queued', 'Settling', 'Settled'];
+
+  return (
+    <div className="mt-3 flex items-center gap-0.5 overflow-x-auto pb-1">
+      {steps.map((label, index) => {
+        const done = index < current;
+        const active = index === current;
+        return (
+          <div key={label} className="flex shrink-0 items-center gap-0.5">
+            <div
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold transition-colors
+                ${done ? 'bg-[#5C9EAD] text-white' : active ? 'border-2 border-[#5C9EAD] bg-white text-[#5C9EAD]' : 'bg-[#326273]/10 text-[#326273]/40'}`}
+              title={label}
+            >
+              {done ? '✓' : index + 1}
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`h-0.5 w-4 rounded-full ${done ? 'bg-[#5C9EAD]' : 'bg-[#326273]/10'}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TransferCard({ record }: { record: TransferIntentRecord }) {
+  const suiScanUrl = record.suiTxDigest
+    ? `https://suiscan.xyz/testnet/tx/${record.suiTxDigest}`
+    : null;
+  const suiVisionUrl = record.suiTxDigest
+    ? `https://testnet.suivision.xyz/txblock/${record.suiTxDigest}`
+    : null;
+
+  return (
+    <div className="rounded-2xl border border-[#326273]/10 bg-white p-5 transition-all hover:border-[#5C9EAD]/30 hover:shadow-lg hover:shadow-[#5C9EAD]/10">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 shrink-0">
+            <StateIcon state={record.state} />
+          </div>
+          <div className="min-w-0">
+            <div className="font-bold text-[#326273]">{record.recipientName}</div>
+            <div className="mt-0.5 text-xs text-[#326273]/60">
+              {record.targetCurrency} {record.targetAmount} · MYR {record.sourceAmountMyr}
+            </div>
+            <div className="mt-0.5 font-mono text-[11px] text-[#326273]/40">{record.id}</div>
+          </div>
+        </div>
+        <div className="shrink-0">
+          <StateBadge state={record.state} />
+        </div>
+      </div>
+
+      <ProgressSteps state={record.state} />
+
+      {record.state === 'FAILED' && record.failureReason && (
+        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          <span className="font-semibold">Failure reason: </span>
+          {record.failureReason}
+          {record.failedAtState && (
+            <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 font-mono text-[10px]">
+              at {record.failedAtState}
+            </span>
+          )}
+        </div>
+      )}
+
+      {record.suiTxDigest && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="min-w-0 flex-1 break-all rounded-lg bg-[#F6F0ED] px-3 py-1.5 font-mono text-[11px] text-[#326273]/60">
+            {record.suiTxDigest}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {suiScanUrl && (
+              <a
+                href={suiScanUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg bg-[#5C9EAD]/10 px-2.5 py-1.5 text-xs font-semibold text-[#5C9EAD] hover:bg-[#5C9EAD]/20"
+              >
+                <ExternalLink size={11} /> SuiScan
+              </a>
+            )}
+            {suiVisionUrl && (
+              <a
+                href={suiVisionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg bg-[#5C9EAD]/10 px-2.5 py-1.5 text-xs font-semibold text-[#5C9EAD] hover:bg-[#5C9EAD]/20"
+              >
+                <ExternalLink size={11} /> SuiVision
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-between text-[11px] text-[#326273]/40">
+        <span>{new Date(record.createdAt).toLocaleString()}</span>
+        {record.exchangeRate && <span>Rate: {record.exchangeRate}</span>}
+      </div>
+    </div>
+  );
+}
+
+const FILTERS: { label: string; value: FilterType; icon: React.ElementType }[] = [
+  { label: 'All', value: 'all', icon: ArrowRight },
+  { label: 'Pending', value: 'pending', icon: Clock },
+  { label: 'Successful', value: 'successful', icon: CheckCircle2 },
+  { label: 'Failed', value: 'failed', icon: XCircle },
+];
+
+export default function HistoryPage() {
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [data, setData] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchTransfers = useCallback(async (f: FilterType, showRefreshing = false) => {
+    if (showRefreshing) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const response = await fetch(`/api/transfers?filter=${f}`);
+      if (response.ok) {
+        const json = (await response.json()) as ApiResponse;
+        setData(json);
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchTransfers(filter);
+  }, [filter, fetchTransfers]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void fetchTransfers(filter, true);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [filter, fetchTransfers]);
+
+  const pending = data?.items.filter(
+    (r) => r.state !== 'SETTLED' && r.state !== 'DISBURSED' && r.state !== 'FAILED' && r.state !== 'REFUNDED' && r.state !== 'REFUNDING',
+  ) ?? [];
+  const successful = data?.items.filter((r) => r.state === 'SETTLED' || r.state === 'DISBURSED') ?? [];
+  const failed = data?.items.filter((r) => r.state === 'FAILED' || r.state === 'REFUNDING' || r.state === 'REFUNDED') ?? [];
+
+  const counts: Record<FilterType, number> = {
+    all: data?.total ?? 0,
+    pending: pending.length,
+    successful: successful.length,
+    failed: failed.length,
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6">
+      {/* Header */}
+      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">
+            <History size={12} /> Transfer History
+          </div>
+          <h1 className="text-3xl font-extrabold text-[#326273]">History</h1>
+          <p className="mt-1 max-w-xl text-sm text-[#326273]/60">
+            All your single transfers — live status, on-chain proofs, and failure reasons.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void fetchTransfers(filter, true)}
+            disabled={refreshing}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#326273]/10 bg-white px-4 py-2 text-sm font-semibold text-[#326273] hover:border-[#5C9EAD]/40 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <Link
+            href="/dashboard/transfer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
+          >
+            <ArrowUpRight size={14} />
+            New transfer
+          </Link>
+        </div>
+      </header>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Total</div>
+          <div className="mt-2 text-2xl font-extrabold text-[#326273]">{data?.total ?? 0}</div>
+        </div>
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Pending</div>
+          <div className="mt-2 text-2xl font-extrabold text-[#E39774]">{counts.pending}</div>
+        </div>
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Settled</div>
+          <div className="mt-2 text-2xl font-extrabold text-[#5C9EAD]">{counts.successful}</div>
+        </div>
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Failed</div>
+          <div className="mt-2 text-2xl font-extrabold text-red-500">{counts.failed}</div>
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map(({ label, value, icon: Icon }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setFilter(value)}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors
+              ${filter === value
+                ? 'bg-[#326273] text-white'
+                : 'border border-[#326273]/10 bg-white text-[#326273]/70 hover:border-[#5C9EAD]/40 hover:text-[#326273]'
+              }`}
+          >
+            <Icon size={14} />
+            {label}
+            {value !== 'all' && (
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold
+                  ${filter === value ? 'bg-white/20 text-white' : 'bg-[#326273]/10 text-[#326273]/60'}`}
+              >
+                {counts[value]}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-[#5C9EAD]" size={28} />
+        </div>
+      ) : !data?.items.length ? (
+        <div className="rounded-2xl border border-[#326273]/10 bg-white p-16 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5C9EAD]/10 text-[#5C9EAD]">
+            <History size={24} />
+          </div>
+          <div className="font-bold text-[#326273]">No transfers yet</div>
+          <p className="mt-1 text-sm text-[#326273]/60">
+            {filter === 'all'
+              ? 'Your transfers will appear here once you make your first payment.'
+              : `No ${filter} transfers found.`}
+          </p>
+          {filter === 'all' && (
+            <Link
+              href="/dashboard/transfer"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
+            >
+              <ArrowUpRight size={14} />
+              Make your first transfer
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {data.items.map((record) => (
+            <TransferCard key={record.id} record={record} />
+          ))}
+          {data.total > data.items.length && (
+            <div className="pt-2 text-center text-sm text-[#326273]/50">
+              Showing {data.items.length} of {data.total} transfers
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
