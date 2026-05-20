@@ -201,7 +201,10 @@ export async function recordSingleTransferOnSui(input: {
   // Use at least 1_000 MIST so the fee calc (150 bps) leaves a positive net amount.
   const paymentMist = Math.max(1_000_000, input.stablecoinAmountMicro);
 
-  await updatePegOnSui();
+  // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
+  const SPLASH_ADMIN_CAP_ID = envObjectIdOrThrow('SPLASH_ADMIN_CAP_ID');
+  const usdcDeviationPpm = process.env.SPLASH_PEG_USDC_DEVIATION_PPM ?? '0';
+  const usdtDeviationPpm = process.env.SPLASH_PEG_USDT_DEVIATION_PPM ?? '0';
 
   const gasBudget = process.env.SUI_RECORD_SETTLEMENT_GAS_BUDGET ?? '10000000';
 
@@ -218,8 +221,18 @@ export async function recordSingleTransferOnSui(input: {
     ptbArgs.push('--merge-coins', 'gas', `[${mergeIds.map((id) => `@${id}`).join(',')}]`);
   }
   ptbArgs.push(
+    // 1. Push fresh Pyth-derived peg reading on chain (atomic with settle below)
+    '--move-call',
+    `${SPLASH_PACKAGE_ID}::peg_monitor::update_peg`,
+    `@${SPLASH_PEG_STATE_ID}`,
+    `@${SPLASH_ADMIN_CAP_ID}`,
+    usdcDeviationPpm,
+    usdtDeviationPpm,
+    '@0x6',
+    // 2. Split payment from gas
     '--split-coins', 'gas', `[${paymentMist}]`,
     '--assign', 'payment',
+    // 3. Settle — assert_pegged reads the freshly-updated PegState from step 1
     '--move-call',
     `${SPLASH_PACKAGE_ID}::settlement::settle_payment`,
     `<${USDC_TYPE}>`,
@@ -286,7 +299,10 @@ export async function recordBatchSettlementOnSui(input: {
   const USDC_TYPE = envOrThrow('USDC_TYPE');
   const SPLASH_TEST_RECIPIENT_ADDRESS = process.env.SPLASH_TEST_RECIPIENT_ADDRESS ?? '';
 
-  await updatePegOnSui();
+  // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
+  const SPLASH_ADMIN_CAP_ID = envObjectIdOrThrow('SPLASH_ADMIN_CAP_ID');
+  const usdcDeviationPpm = process.env.SPLASH_PEG_USDC_DEVIATION_PPM ?? '0';
+  const usdtDeviationPpm = process.env.SPLASH_PEG_USDT_DEVIATION_PPM ?? '0';
 
   const gasBudget = process.env.SUI_RECORD_SETTLEMENT_GAS_BUDGET ?? '10000000';
 
@@ -296,7 +312,16 @@ export async function recordBatchSettlementOnSui(input: {
     return { recipient, amount };
   });
 
-  const ptbArgs = ['client', 'ptb'];
+  const ptbArgs = ['client', 'ptb',
+    // 1. Push fresh Pyth-derived peg reading on chain (atomic with settle_batch below)
+    '--move-call',
+    `${SPLASH_PACKAGE_ID}::peg_monitor::update_peg`,
+    `@${SPLASH_PEG_STATE_ID}`,
+    `@${SPLASH_ADMIN_CAP_ID}`,
+    usdcDeviationPpm,
+    usdtDeviationPpm,
+    '@0x6',
+  ];
 
   paymentObjects.forEach((payment, index) => {
     ptbArgs.push(
