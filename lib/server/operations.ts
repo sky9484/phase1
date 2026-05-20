@@ -198,7 +198,18 @@ export function createBatch(input: {
 }
 
 export function readBatch(batchId: string): BatchRecord | null {
-  return operations.batches.get(batchId) ?? null;
+  const record = operations.batches.get(batchId);
+  if (!record) return null;
+
+  const elapsed = Date.now() - new Date(record.createdAt).getTime();
+  if (elapsed > 5000 && record.state !== 'SETTLED' && record.state !== 'FAILED') {
+    record.state = 'SETTLED';
+  } else if (elapsed > 2000 && record.state === 'QUEUED') {
+    record.state = 'SETTLING';
+  }
+
+  operations.batches.set(record.id, record);
+  return record;
 }
 
 export function listBatches(): BatchRecord[] {

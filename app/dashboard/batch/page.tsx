@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, FileWarning, Layers, Loader2, PercentCircle, ShieldCheck, Upload, Wallet, XCircle, type LucideIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, Clock, Download, ExternalLink, FileWarning, Layers, Loader2, PercentCircle, ShieldCheck, Upload, Wallet, XCircle, type LucideIcon } from "lucide-react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
@@ -23,6 +23,16 @@ type BatchRow = {
   amount: string;
   status: "ready" | "review" | "blocked" | "queued" | "failed";
   checks: ComplianceCheck[];
+};
+
+type BatchStatus = {
+  id: string;
+  state: string;
+  rowCount: number;
+  acceptedRows: number;
+  totalAmount: string;
+  digest: string | null;
+  explorer: { suiVisionTxUrl: string | null; suiScanTxUrl: string | null };
 };
 
 type CsvRow = {
@@ -135,6 +145,33 @@ export default function BatchPage() {
   const [busy, setBusy] = useState(false);
   const [totp, setTotp] = useState("");
   const [batchId, setBatchId] = useState<string | null>(null);
+  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
+
+  const pollBatch = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/batches/${id}`);
+      if (res.ok) {
+        const data = (await res.json()) as BatchStatus;
+        setBatchStatus(data);
+        return data.state;
+      }
+    } catch {
+      // silently ignore poll errors
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    if (!batchId) return;
+    void pollBatch(batchId);
+    const interval = setInterval(async () => {
+      const state = await pollBatch(batchId);
+      if (state === 'SETTLED' || state === 'FAILED' || state === 'REFUNDED') {
+        clearInterval(interval);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [batchId, pollBatch]);
 
   const acceptedRows = useMemo(() => rows.filter((row) => row.status === "ready" || row.status === "queued"), [rows]);
   const reviewRows = useMemo(() => rows.filter((row) => row.status === "review"), [rows]);
@@ -411,7 +448,7 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
                     {busy ? <span className="inline-flex items-center gap-2"><Loader2 className="animate-spin" size={16} /> Queueing…</span> : "Authorize cleared rows"}
                   </button>
                 </form>
-                {batchId && <div className="mt-4 break-all rounded-xl bg-[#F6F0ED] p-3 font-mono text-xs text-[#326273]/60">Batch ID: {batchId}</div>}
+                {batchStatus && <BatchStatusPanel status={batchStatus} />}
               </div>
 
               <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
@@ -439,6 +476,85 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
           )}
         </>
       )}
+    </div>
+  );
+}
+
+const BATCH_STEPS = ['QUEUED', 'SETTLING', 'SETTLED'];
+
+function BatchStatusPanel({ status }: { status: BatchStatus }) {
+  const isDone = status.state === 'SETTLED';
+  const isFailed = status.state === 'FAILED' || status.state === 'REFUNDED' || status.state === 'REFUNDING';
+  const currentStep = BATCH_STEPS.indexOf(status.state);
+
+  return (
+    <div className="mt-4 rounded-xl border border-[#326273]/10 bg-[#F6F0ED] p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wide text-[#326273]/60">Batch status</span>
+        {isDone ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#5C9EAD]/10 px-2.5 py-0.5 text-xs font-bold text-[#5C9EAD]">
+            <CheckCircle2 size={11} /> SETTLED
+          </span>
+        ) : isFailed ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-600">
+            <XCircle size={11} /> {status.state}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#326273]/10 px-2.5 py-0.5 text-xs font-bold text-[#326273]/70">
+            <Loader2 size={11} className="animate-spin" /> {status.state}
+          </span>
+        )}
+      </div>
+
+      {!isFailed && (
+        <div className="flex items-center gap-1">
+          {BATCH_STEPS.map((step, i) => {
+            const done = currentStep === -1 ? isDone : i < currentStep;
+            const active = i === currentStep;
+            return (
+              <div key={step} className="flex shrink-0 items-center gap-1">
+                <div className={`flex h-5 items-center justify-center rounded-full px-2 text-[10px] font-bold transition-colors
+                    ${done ? 'bg-[#5C9EAD] text-white' : active ? 'border-2 border-[#5C9EAD] bg-white text-[#5C9EAD]' : 'bg-[#326273]/10 text-[#326273]/40'}`}>
+                  {done ? '✓' : step}
+                </div>
+                {i < BATCH_STEPS.length - 1 && (
+                  <div className={`h-0.5 w-4 rounded-full ${done ? 'bg-[#5C9EAD]' : 'bg-[#326273]/10'}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="font-mono text-[11px] text-[#326273]/50 break-all">ID: {status.id}</div>
+
+      {status.digest && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0 flex-1 break-all rounded-lg bg-white px-3 py-1.5 font-mono text-[11px] text-[#326273]/60">
+            {status.digest}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {status.explorer.suiScanTxUrl && (
+              <a href={status.explorer.suiScanTxUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg bg-[#5C9EAD]/10 px-2.5 py-1.5 text-xs font-semibold text-[#5C9EAD] hover:bg-[#5C9EAD]/20">
+                <ExternalLink size={11} /> SuiScan
+              </a>
+            )}
+            {status.explorer.suiVisionTxUrl && (
+              <a href={status.explorer.suiVisionTxUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg bg-[#5C9EAD]/10 px-2.5 py-1.5 text-xs font-semibold text-[#5C9EAD] hover:bg-[#5C9EAD]/20">
+                <ExternalLink size={11} /> SuiVision
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 text-[11px] text-[#326273]/50">
+        <Clock size={11} />
+        <span>{status.acceptedRows} rows · MYR {status.totalAmount}</span>
+        {!isDone && !isFailed && <Loader2 size={11} className="animate-spin ml-auto" />}
+      </div>
     </div>
   );
 }

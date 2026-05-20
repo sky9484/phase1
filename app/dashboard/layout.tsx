@@ -10,6 +10,7 @@ import {
   Users,
   UserCircle,
   Phone,
+  History,
   Menu,
   X,
   type LucideIcon,
@@ -22,6 +23,7 @@ const navItems: { label: string; href: string; icon: LucideIcon }[] = [
   { label: 'Transfer', href: '/dashboard/transfer', icon: Send },
   { label: 'Batch Payout', href: '/dashboard/batch', icon: Users },
   { label: 'Recipients', href: '/dashboard/recipients', icon: UserCircle },
+  { label: 'History', href: '/dashboard/history', icon: History },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
