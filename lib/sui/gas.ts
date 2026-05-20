@@ -1,7 +1,7 @@
 export type SponsoredTransactionKind =
   | "business_account::submit_application"
   | "settlement::settle_batch"
-  | "peg_monitor::update_price"
+  | "peg_monitor::update_peg"
 
 export type SponsoredTransactionRequest = {
   kind: SponsoredTransactionKind

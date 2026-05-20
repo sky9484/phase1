@@ -31,7 +31,7 @@ const initialStats = [
 ];
 
 const quickActions = [
-  { label: "New transfer", description: "Single beneficiary", href: "/dashboard/transfer", icon: Send, className: "bg-[#326273] hover:bg-[#264e5b]", iconClassName: "text-[#5C9EAD]" },
+  { label: "New transfer", description: "Single beneficiary", href: "/dashboard/transfers", icon: Send, className: "bg-[#326273] hover:bg-[#264e5b]", iconClassName: "text-[#5C9EAD]" },
   { label: "Batch payout", description: "CSV authorization", href: "/dashboard/batch", icon: Layers, className: "bg-[#5C9EAD] hover:bg-[#4A8B9A]", iconClassName: "text-white" },
   { label: "Recipients", description: "Manage beneficiaries", href: "/dashboard/recipients", icon: UserCircle, className: "bg-[#1F4452] hover:bg-[#143442]", iconClassName: "text-[#E39774]" },
   { label: "Compliance", description: "KYB and limits", href: "/dashboard/settings", icon: ShieldCheck, className: "bg-[#E39774] hover:bg-[#cd825f]", iconClassName: "text-white" },

@@ -291,7 +291,7 @@ export default function RecipientsPage() {
               <Sparkles className="text-[#E39774]" size={16} />
             </div>
             <div className="mt-3 grid gap-2">
-              <Link href="/dashboard/transfer" className="flex items-center justify-between rounded-lg bg-[#326273] px-3 py-2 text-xs font-bold text-white hover:bg-[#264e5b]">
+              <Link href="/dashboard/transfers" className="flex items-center justify-between rounded-lg bg-[#326273] px-3 py-2 text-xs font-bold text-white hover:bg-[#264e5b]">
                 Single transfer
                 <span className="text-[#5C9EAD]">→</span>
               </Link>

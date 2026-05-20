@@ -12,7 +12,7 @@ export async function GET() {
     const { usdc, usdt } = await pythAdapter.getStablecoinPrices();
     const tx = buildUpdatePriceTx(usdc.price, usdt.price);
     const result = await executeSponsoredTransaction({
-      kind: 'peg_monitor::update_price',
+      kind: 'peg_monitor::update_peg',
       sender: process.env.OPERATOR_SUI_ADDRESS ?? '',
       payload: tx,
     });

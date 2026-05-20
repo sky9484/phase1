@@ -268,7 +268,7 @@ export default function HistoryPage() {
             Refresh
           </button>
           <Link
-            href="/dashboard/transfer"
+            href="/dashboard/transfers"
             className="inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
           >
             <ArrowUpRight size={14} />
@@ -342,7 +342,7 @@ export default function HistoryPage() {
           </p>
           {filter === 'all' && (
             <Link
-              href="/dashboard/transfer"
+              href="/dashboard/transfers"
               className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
             >
               <ArrowUpRight size={14} />
