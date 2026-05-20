@@ -149,48 +149,47 @@ export async function recordSingleTransferOnSui(input: {
   const SPLASH_TREASURY_ID = envObjectIdOrThrow('SPLASH_TREASURY_ID');
   const SPLASH_PEG_STATE_ID = envObjectIdOrThrow('SPLASH_PEG_STATE_ID');
   const SPLASH_BUSINESS_ACCOUNT_ID = envObjectIdOrThrow('SPLASH_BUSINESS_ACCOUNT_ID');
-  const SPLASH_TRANSFER_COIN_ID = envObjectIdOrThrow('SPLASH_TRANSFER_COIN_ID');
   const USDC_TYPE = envOrThrow('USDC_TYPE');
   const SPLASH_TEST_RECIPIENT_ADDRESS = process.env.SPLASH_TEST_RECIPIENT_ADDRESS ?? '';
 
   const recipientAddress = SPLASH_TEST_RECIPIENT_ADDRESS || input.recipient;
-
   requireSuiAddress(recipientAddress, 'Transfer recipient');
+
+  // Use at least 1_000 MIST so the fee calc (150 bps) leaves a positive net amount.
+  const paymentMist = Math.max(1_000_000, input.stablecoinAmountMicro);
 
   await updatePegOnSui();
 
   const gasBudget = process.env.SUI_RECORD_SETTLEMENT_GAS_BUDGET ?? '10000000';
 
-  console.log('[Sui Single Transfer] Calling sui client call with:', {
+  // PTB: split the payment from gas then call settle_payment.
+  // This avoids a static SPLASH_TRANSFER_COIN_ID that gets consumed after one use.
+  const ptbArgs = [
+    'client', 'ptb',
+    '--split-coins', 'gas', `[${paymentMist}]`,
+    '--assign', 'payment',
+    '--move-call',
+    `${SPLASH_PACKAGE_ID}::settlement::settle_payment`,
+    `<${USDC_TYPE}>`,
+    `@${SPLASH_TREASURY_ID}`,
+    `@${SPLASH_BUSINESS_ACCOUNT_ID}`,
+    `@${SPLASH_PEG_STATE_ID}`,
+    'payment.0',
+    `@${recipientAddress}`,
+    '@0x6',
+    '--gas-budget', gasBudget,
+    '--json',
+  ];
+
+  console.log('[Sui Single Transfer] Calling sui client ptb with:', {
     package: SPLASH_PACKAGE_ID,
     usdcType: USDC_TYPE,
-    module: 'settlement',
     function: 'settle_payment',
-    args: [SPLASH_TREASURY_ID, SPLASH_BUSINESS_ACCOUNT_ID, SPLASH_PEG_STATE_ID, SPLASH_TRANSFER_COIN_ID, recipientAddress, '@0x6'],
+    paymentMist,
+    recipient: recipientAddress,
   });
 
-  const { stdout, stderr } = await runSuiCommand([
-    'client',
-    'call',
-    '--package',
-    SPLASH_PACKAGE_ID,
-    '--module',
-    'settlement',
-    '--function',
-    'settle_payment',
-    '--type-args',
-    USDC_TYPE,
-    '--args',
-    SPLASH_TREASURY_ID,
-    SPLASH_BUSINESS_ACCOUNT_ID,
-    SPLASH_PEG_STATE_ID,
-    SPLASH_TRANSFER_COIN_ID,
-    recipientAddress,
-    '@0x6',
-    '--gas-budget',
-    gasBudget,
-    '--json',
-  ]);
+  const { stdout, stderr } = await runSuiCommand(ptbArgs);
 
   console.log('[Sui Single Transfer] CLI stdout:', stdout.substring(0, 500));
   console.log('[Sui Single Transfer] CLI stderr:', stderr.substring(0, 500));

@@ -54,7 +54,7 @@ public fun create_supply<T: drop>(_: T): Supply<T> {
 
 /// Increase supply by `value` and create a new `Balance<T>` with this value.
 public fun increase_supply<T>(self: &mut Supply<T>, value: u64): Balance<T> {
-    assert!(value < (18446744073709551615u64 - self.value), EOverflow);
+    assert!(value <= (std::u64::max_value!() - self.value), EOverflow);
     self.value = self.value + value;
     Balance { value }
 }
@@ -99,24 +99,30 @@ public fun destroy_zero<T>(balance: Balance<T>) {
 }
 
 /// Send a `Balance` to an address's funds accumulator.
-public(package) fun send_funds<T>(balance: Balance<T>, recipient: address) {
+public fun send_funds<T>(balance: Balance<T>, recipient: address) {
     sui::funds_accumulator::add_impl(balance, recipient);
 }
 
 /// Redeem a `Withdrawal<Balance<T>>` to get the underlying `Balance<T>` from an address's funds
 /// accumulator.
-public(package) fun redeem_funds<T>(
-    withdrawal: sui::funds_accumulator::Withdrawal<Balance<T>>,
-): Balance<T> {
-    withdrawal.redeem()
+public fun redeem_funds<T>(withdrawal: sui::funds_accumulator::Withdrawal<Balance<T>>): Balance<T> {
+    withdrawal.redeem(internal::permit())
 }
 
 /// Create a `Withdrawal<Balance<T>>` from an object to withdraw funds from it.
-public(package) fun withdraw_funds_from_object<T>(
-    obj: &mut UID,
-    value: u64,
-): Withdrawal<Balance<T>> {
+public fun withdraw_funds_from_object<T>(obj: &mut UID, value: u64): Withdrawal<Balance<T>> {
     sui::funds_accumulator::withdraw_from_object(obj, value as u256)
+}
+
+/// Read the value of the funds of type T owned by `address` as of the beginning of
+/// the current consensus commit. Can read either address-owned or object-owned balances.
+public fun settled_funds_value<T>(root: &sui::accumulator::AccumulatorRoot, address: address): u64 {
+    if (!root.u128_exists<Balance<T>>(address)) {
+        return 0
+    };
+    let val: u128 = root.u128_read<Balance<T>>(address);
+    let val = std::u128::min(std::u64::max_value!() as u128, val);
+    val as u64
 }
 
 // === SUI specific operations ===
@@ -179,20 +185,4 @@ public fun destroy_for_testing<T>(self: Balance<T>): u64 {
 /// Create a `Supply` of any coin for testing purposes.
 public fun create_supply_for_testing<T>(): Supply<T> {
     Supply { value: 0 }
-}
-
-// === Test entry points for address balance deposits and withdrawals ===
-
-// TODO: Replace these with the final API
-
-#[allow(unused_function)]
-fun send_to_account<T>(balance: Balance<T>, recipient: address) {
-    balance.send_funds(recipient)
-}
-
-#[allow(unused_function)]
-fun withdraw_from_account<T>(amount: u64, ctx: &TxContext): Balance<T> {
-    let owner = ctx.sender();
-    let withdrawal = sui::funds_accumulator::create_withdrawal<Balance<T>>(owner, amount as u256);
-    withdrawal.redeem()
 }

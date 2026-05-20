@@ -7,6 +7,7 @@ import type { TransferState } from '@/app/dashboard/transfer/page';
 
 export default function StepStatus({ state, set, next }: { state: TransferState; set: (patch: Partial<TransferState>) => void; next: () => void }) {
   const [chainState, setChainState] = useState<'AUTHORIZED' | 'QUEUED' | 'SETTLING' | 'SETTLED' | 'FAILED'>('AUTHORIZED');
+  const [failureReason, setFailureReason] = useState<string | null>(null);
 
   useEffect(() => {
     if (!state.transferIntentId) return;
@@ -26,6 +27,8 @@ export default function StepStatus({ state, set, next }: { state: TransferState;
           state: 'AUTHORIZED' | 'QUEUED' | 'SETTLING' | 'SETTLED' | 'FAILED';
           verificationReference: string | null;
           receiptObjectId: string | null;
+          failureReason: string | null;
+          failedAtState: string | null;
         };
 
         if (cancelled) return;
@@ -39,6 +42,7 @@ export default function StepStatus({ state, set, next }: { state: TransferState;
         }
 
         if (result.state === 'FAILED') {
+          setFailureReason(result.failureReason ?? null);
           set({ txStatus: 'failed' });
           return;
         }
@@ -134,6 +138,13 @@ export default function StepStatus({ state, set, next }: { state: TransferState;
           );
         })}
       </div>
+
+      {failureReason && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-1 font-bold">Error detail</div>
+          <div className="font-mono text-xs leading-5 break-all">{failureReason}</div>
+        </div>
+      )}
 
       {state.transferIntentId && <div className="break-all rounded-2xl bg-[#F6F0ED] p-4 font-mono text-xs text-[#326273]/55">Transfer intent: {state.transferIntentId}</div>}
     </div>
