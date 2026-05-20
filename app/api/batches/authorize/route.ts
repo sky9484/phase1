@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 
-import { createBatch } from '@/lib/server/operations';
+import { createBatch, updateBatch } from '@/lib/server/operations';
+import { recordBatchSettlementOnSui } from '@/lib/server/sui-settlement';
 
 type BatchRow = {
   name?: string;
@@ -24,6 +25,32 @@ export async function POST(request: Request) {
     acceptedRows: acceptedRows.length,
     blockedRows: rows.length - acceptedRows.length,
     totalAmount: total.toFixed(2),
+  });
+
+  // Fire Sui settlement after responding so the HTTP round-trip is instant.
+  after(async () => {
+    updateBatch(batch.id, { state: 'SETTLING' });
+    try {
+      const result = await recordBatchSettlementOnSui({
+        batchId: batch.id,
+        rows: acceptedRows,
+        totalMyr: total,
+      });
+      updateBatch(batch.id, {
+        state: 'SETTLED',
+        digest: result.digest,
+        packageId: result.packageId,
+        explorer: {
+          suiVisionTxUrl: `https://testnet.suivision.xyz/txblock/${result.digest}`,
+          suiScanTxUrl: `https://suiscan.xyz/testnet/tx/${result.digest}`,
+        },
+      });
+    } catch (error) {
+      updateBatch(batch.id, {
+        state: 'FAILED',
+      });
+      console.error('[Batch Settlement] Failed:', error instanceof Error ? error.message : error);
+    }
   });
 
   return NextResponse.json(batch);

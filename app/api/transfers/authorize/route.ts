@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 
 import { convertMyrToUsdc, myrSenToUsdcMicro } from '@/lib/server/hata';
-import { createTransferIntent } from '@/lib/server/operations';
+import { createTransferIntent, updateTransferIntent } from '@/lib/server/operations';
 import { pythAdapter } from '@/lib/server/pyth';
 import { calculateQuote } from '@/lib/server/quote';
 import { selectStablecoin } from '@/lib/server/stable-router';
+import { recordSingleTransferOnSui } from '@/lib/server/sui-settlement';
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -60,6 +61,31 @@ export async function POST(request: Request) {
     stablecoinAmountMicro,
     daxTier: conversion?.tier ?? null,
     pegChecked: true,
+  });
+
+  // Fire Sui settlement after responding so the HTTP round-trip is instant.
+  after(async () => {
+    updateTransferIntent(intent.id, { state: 'QUEUED' });
+    try {
+      const result = await recordSingleTransferOnSui({
+        transferId: intent.id,
+        recipient: '',
+        amountMyr: sourceAmount,
+        stablecoinAmountMicro,
+      });
+      updateTransferIntent(intent.id, {
+        state: 'SETTLED',
+        suiTxDigest: result.digest,
+        verificationReference: result.digest,
+        receiptObjectId: `receipt_${intent.id}`,
+      });
+    } catch (error) {
+      updateTransferIntent(intent.id, {
+        state: 'FAILED',
+        failureReason: error instanceof Error ? error.message : 'Unknown Sui error',
+        failedAtState: 'SETTLING',
+      });
+    }
   });
 
   return NextResponse.json({

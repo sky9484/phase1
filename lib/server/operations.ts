@@ -141,28 +141,14 @@ export function createTransferIntent(input: {
 }
 
 export function readTransferIntent(intentId: string) {
+  return operations.transfers.get(intentId) ?? null;
+}
+
+export function updateTransferIntent(intentId: string, patch: Partial<TransferIntentRecord>): void {
   const record = operations.transfers.get(intentId);
-
-  if (!record) {
-    return null;
-  }
-
-  const elapsed = Date.now() - new Date(record.createdAt).getTime();
-
-  if (elapsed > 3500) {
-    record.state = 'SETTLED';
-    record.verificationReference = record.verificationReference ?? `sui_${record.id}`;
-    record.receiptObjectId = record.receiptObjectId ?? `receipt_${record.id}`;
-  } else if (elapsed > 1400) {
-    record.state = 'SETTLING';
-  } else if (elapsed > 500) {
-    record.state = 'QUEUED';
-  }
-
-  record.updatedAt = new Date().toISOString();
-  operations.transfers.set(record.id, record);
-
-  return record;
+  if (!record) return;
+  Object.assign(record, patch, { updatedAt: new Date().toISOString() });
+  operations.transfers.set(intentId, record);
 }
 
 export function listTransfers(): TransferIntentRecord[] {
@@ -198,18 +184,14 @@ export function createBatch(input: {
 }
 
 export function readBatch(batchId: string): BatchRecord | null {
+  return operations.batches.get(batchId) ?? null;
+}
+
+export function updateBatch(batchId: string, patch: Partial<BatchRecord>): void {
   const record = operations.batches.get(batchId);
-  if (!record) return null;
-
-  const elapsed = Date.now() - new Date(record.createdAt).getTime();
-  if (elapsed > 5000 && record.state !== 'SETTLED' && record.state !== 'FAILED') {
-    record.state = 'SETTLED';
-  } else if (elapsed > 2000 && record.state === 'QUEUED') {
-    record.state = 'SETTLING';
-  }
-
-  operations.batches.set(record.id, record);
-  return record;
+  if (!record) return;
+  Object.assign(record, patch);
+  operations.batches.set(batchId, record);
 }
 
 export function listBatches(): BatchRecord[] {
