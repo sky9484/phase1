@@ -43,6 +43,49 @@ async function runSuiCommand(args: string[], maxBuffer = 1024 * 1024 * 10) {
   }
 }
 
+type OperatorGasCoin = { id: string; balance: number };
+
+async function listOperatorGasCoins(): Promise<OperatorGasCoin[]> {
+  const { stdout } = await runSuiCommand(['client', 'gas', '--json']);
+  const jsonStart = stdout.indexOf('[');
+  if (jsonStart === -1) throw new Error(`'sui client gas --json' returned no JSON. stdout: ${stdout.substring(0, 200)}`);
+  const coins = JSON.parse(stdout.slice(jsonStart)) as Array<{ gasCoinId: string; mistBalance: number | string }>;
+  return coins
+    .map((coin) => ({ id: coin.gasCoinId, balance: Number(coin.mistBalance) }))
+    .filter((coin) => Number.isFinite(coin.balance) && coin.balance > 0)
+    .sort((a, b) => b.balance - a.balance);
+}
+
+/**
+ * Pick the largest operator coin to use as gas, and return any extra coins
+ * that must be merged into it inside the PTB to cover `neededMist`.
+ *
+ * Throws if the operator's total balance is insufficient.
+ */
+async function planGasCoin(neededMist: number): Promise<{ primaryId: string; mergeIds: string[] }> {
+  const coins = await listOperatorGasCoins();
+  if (coins.length === 0) {
+    throw new Error('Operator wallet has no SUI coins. Fund the operator address.');
+  }
+
+  const total = coins.reduce((sum, coin) => sum + coin.balance, 0);
+  if (total < neededMist) {
+    throw new Error(`Operator wallet has ${total} MIST but transfer needs ${neededMist} MIST (payment + gas). Top up the operator wallet.`);
+  }
+
+  const [primary, ...rest] = coins;
+  const mergeIds: string[] = [];
+  let accumulated = primary.balance;
+
+  for (const coin of rest) {
+    if (accumulated >= neededMist) break;
+    mergeIds.push(coin.id);
+    accumulated += coin.balance;
+  }
+
+  return { primaryId: primary.id, mergeIds };
+}
+
 async function updatePegOnSui(): Promise<void> {
   const SPLASH_PACKAGE_ID = optionalEnvObjectId('SPLASH_PACKAGE_ID');
   const SPLASH_PEG_STATE_ID = optionalEnvObjectId('SPLASH_PEG_STATE_ID');
@@ -162,10 +205,19 @@ export async function recordSingleTransferOnSui(input: {
 
   const gasBudget = process.env.SUI_RECORD_SETTLEMENT_GAS_BUDGET ?? '10000000';
 
-  // PTB: split the payment from gas then call settle_payment.
-  // This avoids a static SPLASH_TRANSFER_COIN_ID that gets consumed after one use.
-  const ptbArgs = [
-    'client', 'ptb',
+  // The PTB will split `paymentMist` from the gas coin and burn up to
+  // `gasBudget` MIST for fees, so the chosen gas coin must cover both.
+  const { primaryId, mergeIds } = await planGasCoin(paymentMist + Number(gasBudget));
+
+  // PTB: optionally merge fragmented coins into the gas coin, then split the
+  // payment from gas and call settle_payment. This avoids a static
+  // SPLASH_TRANSFER_COIN_ID that gets consumed after one use, and lets a
+  // wallet with many small coins still fund a large transfer.
+  const ptbArgs: string[] = ['client', 'ptb'];
+  if (mergeIds.length > 0) {
+    ptbArgs.push('--merge-coins', 'gas', `[${mergeIds.map((id) => `@${id}`).join(',')}]`);
+  }
+  ptbArgs.push(
     '--split-coins', 'gas', `[${paymentMist}]`,
     '--assign', 'payment',
     '--move-call',
@@ -177,9 +229,10 @@ export async function recordSingleTransferOnSui(input: {
     'payment.0',
     `@${recipientAddress}`,
     '@0x6',
+    '--gas-coin', `@${primaryId}`,
     '--gas-budget', gasBudget,
     '--json',
-  ];
+  );
 
   console.log('[Sui Single Transfer] Calling sui client ptb with:', {
     package: SPLASH_PACKAGE_ID,
@@ -187,6 +240,8 @@ export async function recordSingleTransferOnSui(input: {
     function: 'settle_payment',
     paymentMist,
     recipient: recipientAddress,
+    gasCoin: primaryId,
+    mergedCoinCount: mergeIds.length,
   });
 
   const { stdout, stderr } = await runSuiCommand(ptbArgs);
