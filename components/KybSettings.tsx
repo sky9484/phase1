@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, FileUp, Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -107,7 +107,7 @@ export default function KybSettings() {
     return body;
   }
 
-  function applyCaseStatus(record: KybCaseStatus) {
+  const applyCaseStatus = useCallback((record: KybCaseStatus) => {
     setCaseStatus(record);
     setKybCaseId(record.id);
     setSumsubApplicantId(record.sumsubApplicantId);
@@ -123,10 +123,40 @@ export default function KybSettings() {
     }
 
     setStatus('pending');
-  }
+  }, []);
+
+  const syncLatestCaseStatus = useCallback(async (showToast = false) => {
+    const params = new URLSearchParams({ businessName, registrationNumber: ssmNumber });
+    const response = await fetch(`/api/kyb/cases/latest?${params.toString()}`, { cache: 'no-store' });
+    const body = await response.json() as { case?: KybCaseStatus | null; error?: string };
+
+    if (!response.ok) {
+      throw new Error(body.error ?? 'Latest KYB status refresh failed');
+    }
+
+    if (body.case) {
+      applyCaseStatus(body.case);
+      if (showToast) toast.success(`KYB status: ${body.case.state.replace('_', ' ').toLowerCase()}`);
+    } else if (showToast) {
+      toast.error('No KYB case found for this business yet');
+    }
+  }, [applyCaseStatus, businessName, ssmNumber]);
+
+  useEffect(() => {
+    void syncLatestCaseStatus();
+
+    const interval = window.setInterval(() => {
+      void syncLatestCaseStatus();
+    }, 6000);
+
+    return () => window.clearInterval(interval);
+  }, [syncLatestCaseStatus]);
 
   async function refreshCaseStatus() {
-    if (!kybCaseId) return;
+    if (!kybCaseId) {
+      await syncLatestCaseStatus(true);
+      return;
+    }
 
     try {
       const response = await fetch(`/api/kyb/cases/${kybCaseId}`, { cache: 'no-store' });

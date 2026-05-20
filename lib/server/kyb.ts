@@ -130,6 +130,18 @@ export function listKybCases() {
   return Array.from(kybStore.cases.values()).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
+export function findLatestKybCase(input: { businessName?: string; registrationNumber?: string }) {
+  const businessName = input.businessName?.trim().toLowerCase();
+  const registrationNumber = input.registrationNumber?.trim();
+
+  return listKybCases().find((record) => {
+    const matchesRegistration = registrationNumber ? record.registrationNumber === registrationNumber : false;
+    const matchesBusinessName = businessName ? record.businessName.toLowerCase() === businessName : false;
+
+    return matchesRegistration || matchesBusinessName;
+  }) ?? null;
+}
+
 export function readKybCase(caseId: string) {
   return kybStore.cases.get(caseId) ?? null;
 }
