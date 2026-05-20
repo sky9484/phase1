@@ -16,6 +16,7 @@ export type ReceiptProps = {
   fee: string;
   timestamp: string;
   reference?: string;
+  explorerUrl?: string | null;
 };
 
 type LegacyReceiptProps = {
@@ -44,10 +45,13 @@ const SettlementReceipt = forwardRef<HTMLDivElement, ReceiptProps>(function Sett
         <ReceiptRow label="Recipient" value={props.recipient} />
         <ReceiptRow label="Amount" value={`${props.amount} ${props.currency}`} />
         <ReceiptRow label="Fee (1.5%)" value={`${props.fee} ${props.currency}`} />
-        <ReceiptRow label="Verification reference" value={props.txDigest} mono />
+        <ReceiptRow label="On-chain digest" value={props.txDigest} mono />
+        {props.explorerUrl && (
+          <ReceiptRow label="Sui Explorer" value={props.explorerUrl} mono />
+        )}
       </div>
       <div className="mt-8 border-t border-[#326273]/20 pt-4 text-[10px] text-[#326273]/60">
-        This receipt includes the immutable settlement verification reference. Ops reconciliation links it to the on-chain receipt mirror.
+        Verify this settlement on chain at the Sui Explorer URL above. The digest is the immutable transaction reference recorded on Sui testnet.
       </div>
     </div>
   );
