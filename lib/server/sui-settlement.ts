@@ -8,9 +8,9 @@ const ABORT_CODES: Record<number, string> = {
   100: 'E_NOT_VERIFIED — BusinessAccount is not KYB-verified. Call verify_business with AdminCap first.',
   101: 'E_INSUFFICIENT_FUNDS — Coin value too small (fee > payment). Send a larger coin.',
   102: 'E_EMPTY_BATCH — Empty payments vector. Add at least one payment.',
-  700: 'E_USDC_DEPEGGED — USDC deviation > 30 bps. Update peg with valid data.',
-  701: 'E_USDT_DEPEGGED — USDT deviation > 30 bps. Update peg with valid data.',
-  702: 'E_PRICE_STALE — Peg price update is older than 60 seconds. The app refreshes it automatically; verify SPLASH_ADMIN_CAP_ID and SPLASH_PEG_STATE_ID if this appears.',
+  300: 'E_PEG_BROKEN_USDC — USDC deviation > 30 bps. Update peg with valid data.',
+  301: 'E_PEG_BROKEN_USDT — USDT deviation > 30 bps. Update peg with valid data.',
+  302: 'E_PEG_STALE — Peg price update is older than 60 seconds. The app refreshes it automatically; verify SPLASH_ADMIN_CAP_ID and SPLASH_PEG_STATE_ID if this appears.',
 };
 
 function humanizeSuiError(rawError: string | undefined | null, stderr: string): string {
@@ -57,18 +57,18 @@ async function updatePegOnSui(): Promise<void> {
     return;
   }
 
-  // Prices are scaled by 6 decimals: 1_000_000 = $1.00 (healthy peg).
-  // Function signature: update_price(admin_cap, peg_state, usdc_price, usdt_price, clock)
-  const usdcPrice = process.env.SPLASH_PEG_USDC_PRICE_MICRO ?? '1000000';
-  const usdtPrice = process.env.SPLASH_PEG_USDT_PRICE_MICRO ?? '1000000';
+  // Deviation in ppm from $1.00: 0 = healthy peg, max allowed on-chain = 3,000 ppm (0.30%).
+  // Function signature: update_peg(peg_state, admin_cap, usdc_deviation_ppm, usdt_deviation_ppm, clock)
+  const usdcDeviationPpm = process.env.SPLASH_PEG_USDC_DEVIATION_PPM ?? '0';
+  const usdtDeviationPpm = process.env.SPLASH_PEG_USDT_DEVIATION_PPM ?? '0';
 
-  console.log('[Sui Peg Update] Refreshing peg (USDC/USDT @', usdcPrice, '/', usdtPrice, ')...');
+  console.log('[Sui Peg Update] Refreshing peg (USDC dev:', usdcDeviationPpm, 'ppm, USDT dev:', usdtDeviationPpm, 'ppm)...');
   const { stdout, stderr } = await runSuiCommand([
     'client', 'call',
     '--package', SPLASH_PACKAGE_ID,
     '--module', 'peg_monitor',
-    '--function', 'update_price',
-    '--args', SPLASH_ADMIN_CAP_ID, SPLASH_PEG_STATE_ID, usdcPrice, usdtPrice, '0x6',
+    '--function', 'update_peg',
+    '--args', SPLASH_PEG_STATE_ID, SPLASH_ADMIN_CAP_ID, usdcDeviationPpm, usdtDeviationPpm, '@0x6',
     '--gas-budget', process.env.SUI_PEG_UPDATE_GAS_BUDGET ?? '10000000',
     '--json',
   ], 1024 * 1024 * 5);

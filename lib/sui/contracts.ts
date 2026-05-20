@@ -3,6 +3,27 @@ import { Transaction } from "@mysten/sui/transactions"
 import { SPLASH_PACKAGE_ID } from "@/lib/sui"
 import { executeSponsoredTransaction } from "@/lib/sui/gas"
 
+export function buildUpdatePriceTx(usdcPrice: number, usdtPrice: number): Transaction {
+  const pegStateId = process.env.SPLASH_PEG_STATE_ID ?? '';
+  const adminCapId = process.env.SPLASH_ADMIN_CAP_ID ?? '';
+  const usdcDevPpm = Math.max(0, Math.round(Math.abs(usdcPrice - 1.0) * 1_000_000));
+  const usdtDevPpm = Math.max(0, Math.round(Math.abs(usdtPrice - 1.0) * 1_000_000));
+
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${SPLASH_PACKAGE_ID}::peg_monitor::update_peg`,
+    arguments: [
+      tx.object(pegStateId),
+      tx.object(adminCapId),
+      tx.pure.u64(usdcDevPpm),
+      tx.pure.u64(usdtDevPpm),
+      tx.object('0x6'),
+    ],
+  });
+
+  return tx;
+}
+
 export type KybApplicationInput = {
   ssmNumber: string
   kybCid?: string

@@ -1,9 +1,12 @@
-export type SponsoredTransactionKind = "business_account::submit_application" | "settlement::settle_batch"
+export type SponsoredTransactionKind =
+  | "business_account::submit_application"
+  | "settlement::settle_batch"
+  | "peg_monitor::update_price"
 
 export type SponsoredTransactionRequest = {
   kind: SponsoredTransactionKind
   sender: string
-  payload: Record<string, unknown>
+  payload: unknown
   userSignature?: string
 }
 
