@@ -45,6 +45,26 @@ async function runSuiCommand(args: string[], maxBuffer = 1024 * 1024 * 10) {
 
 type OperatorGasCoin = { id: string; balance: number };
 
+export async function getOperatorWalletInfo(): Promise<{
+  address: string;
+  totalMist: number;
+  totalSui: string;
+  coinCount: number;
+}> {
+  const { stdout } = await runSuiCommand(['client', 'active-address']);
+  const address = stdout.trim();
+
+  const coins = await listOperatorGasCoins();
+  const totalMist = coins.reduce((sum, c) => sum + c.balance, 0);
+
+  return {
+    address,
+    totalMist,
+    totalSui: (totalMist / 1_000_000_000).toFixed(6),
+    coinCount: coins.length,
+  };
+}
+
 async function listOperatorGasCoins(): Promise<OperatorGasCoin[]> {
   const { stdout } = await runSuiCommand(['client', 'gas', '--json']);
   const jsonStart = stdout.indexOf('[');
