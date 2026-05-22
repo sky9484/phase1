@@ -1,3 +1,5 @@
+import { getContractConfig } from '@/lib/server/contract-config';
+
 export type TransferIntentState =
   | 'AUTHORIZED'
   | 'FPX_PAID'
@@ -249,7 +251,7 @@ export function listTransactions(): TransactionRecord[] {
     functionName: 'settle_payment',
     amount: `MYR ${t.sourceAmountMyr}`,
     digest: t.suiTxDigest,
-    packageId: process.env.SPLASH_PACKAGE_ID ?? null,
+    packageId: getContractConfig().packageId || null,
     explorer: explorerLinks(t.suiTxDigest),
     createdAt: t.createdAt,
   }));

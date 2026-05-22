@@ -1,7 +1,20 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import { getContractConfig, type ContractConfigField } from '@/lib/server/contract-config';
+
 const execFileAsync = promisify(execFile);
+
+function configIdOrThrow(field: ContractConfigField, envKey: string): string {
+  const value = (getContractConfig()[field] ?? '').trim();
+  if (!value) throw new Error(`${envKey} is not configured. Set it in admin → Contract config (or in .env.local) and try again.`);
+  return requireSuiObjectId(value, envKey);
+}
+
+function optionalConfigId(field: ContractConfigField): string {
+  const value = (getContractConfig()[field] ?? '').trim();
+  return value ? requireSuiObjectId(value, field) : '';
+}
 
 const ABORT_CODES: Record<number, string> = {
   1: 'E_ALREADY_VERIFIED — BusinessAccount is already KYB-verified on-chain.',
@@ -107,9 +120,9 @@ async function planGasCoin(neededMist: number): Promise<{ primaryId: string; mer
 }
 
 async function updatePegOnSui(): Promise<void> {
-  const SPLASH_PACKAGE_ID = optionalEnvObjectId('SPLASH_PACKAGE_ID');
-  const SPLASH_PEG_STATE_ID = optionalEnvObjectId('SPLASH_PEG_STATE_ID');
-  const SPLASH_ADMIN_CAP_ID = optionalEnvObjectId('SPLASH_ADMIN_CAP_ID');
+  const SPLASH_PACKAGE_ID = optionalConfigId('packageId');
+  const SPLASH_PEG_STATE_ID = optionalConfigId('pegStateId');
+  const SPLASH_ADMIN_CAP_ID = optionalConfigId('adminCapId');
 
   if (!SPLASH_ADMIN_CAP_ID) {
     console.warn('[Sui Peg Update] SPLASH_ADMIN_CAP_ID not set — skipping auto peg refresh. Settlement may fail with E_PEG_STALE.');
@@ -187,33 +200,20 @@ function requireSuiObjectId(value: string, label: string) {
   return value;
 }
 
-function envOrThrow(key: string): string {
-  const value = (process.env[key] ?? '').trim();
-  if (!value) throw new Error(`${key} is not configured in .env.local. Set it and restart the server.`);
-  return value;
-}
-
-function envObjectIdOrThrow(key: string): string {
-  return requireSuiObjectId(envOrThrow(key), key);
-}
-
-function optionalEnvObjectId(key: string): string {
-  const value = (process.env[key] ?? '').trim();
-  return value ? requireSuiObjectId(value, key) : '';
-}
-
 export async function recordSingleTransferOnSui(input: {
   transferId: string;
   recipient: string;
   amountMyr: number;
   stablecoinAmountMicro: number;
 }) {
-  const SPLASH_PACKAGE_ID = envObjectIdOrThrow('SPLASH_PACKAGE_ID');
-  const SPLASH_TREASURY_ID = envObjectIdOrThrow('SPLASH_TREASURY_ID');
-  const SPLASH_PEG_STATE_ID = envObjectIdOrThrow('SPLASH_PEG_STATE_ID');
-  const SPLASH_BUSINESS_ACCOUNT_ID = envObjectIdOrThrow('SPLASH_BUSINESS_ACCOUNT_ID');
-  const USDC_TYPE = envOrThrow('USDC_TYPE');
-  const SPLASH_TEST_RECIPIENT_ADDRESS = process.env.SPLASH_TEST_RECIPIENT_ADDRESS ?? '';
+  const cfg = getContractConfig();
+  const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
+  const SPLASH_TREASURY_ID = configIdOrThrow('treasuryId', 'SPLASH_TREASURY_ID');
+  const SPLASH_PEG_STATE_ID = configIdOrThrow('pegStateId', 'SPLASH_PEG_STATE_ID');
+  const SPLASH_BUSINESS_ACCOUNT_ID = configIdOrThrow('businessAccountId', 'SPLASH_BUSINESS_ACCOUNT_ID');
+  if (!cfg.usdcType) throw new Error('USDC_TYPE is not configured. Set it in admin → Contract config (or in .env.local) and try again.');
+  const USDC_TYPE = cfg.usdcType;
+  const SPLASH_TEST_RECIPIENT_ADDRESS = cfg.testRecipientAddress;
 
   const recipientAddress = SPLASH_TEST_RECIPIENT_ADDRESS || input.recipient;
   requireSuiAddress(recipientAddress, 'Transfer recipient');
@@ -222,7 +222,7 @@ export async function recordSingleTransferOnSui(input: {
   const paymentMist = Math.max(1_000_000, input.stablecoinAmountMicro);
 
   // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
-  const SPLASH_ADMIN_CAP_ID = envObjectIdOrThrow('SPLASH_ADMIN_CAP_ID');
+  const SPLASH_ADMIN_CAP_ID = configIdOrThrow('adminCapId', 'SPLASH_ADMIN_CAP_ID');
   const usdcDeviationPpm = process.env.SPLASH_PEG_USDC_DEVIATION_PPM ?? '0';
   const usdtDeviationPpm = process.env.SPLASH_PEG_USDT_DEVIATION_PPM ?? '0';
 
@@ -312,15 +312,17 @@ export async function recordBatchSettlementOnSui(input: {
   rows: SettlementBatchRow[];
   totalMyr: number;
 }) {
-  const SPLASH_PACKAGE_ID = envObjectIdOrThrow('SPLASH_PACKAGE_ID');
-  const SPLASH_TREASURY_ID = envObjectIdOrThrow('SPLASH_TREASURY_ID');
-  const SPLASH_PEG_STATE_ID = envObjectIdOrThrow('SPLASH_PEG_STATE_ID');
-  const SPLASH_BUSINESS_ACCOUNT_ID = envObjectIdOrThrow('SPLASH_BUSINESS_ACCOUNT_ID');
-  const USDC_TYPE = envOrThrow('USDC_TYPE');
-  const SPLASH_TEST_RECIPIENT_ADDRESS = process.env.SPLASH_TEST_RECIPIENT_ADDRESS ?? '';
+  const cfg = getContractConfig();
+  const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
+  const SPLASH_TREASURY_ID = configIdOrThrow('treasuryId', 'SPLASH_TREASURY_ID');
+  const SPLASH_PEG_STATE_ID = configIdOrThrow('pegStateId', 'SPLASH_PEG_STATE_ID');
+  const SPLASH_BUSINESS_ACCOUNT_ID = configIdOrThrow('businessAccountId', 'SPLASH_BUSINESS_ACCOUNT_ID');
+  if (!cfg.usdcType) throw new Error('USDC_TYPE is not configured. Set it in admin → Contract config (or in .env.local) and try again.');
+  const USDC_TYPE = cfg.usdcType;
+  const SPLASH_TEST_RECIPIENT_ADDRESS = cfg.testRecipientAddress;
 
   // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
-  const SPLASH_ADMIN_CAP_ID = envObjectIdOrThrow('SPLASH_ADMIN_CAP_ID');
+  const SPLASH_ADMIN_CAP_ID = configIdOrThrow('adminCapId', 'SPLASH_ADMIN_CAP_ID');
   const usdcDeviationPpm = process.env.SPLASH_PEG_USDC_DEVIATION_PPM ?? '0';
   const usdtDeviationPpm = process.env.SPLASH_PEG_USDT_DEVIATION_PPM ?? '0';
 
