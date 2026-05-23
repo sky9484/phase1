@@ -32,7 +32,9 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Pool:', int\\(d['content']['balance']\\)/1e9, 'SUI'\\)\")",
       "Bash(curl -s -X POST https://faucet.testnet.sui.io/v2/gas -H 'Content-Type: application/json' -d '{\"FixedAmountRequest\":{\"recipient\":\"0xee6afd68c2138e1aa9e43b9c436c2da6d634e4a20ad4358bb0fbc149b4424bb9\"}}')",
       "Bash(curl -s -X POST https://faucet.testnet.sui.io/gas -H 'Content-Type: application/json' -d '{\"FixedAmountRequest\":{\"recipient\":\"0xee6afd68c2138e1aa9e43b9c436c2da6d634e4a20ad4358bb0fbc149b4424bb9\"}}')",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Pool balance:', int\\(d['content']['balance']\\)/1e9, 'SUI'\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Pool balance:', int\\(d['content']['balance']\\)/1e9, 'SUI'\\)\")",
+      "Bash(git pull *)",
+      "Bash(git stash *)"
     ]
   }
 }
