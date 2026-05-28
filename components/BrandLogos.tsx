@@ -7,15 +7,25 @@ interface LogoProps {
 
 export function SuiLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Sui">
+    <svg width={size} height={size} viewBox="0 0 128 128" fill="none" className={className} aria-label="Sui">
       <defs>
-        <linearGradient id="sui-g1" x1="20" y1="10" x2="80" y2="95" gradientUnits="userSpaceOnUse">
+        <linearGradient id="sui-g1" x1="64" y1="8" x2="64" y2="120" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#6FBCF0" />
-          <stop offset="100%" stopColor="#0284C7" />
+          <stop offset="100%" stopColor="#4DA2FF" />
         </linearGradient>
       </defs>
-      <path d="M50 8 C50 8 82 42 82 64 C82 82.4 67.6 94 50 94 C32.4 94 18 82.4 18 64 C18 42 50 8 50 8Z" fill="url(#sui-g1)" />
-      <path d="M38 58 C38 50 43 43 50 43 C57 43 62 50 62 58 C62 66 57 72 50 72 C43 72 38 66 38 58Z" fill="white" fillOpacity="0.3" />
+      <path
+        d="M64 8 C 64 8 106 52 106 80 C 106 103.196 87.196 122 64 122 C 40.804 122 22 103.196 22 80 C 22 52 64 8 64 8 Z"
+        fill="url(#sui-g1)"
+      />
+      <path
+        d="M84.5 70 C 84.5 70 78 76 78 87 C 78 99.703 71.703 106 64 106 C 56.297 106 50 99.703 50 92 C 50 84 56 80 56 80"
+        stroke="white"
+        strokeOpacity="0.95"
+        strokeWidth="5"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   );
 }

@@ -30,7 +30,7 @@ const features = [
 
 export default function WalrusSection() {
   return (
-    <section id="walrus" className="relative overflow-hidden bg-[#F6F0ED] py-24">
+    <section id="walrus" className="relative overflow-hidden bg-[#F6F0ED] py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
@@ -140,9 +140,41 @@ export default function WalrusSection() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#0284C7]/20 bg-[#0284C7]/5 p-4 text-center">
-              <div className="font-mono text-2xl font-bold text-[#0284C7]">7 years</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-[#6E8A95]">minimum retention · Walrus mainnet</div>
+            <div className="overflow-hidden rounded-2xl border border-[#326273]/10 bg-white shadow-lg">
+              <div className="border-b border-[#326273]/10 bg-[#F6F0ED] px-5 py-3">
+                <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#6E8A95]">Storage specification</div>
+              </div>
+              <table className="w-full text-sm">
+                <tbody>
+                  {[
+                    { label: 'Retention', value: '7 years (minimum)', mono: false },
+                    { label: 'Replication', value: '100+ Walrus storage nodes', mono: false },
+                    { label: 'Encryption', value: 'Seal (identity-based)', mono: true },
+                    { label: 'Audit cadence', value: 'Daily Merkle root', mono: false },
+                    { label: 'Anchor object', value: 'AuditAnchor on Sui', mono: true },
+                    { label: 'Verification', value: 'On-chain · permissionless', mono: false },
+                    { label: 'Erasure coding', value: 'Red Stuff (2D)', mono: true },
+                  ].map(({ label, value, mono }) => (
+                    <tr key={label} className="border-b border-[#326273]/10 last:border-0">
+                      <td className="px-5 py-2.5 text-xs font-semibold text-[#326273]/70">{label}</td>
+                      <td className={`px-5 py-2.5 text-right text-xs ${mono ? 'font-mono text-[#0284C7]' : 'font-semibold text-[#1F4452]'}`}>
+                        {value}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[#0284C7]/20 bg-[#0284C7]/5 p-4 text-center">
+                <div className="font-mono text-2xl font-bold text-[#0284C7]">7 yrs</div>
+                <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-[#6E8A95]">min retention</div>
+              </div>
+              <div className="rounded-2xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-4 text-center">
+                <div className="font-mono text-2xl font-bold text-[#5C9EAD]">100%</div>
+                <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-[#6E8A95]">on-chain verifiable</div>
+              </div>
             </div>
           </motion.div>
         </div>

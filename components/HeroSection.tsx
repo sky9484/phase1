@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { SuiLogo, WalrusLogo, MemWalLogo, StripeLogo } from '@/components/BrandLogos';
+import { SuiLogo } from '@/components/BrandLogos';
 
 const navLinks = [
   { label: 'How it Works', href: '#how-it-works' },
@@ -27,9 +27,6 @@ const initialCorridors = [
 
 const stackLogos = [
   { Logo: SuiLogo, label: 'Sui' },
-  { Logo: WalrusLogo, label: 'Walrus' },
-  { Logo: MemWalLogo, label: 'MemWal' },
-  { Logo: StripeLogo, label: 'Stripe' },
 ];
 
 export default function HeroSection() {
@@ -137,32 +134,32 @@ export default function HeroSection() {
           </svg>
 
           {/* Floating badges */}
-          <div className="absolute right-[7%] top-[22%] hidden animate-[splashFloat_5s_ease-in-out_infinite] rounded-2xl border border-[#326273]/15 bg-white/85 px-3.5 py-2.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+          <div className="absolute right-[7%] top-[22%] hidden animate-[splashFloat_5s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/85 px-2.5 py-1.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">USD → PHP · Live</div>
-                <div className="font-bold text-[#1F4452]">${liveCorridors[0].volume.toFixed(2)}M cleared</div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">USD → PHP · Live</div>
+                <div className="text-xs font-bold text-[#1F4452]">${liveCorridors[0].volume.toFixed(2)}M cleared</div>
               </div>
             </div>
           </div>
 
-          <div className="absolute right-[5%] top-[44%] hidden animate-[splashFloat_5.8s_ease-in-out_infinite] rounded-2xl border border-[#E39774]/25 bg-white/85 px-3.5 py-2.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-[#E39774]" />
+          <div className="absolute right-[5%] top-[44%] hidden animate-[splashFloat_5.8s_ease-in-out_infinite] rounded-xl border border-[#E39774]/25 bg-white/85 px-2.5 py-1.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#E39774]" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">Hot-Potato PTB</div>
-                <div className="font-bold text-[#1F4452]">Settle or revert <span className="text-[#C97A56]">· Sui only</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">Hot-Potato PTB</div>
+                <div className="text-xs font-bold text-[#1F4452]">Settle or revert <span className="text-[#C97A56]">· Sui only</span></div>
               </div>
             </div>
           </div>
 
-          <div className="absolute bottom-[28%] right-[14%] hidden animate-[splashFloat_6.2s_ease-in-out_infinite] rounded-2xl border border-[#326273]/15 bg-white/85 px-3.5 py-2.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-[#0284C7]" />
+          <div className="absolute bottom-[28%] right-[14%] hidden animate-[splashFloat_6.2s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/85 px-2.5 py-1.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0284C7]" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">Block #{blockHeight.toLocaleString()}</div>
-                <div className="font-bold text-[#1F4452]">finalized <span className="text-[#C97A56]">· {liveCorridors[0].speed}ms</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">Block #{blockHeight.toLocaleString()}</div>
+                <div className="text-xs font-bold text-[#1F4452]">finalized <span className="text-[#C97A56]">· {liveCorridors[0].speed}ms</span></div>
               </div>
             </div>
           </div>
@@ -176,14 +173,13 @@ export default function HeroSection() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="flex w-full max-w-[700px] flex-col items-start"
           >
-            {/* Hackathon badge */}
+            {/* Live badge */}
             <div className="mb-4 inline-flex flex-wrap items-center gap-2 rounded-full border border-[#E39774]/30 bg-white/70 px-3 py-1.5 text-xs font-medium backdrop-blur">
               <span className="inline-flex items-center gap-1 rounded-full border border-[#E39774]/40 bg-[#E39774]/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C97A56]">
                 <span className="h-1.5 w-1.5 animate-[splashGlow_1.6s_ease-in-out_infinite] rounded-full bg-[#E39774]" />
-                Sui Overflow 2025
+                Live
               </span>
-              <span className="text-[#326273]">DeFi & Payments Track</span>
-              <span className="rounded-full border border-[#326273]/15 bg-[#F6F0ED] px-2 py-0.5 font-mono text-[11px] text-[#326273]">Phase 1</span>
+              <span className="font-mono text-[#326273]">USD → MYR</span>
             </div>
 
             <h1 className="mt-3 text-[42px] font-extrabold leading-[1.02] tracking-[-0.03em] text-[#1F4452] sm:text-[58px]">
@@ -194,11 +190,12 @@ export default function HeroSection() {
               </span>
             </h1>
 
-            <p className="mt-4 w-full max-w-[560px] text-[17px] leading-7 text-[#326273]">
+            <p className="mt-4 w-full max-w-[560px] text-[15px] leading-6 text-[#326273]">
               Splash moves USD to 8 local currencies in{' '}
               <strong className="font-semibold text-[#1F4452]">400ms</strong> with hot-potato atomicity —
               a settlement guarantee{' '}
-              <strong className="font-semibold text-[#1F4452]">only Sui can offer</strong>. AI Copilot, Walrus audit trail, and 4.8% yield on idle USD included.
+              <strong className="font-semibold text-[#1F4452]">only Sui can offer</strong>. AI Copilot, Walrus audit trail, and 4.8% yield on idle USD included —{' '}
+              <strong className="font-semibold text-[#1F4452]">regulated for serious Business</strong>.
             </p>
 
             {/* Live stats pill */}
@@ -208,10 +205,10 @@ export default function HeroSection() {
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#E39774]" />
               </span>
               <span className="font-mono font-bold text-[#C97A56]">400ms</span>
-              <span>settlement · Sui Layer-1</span>
+              <span>settlement · Sui</span>
               <span className="hidden h-4 w-px bg-[#326273]/20 sm:block" />
-              <span className="font-mono font-bold text-[#1F4452]">1%</span>
-              <span>flat fee · all corridors</span>
+              <span className="font-mono font-bold text-[#1F4452]">0.80%</span>
+              <span>low cost · all corridors</span>
               <span className="hidden h-4 w-px bg-[#326273]/20 sm:block" />
               <span className="font-mono font-bold text-[#1F4452]">4.8%</span>
               <span>APY on idle USD</span>
@@ -247,25 +244,12 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Live cities */}
-            <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-[#6E8A95]">
-              <span className="uppercase tracking-widest">Live corridors</span>
-              <span className="h-px w-7 bg-[#326273]/30" />
-              <div className="flex flex-wrap gap-3 normal-case tracking-tight text-[#326273]">
-                {['Manila', 'Jakarta', 'Bangkok', 'Kuala Lumpur', 'Singapore', 'London', 'Amsterdam'].map((city) => (
-                  <span key={city} className="inline-flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500/60" />
-                    {city}
-                  </span>
-                ))}
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>
 
       {/* Live corridors ticker */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 mx-auto w-full max-w-[1440px] px-6 pb-6 lg:px-14">
+      <div className="absolute top-[85%] left-0 right-0 z-20 mx-auto w-full max-w-[1440px] px-6 lg:px-14">
         <div className="flex items-center gap-4 overflow-hidden rounded-2xl border border-[#326273]/10 bg-white/65 px-5 py-3.5 shadow-xl shadow-[#326273]/10 backdrop-blur">
           <div className="shrink-0 border-r border-[#326273]/15 pr-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6E8A95]">
             Live rates

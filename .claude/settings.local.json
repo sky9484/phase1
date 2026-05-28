@@ -52,7 +52,8 @@
       "Bash(npm install *)",
       "Bash(git -C \"D:/latest-splash\" status)",
       "Bash(git -C \"D:/latest-splash\" add -A)",
-      "Bash(git -C \"D:/latest-splash\" status --short)"
+      "Bash(git -C \"D:/latest-splash\" status --short)",
+      "Bash(git -C \"D:/latest-splash\" log --oneline -3)"
     ]
   }
 }

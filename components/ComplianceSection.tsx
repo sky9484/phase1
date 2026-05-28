@@ -19,7 +19,7 @@ const metrics = [
 
 export default function ComplianceSection() {
   return (
-    <section id="compliance" className="relative overflow-hidden bg-white/45 py-24">
+    <section id="compliance" className="relative overflow-hidden bg-white/45 py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto grid items-center gap-12 px-6 lg:grid-cols-[0.95fr_1.05fr]">
         <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
@@ -83,29 +83,93 @@ export default function ComplianceSection() {
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15 lg:col-span-2"
+          className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-7 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15 lg:col-span-2"
         >
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="grid gap-7 lg:grid-cols-[1.05fr_1.15fr]">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#E39774]">
                 <KeyRound className="h-3.5 w-3.5" />
                 Audit-ready · Regulator-verifiable
               </div>
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-white/80">
+              <p className="mt-4 max-w-xl text-lg leading-8 text-white/80">
                 Export signed receipts, Walrus blob IDs, Merkle proofs, and KYB records from one operating layer. Any auditor can verify the entire trail against the AuditAnchor on Sui — without trusting our servers.
               </p>
+
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {[
+                  { label: 'KYB', sublabel: 'Sumsub' },
+                  { label: 'AML', sublabel: 'KYT screening' },
+                  { label: 'Walrus', sublabel: 'Daily anchor' },
+                ].map(({ label, sublabel }) => (
+                  <div key={label} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center">
+                    <div className="font-mono text-sm font-bold text-white">{label}</div>
+                    <div className="mt-1 text-[10px] text-white/45">{sublabel}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-3 text-xs">
+                <a
+                  href="#compliance"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#E39774] px-4 py-2 font-semibold text-white shadow-lg shadow-[#E39774]/25 transition-all hover:-translate-y-0.5 hover:bg-[#C97A56]"
+                >
+                  <FileCheck2 className="h-3.5 w-3.5" />
+                  Export audit pack
+                </a>
+                <a
+                  href="#compliance"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 font-medium text-white/80 transition-all hover:bg-white/10"
+                >
+                  Verify on Sui →
+                </a>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              {[
-                { label: 'KYB', sublabel: 'Sumsub' },
-                { label: 'AML', sublabel: 'KYT' },
-                { label: 'Walrus', sublabel: 'Audit' },
-              ].map(({ label, sublabel }) => (
-                <div key={label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                  <div className="font-mono text-sm font-bold text-white">{label}</div>
-                  <div className="mt-1 text-[10px] text-white/40">{sublabel}</div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#E39774]">
+                  Audit pack manifest
                 </div>
-              ))}
+                <div className="font-mono text-[10px] text-white/40">2026-05-29 · 04:00 UTC</div>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-white/10">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-white/[0.04] text-left text-[10px] uppercase tracking-widest text-white/45">
+                      <th className="px-3 py-2 font-semibold">Artifact</th>
+                      <th className="px-3 py-2 font-semibold">Source</th>
+                      <th className="px-3 py-2 text-right font-semibold">State</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { artifact: 'KYB records', source: 'Sumsub API', state: 'Signed' },
+                      { artifact: 'AML screening logs', source: 'KYT engine', state: 'Hashed' },
+                      { artifact: 'PaymentReceipt set', source: 'Sui object pool', state: 'Frozen' },
+                      { artifact: 'Daily Merkle root', source: 'Splash batcher', state: 'Anchored' },
+                      { artifact: 'Encrypted blob', source: 'Walrus storage', state: 'Pinned 7y' },
+                      { artifact: 'AuditAnchor object', source: 'Sui mainnet', state: 'Immutable' },
+                    ].map(({ artifact, source, state }) => (
+                      <tr key={artifact} className="border-t border-white/[0.06]">
+                        <td className="px-3 py-2 font-semibold text-white">{artifact}</td>
+                        <td className="px-3 py-2 font-mono text-white/55">{source}</td>
+                        <td className="px-3 py-2 text-right">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-green-300">
+                            <BadgeCheck className="h-3 w-3" />
+                            {state}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-white/[0.04] px-3 py-2 font-mono text-[10px] text-white/55">
+                <span>Anchor tx</span>
+                <span className="text-[#5C9EAD]">0xa7c2…f91d</span>
+              </div>
             </div>
           </div>
         </motion.div>

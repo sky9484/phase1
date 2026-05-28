@@ -18,7 +18,7 @@ const phases = [
       'On-chain immutable receipts',
       'KYB via Sumsub',
       'AML/KYT screening',
-      '1% fee, live corridors',
+      '0.80% starting fee, live corridors',
     ],
   },
   {
@@ -60,7 +60,7 @@ const phases = [
 
 export default function RoadmapSection() {
   return (
-    <section id="roadmap" className="relative overflow-hidden bg-white/45 py-24">
+    <section id="roadmap" className="relative overflow-hidden bg-white/45 py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <motion.div
@@ -75,8 +75,8 @@ export default function RoadmapSection() {
             Product roadmap
           </div>
           <h2 className="text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">
-            Teel proved the thesis on Ethereum. <br />
-            <span className="text-[#5C9EAD]">Splash proves it's better on Sui.</span>
+            A stablecoin-first roadmap, <br />
+            <span className="text-[#5C9EAD]">purpose-built on Sui.</span>
           </h2>
           <p className="mt-5 text-base leading-7 text-[#326273]/75">
             Zero gas fees. Persistent AI via MemWal. 4.8% yield on idle USD. Hot-potato atomicity that no other chain can offer.
@@ -101,7 +101,7 @@ export default function RoadmapSection() {
             >
               {highlight && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#E39774] px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-[#E39774]/30">
-                  Sui Overflow Hackathon 2025
+                  Sui Overflow Hackathon 2026
                 </div>
               )}
 

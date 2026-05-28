@@ -45,7 +45,7 @@ const steps = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative overflow-hidden bg-[#F6F0ED] py-24">
+    <section id="how-it-works" className="relative overflow-hidden bg-[#F6F0ED] py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <motion.div
@@ -123,8 +123,9 @@ export default function HowItWorksSection() {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-10 overflow-hidden rounded-2xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED]"
         >
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl">
+          <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_0.95fr]">
+            {/* Code block */}
+            <div>
               <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#E39774]">
                 Move code · payment_intent.move
               </div>
@@ -142,22 +143,57 @@ export default function HowItWorksSection() {
                 {'}'} <span className="text-[#6E8A95]">// ← no `has store, drop, key` = physically cannot get stuck</span>
               </div>
             </div>
-            <div className="flex flex-col items-center gap-3 text-center">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="text-sm font-semibold">Settle or revert</span>
+
+            {/* Flow diagram */}
+            <div>
+              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#5C9EAD]">
+                Atomic flow · single PTB
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="text-sm font-semibold">No stuck funds</span>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="space-y-2.5 text-xs">
+                  {[
+                    { step: '1', label: 'Mint PaymentIntent', sub: 'USD locked, hot-potato active' },
+                    { step: '2', label: 'Quote + KYB check', sub: 'AML screen · corridor policy' },
+                    { step: '3', label: 'Settle to recipient', sub: 'Local currency delivered' },
+                    { step: '4', label: 'Freeze PaymentReceipt', sub: 'Immutable on Sui · Walrus anchor' },
+                  ].map((item, idx) => (
+                    <div key={item.step} className="relative flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5C9EAD]/20 font-mono text-[10px] font-bold text-[#5C9EAD]">
+                          {item.step}
+                        </span>
+                        {idx < 3 && <span className="mt-1 h-4 w-px bg-[#5C9EAD]/25" />}
+                      </div>
+                      <div className="pb-1">
+                        <div className="font-semibold text-white">{item.label}</div>
+                        <div className="text-[10px] text-white/55">{item.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="text-sm font-semibold">Immutable receipt</span>
+            </div>
+
+            {/* Guarantees */}
+            <div>
+              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#E39774]">
+                Guarantees
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="text-sm font-semibold">Walrus audit anchor</span>
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  { label: 'Settle or revert', sub: 'Hot-potato enforces consumption' },
+                  { label: 'No stuck funds', sub: 'Physically cannot persist' },
+                  { label: 'Immutable receipt', sub: 'Frozen on-chain proof' },
+                  { label: 'Walrus audit anchor', sub: 'Tamper-evident Merkle tree' },
+                ].map(({ label, sub }) => (
+                  <div key={label} className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                    <div>
+                      <div className="text-xs font-semibold text-white">{label}</div>
+                      <div className="text-[10px] text-white/55">{sub}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

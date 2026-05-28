@@ -41,13 +41,13 @@ const features: { title: string; desc: string; icon: LucideIcon; tag?: string; h
 
 const metrics = [
   { value: '400ms', label: 'settlement finality' },
-  { value: '1%', label: 'fee, all corridors' },
+  { value: '0.80%', label: 'starting fee, all corridors' },
   { value: '4.8%', label: 'APY on idle USD' },
 ];
 
 export default function BentoGrid() {
   return (
-    <section id="features" className="relative overflow-hidden bg-white/45 py-24">
+    <section id="features" className="relative overflow-hidden bg-white/45 py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <div className="grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr]">

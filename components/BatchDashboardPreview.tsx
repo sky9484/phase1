@@ -12,7 +12,7 @@ const rows = [
 
 export default function BatchDashboardPreview() {
   return (
-    <section id="network" className="bg-white/40 py-24">
+    <section id="network" className="bg-white/40 py-16">
       <div className="container mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E39774]/25 bg-[#E39774]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C97A56]">
@@ -107,16 +107,49 @@ export default function BatchDashboardPreview() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-[#326273]/15 bg-[#F6F0ED]/60">
+                <td className="py-2.5 pr-2 text-[10px] font-bold uppercase tracking-widest text-[#6E8A95]" colSpan={2}>
+                  Batch total
+                </td>
+                <td className="pr-2 text-right font-mono text-xs font-bold text-[#1F4452]">$47,450.50</td>
+                <td className="pr-2 text-right font-mono text-[10px] text-[#5C9EAD]">3 currencies</td>
+                <td className="text-[10px] font-bold uppercase text-[#C97A56]">PTB-pending</td>
+              </tr>
+            </tfoot>
           </table>
 
+          <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl border border-[#326273]/10 bg-[#F6F0ED]/70 p-3">
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#1F4452]">4</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">recipients</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#5C9EAD]">421ms</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">est. settle</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#C97A56]">$379.60</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">fee · 0.80%</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-green-600">$0.00</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">gas paid</div>
+            </div>
+          </div>
+
           <div className="mt-4 rounded-xl bg-[#1F4452] p-4">
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#E39774]">
-              PTB construction
+            <div className="flex items-center justify-between">
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#E39774]">
+                PTB construction
+              </div>
+              <div className="font-mono text-[10px] text-white/40">tx_8f3c…a2e1</div>
             </div>
             <div className="mt-2 font-mono text-xs leading-5 text-green-300">
               <span className="text-[#6E8A95]">// Step 1:</span> create PaymentIntent {'<'}USDsui{'>'}<br />
               <span className="text-[#6E8A95]">// Step 2:</span> settle → consumes hot potato<br />
               <span className="text-[#6E8A95]">// Step 3:</span> freeze PaymentReceipt on Sui<br />
+              <span className="text-[#6E8A95]">// Step 4:</span> anchor Merkle root on Walrus<br />
               <span className="text-green-400">✓</span>{' '}
               <span className="text-white/70">Entire batch: settle or revert</span>
             </div>

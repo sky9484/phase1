@@ -77,7 +77,7 @@ function CorridorRow({
 
 export default function GlobalCorridorsSection() {
   return (
-    <section id="corridors" className="relative overflow-hidden bg-white/45 py-24">
+    <section id="corridors" className="relative overflow-hidden bg-white/45 py-16">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <div className="mb-12 grid gap-12 lg:grid-cols-[1fr_2fr]">

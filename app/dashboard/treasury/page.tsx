@@ -5,20 +5,23 @@ import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
+  CalendarDays,
   CheckCircle2,
   ChevronRight,
   Clock,
+  CreditCard,
   Info,
   Landmark,
   Lock,
+  PiggyBank,
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Sprout,
   TrendingUp,
   Wallet,
   Zap,
 } from 'lucide-react';
-import Link from 'next/link';
 import { cn } from '../../../lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,15 +50,25 @@ const SEED_HISTORY: HistoryEntry[] = [
   { id: 'tx_t008', type: 'yield',    desc: 'Daily yield credit',             amount: '+$3.18',     amountNum:  3.18,     date: '19 May 2026',    status: 'confirmed' },
 ];
 
-const DAILY_BARS = [
-  { day: 'Mon', amount: 3.18 },
-  { day: 'Tue', amount: 3.21 },
-  { day: 'Wed', amount: 3.19 },
-  { day: 'Thu', amount: 3.24 },
-  { day: 'Fri', amount: 3.22 },
-  { day: 'Sat', amount: 3.25 },
-  { day: 'Sun', amount: 3.28 },
+const DAILY_BARS_7D = [
+  { day: 'Mon', label: 'Mon · 19 May', amount: 3.18 },
+  { day: 'Tue', label: 'Tue · 20 May', amount: 3.21 },
+  { day: 'Wed', label: 'Wed · 21 May', amount: 3.19 },
+  { day: 'Thu', label: 'Thu · 22 May', amount: 3.24 },
+  { day: 'Fri', label: 'Fri · 23 May', amount: 3.22 },
+  { day: 'Sat', label: 'Sat · 24 May', amount: 3.25 },
+  { day: 'Sun', label: 'Sun · 25 May', amount: 3.28 },
 ];
+
+// 30-day series — simulated growth pattern with auto-compounded daily yield.
+const DAILY_BARS_30D = Array.from({ length: 30 }, (_, i) => {
+  const day = i + 1;
+  // Slight upward trend + small noise to feel real.
+  const base = 3.05 + (i / 30) * 0.30;
+  const noise = Math.sin(i * 1.3) * 0.04 + Math.cos(i * 0.7) * 0.03;
+  const amount = +(base + noise).toFixed(2);
+  return { day: `D${day}`, label: `Day ${day} · ${day} Apr 2026`, amount };
+});
 
 const RISK_ITEMS = [
   { label: 'Regulatory',      value: 'Labuan FSA MSB Application',       icon: Landmark,   },
@@ -91,6 +104,8 @@ export default function TreasuryPage() {
   const [autoCompound, setAutoCompound] = useState(true);
   const [toast, setToast]             = useState('');
   const [loading, setLoading]         = useState(false);
+  const [chartRange, setChartRange]   = useState<'7d' | '30d'>('7d');
+  const [hoveredBar, setHoveredBar]   = useState<number | null>(null);
   const counterRef                    = useRef(9);
 
   // Live yield tick
@@ -106,7 +121,18 @@ export default function TreasuryPage() {
   const dailyYield  = balance * 0.048 / 365;
   const projMonthly = dailyYield * 30;
   const projAnnual  = balance * 0.048;
-  const maxBar      = Math.max(...DAILY_BARS.map((d) => d.amount));
+
+  const bars        = chartRange === '7d' ? DAILY_BARS_7D : DAILY_BARS_30D;
+  const maxBar      = Math.max(...bars.map((d) => d.amount));
+  const minBar      = Math.min(...bars.map((d) => d.amount));
+  const totalRange  = bars.reduce((sum, d) => sum + d.amount, 0);
+  const avgBar      = totalRange / bars.length;
+  const focusBar    = hoveredBar !== null ? bars[hoveredBar] : null;
+  // Period-over-period delta: average of second half vs first half.
+  const half        = Math.floor(bars.length / 2);
+  const firstHalfAvg  = bars.slice(0, half).reduce((s, d) => s + d.amount, 0) / Math.max(1, half);
+  const secondHalfAvg = bars.slice(half).reduce((s, d) => s + d.amount, 0) / Math.max(1, bars.length - half);
+  const trendPct      = firstHalfAvg > 0 ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100 : 0;
 
   function showToast(msg: string) {
     setToast(msg);
@@ -184,18 +210,18 @@ export default function TreasuryPage() {
       {/* Stat cards */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { label: 'Treasury Balance', val: `$${fmtUsd(balance)}`,          sub: 'USDsui staked',          icon: Wallet,    bg: 'bg-emerald-100', ac: 'text-emerald-600' },
-          { label: 'APY',              val: '4.8%',                          sub: autoCompound ? 'Auto-compound on · 4.91% eff.' : 'Simple interest', icon: TrendingUp, bg: 'bg-emerald-100', ac: 'text-emerald-600' },
-          { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-[#5C9EAD]/10', ac: 'text-[#5C9EAD]' },
-          { label: 'Days Active',      val: '31',                            sub: 'Since 27 Apr 2026',       icon: Clock,     bg: 'bg-[#326273]/10', ac: 'text-[#326273]' },
-        ].map(({ label, val, sub, icon: Icon, bg, ac }) => (
+          { label: 'Treasury Balance', val: `$${fmtUsd(balance)}`,          sub: 'USDsui staked',          icon: Wallet,    bg: 'bg-[#5C9EAD]/10', ac: 'text-[#5C9EAD]', subTone: 'muted' as const },
+          { label: 'APY',              val: '4.8%',                          sub: autoCompound ? 'Auto-compound on · 4.91% eff.' : 'Simple interest', icon: TrendingUp, bg: 'bg-emerald-100', ac: 'text-emerald-600', subTone: 'positive' as const },
+          { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-emerald-100', ac: 'text-emerald-600', subTone: 'positive' as const },
+          { label: 'Days Active',      val: '31',                            sub: 'Since 27 Apr 2026',       icon: Clock,     bg: 'bg-[#326273]/10', ac: 'text-[#326273]', subTone: 'muted' as const },
+        ].map(({ label, val, sub, icon: Icon, bg, ac, subTone }) => (
           <div key={label} className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
               <div className={cn('rounded-lg p-1.5', bg)}><Icon size={14} className={ac} /></div>
             </div>
             <div className="mt-2 text-xl font-extrabold text-[#1F4452]">{val}</div>
-            <div className="mt-0.5 text-[11px] font-medium text-emerald-600">{sub}</div>
+            <div className={cn('mt-0.5 text-[11px] font-medium', subTone === 'positive' ? 'text-emerald-600' : 'text-[#326273]/55')}>{sub}</div>
           </div>
         ))}
       </section>
@@ -206,44 +232,146 @@ export default function TreasuryPage() {
         {/* ── Left ── */}
         <div className="space-y-5">
 
-          {/* Yield chart */}
+          {/* Yield chart — interactive */}
           <div className="rounded-xl border border-white/70 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-bold text-[#1F4452]">Daily Yield (7d)</h2>
-                <p className="mt-0.5 text-[11px] text-[#326273]/50">Auto-credited at 00:01 UTC daily</p>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-extrabold text-emerald-600">+${dailyYield.toFixed(3)}</div>
-                <div className="text-[11px] text-[#326273]/50">estimated today</div>
-              </div>
-            </div>
-            <div className="mt-4 flex items-end gap-2">
-              {DAILY_BARS.map((d) => (
-                <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
-                  <span className="text-[10px] font-semibold text-emerald-600">${d.amount.toFixed(2)}</span>
-                  <div className="relative w-full overflow-hidden rounded-t-md bg-[#F6F0ED]" style={{ height: 56 }}>
-                    <div
-                      className="absolute bottom-0 w-full rounded-t-md bg-emerald-400"
-                      style={{ height: `${(d.amount / maxBar) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-[#326273]/40">{d.day}</span>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-[#1F4452]">Daily Yield</h2>
+                  <span className={cn(
+                    'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                    trendPct >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  )}>
+                    <TrendingUp size={9} className={trendPct < 0 ? 'rotate-180' : undefined} />
+                    {trendPct >= 0 ? '+' : ''}{trendPct.toFixed(1)}%
+                  </span>
                 </div>
-              ))}
+                <p className="mt-0.5 text-[11px] text-[#326273]/50">
+                  {focusBar
+                    ? <>Hovering <span className="font-semibold text-[#1F4452]">{focusBar.label}</span></>
+                    : 'Auto-credited at 00:01 UTC daily · hover bars for details'}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-right">
+                  <div className="text-lg font-extrabold text-emerald-600">
+                    +${focusBar ? focusBar.amount.toFixed(3) : dailyYield.toFixed(3)}
+                  </div>
+                  <div className="text-[11px] text-[#326273]/50">
+                    {focusBar ? 'credited that day' : 'estimated today'}
+                  </div>
+                </div>
+                {/* Range toggle */}
+                <div className="inline-flex rounded-md bg-[#F6F0ED] p-0.5">
+                  {(['7d', '30d'] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => { setChartRange(r); setHoveredBar(null); }}
+                      className={cn(
+                        'rounded px-2.5 py-1 text-[10px] font-bold transition-colors',
+                        chartRange === r
+                          ? 'bg-white text-[#1F4452] shadow-sm'
+                          : 'text-[#326273]/55 hover:text-[#326273]'
+                      )}
+                    >
+                      {r.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-[#F6F0ED] p-3 text-xs">
-              <div>
-                <div className="text-[#326273]/50">Daily yield</div>
-                <div className="mt-0.5 font-bold text-emerald-600">+${dailyYield.toFixed(3)}</div>
+
+            {/* Bars */}
+            <div
+              className={cn('mt-4 flex items-end', chartRange === '7d' ? 'gap-2' : 'gap-1')}
+              onMouseLeave={() => setHoveredBar(null)}
+            >
+              {bars.map((d, i) => {
+                const range = maxBar - minBar || 1;
+                const heightPct = 35 + ((d.amount - minBar) / range) * 65;
+                const isMax = d.amount === maxBar;
+                const isHover = hoveredBar === i;
+                return (
+                  <div
+                    key={d.day}
+                    onMouseEnter={() => setHoveredBar(i)}
+                    onClick={() => setHoveredBar(i)}
+                    className="group relative flex flex-1 flex-col items-center gap-1 cursor-pointer"
+                  >
+                    {/* Tooltip on hover */}
+                    {isHover && (
+                      <div className="pointer-events-none absolute -top-12 z-10 whitespace-nowrap rounded-lg bg-[#1F4452] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-xl">
+                        <div className="text-white/60">{d.label}</div>
+                        <div className="font-mono text-emerald-300">+${d.amount.toFixed(3)}</div>
+                        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1F4452]" />
+                      </div>
+                    )}
+                    {chartRange === '7d' && (
+                      <span className={cn(
+                        'text-[10px] font-semibold transition-colors',
+                        isHover ? 'text-emerald-700' : isMax ? 'text-emerald-700' : 'text-emerald-600/75'
+                      )}>
+                        ${d.amount.toFixed(2)}
+                      </span>
+                    )}
+                    <div className="relative w-full overflow-hidden rounded-t-md bg-[#F6F0ED]" style={{ height: 64 }}>
+                      <div
+                        className={cn(
+                          'absolute bottom-0 w-full rounded-t-md transition-all duration-200',
+                          isHover ? 'bg-emerald-600' : isMax ? 'bg-emerald-500' : 'bg-emerald-400/85 group-hover:bg-emerald-500'
+                        )}
+                        style={{ height: `${heightPct}%` }}
+                      />
+                    </div>
+                    <span className={cn(
+                      'truncate transition-colors',
+                      chartRange === '7d' ? 'text-[10px]' : 'text-[8px]',
+                      isHover ? 'font-semibold text-[#1F4452]' : 'text-[#326273]/40'
+                    )}>
+                      {d.day}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Expanded stat row — 5 cards */}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+                <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700/70">
+                  <Sparkles size={10} /> Daily yield
+                </div>
+                <div className="mt-1 font-mono text-sm font-extrabold text-emerald-700">+${dailyYield.toFixed(3)}</div>
+                <div className="mt-0.5 text-[9px] text-emerald-700/60">live · per block</div>
               </div>
-              <div>
-                <div className="text-[#326273]/50">Est. monthly</div>
-                <div className="mt-0.5 font-bold text-emerald-600">+${projMonthly.toFixed(2)}</div>
+              <div className="rounded-lg bg-[#F6F0ED] p-3">
+                <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[#326273]/55">
+                  <CalendarDays size={10} /> Period total
+                </div>
+                <div className="mt-1 font-mono text-sm font-extrabold text-[#1F4452]">+${totalRange.toFixed(2)}</div>
+                <div className="mt-0.5 text-[9px] text-[#326273]/45">last {chartRange === '7d' ? '7 days' : '30 days'}</div>
               </div>
-              <div>
-                <div className="text-[#326273]/50">Est. annual</div>
-                <div className="mt-0.5 font-bold text-emerald-600">+${projAnnual.toFixed(2)}</div>
+              <div className="rounded-lg bg-[#F6F0ED] p-3">
+                <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[#326273]/55">
+                  <TrendingUp size={10} /> Avg / day
+                </div>
+                <div className="mt-1 font-mono text-sm font-extrabold text-[#1F4452]">+${avgBar.toFixed(3)}</div>
+                <div className="mt-0.5 text-[9px] text-[#326273]/45">range avg</div>
+              </div>
+              <div className="rounded-lg bg-[#F6F0ED] p-3">
+                <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[#326273]/55">
+                  <Wallet size={10} /> Est. monthly
+                </div>
+                <div className="mt-1 font-mono text-sm font-extrabold text-[#1F4452]">+${projMonthly.toFixed(2)}</div>
+                <div className="mt-0.5 text-[9px] text-[#326273]/45">at current balance</div>
+              </div>
+              <div className="rounded-lg bg-[#5C9EAD]/10 p-3">
+                <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[#5C9EAD]">
+                  <PiggyBank size={10} /> Est. annual
+                </div>
+                <div className="mt-1 font-mono text-sm font-extrabold text-[#326273]">+${projAnnual.toFixed(2)}</div>
+                <div className="mt-0.5 text-[9px] text-[#326273]/55">4.8% APY · 1y</div>
               </div>
             </div>
           </div>
@@ -293,24 +421,70 @@ export default function TreasuryPage() {
             </div>
           </div>
 
-          {/* How it works */}
-          <div className="rounded-xl border border-white/70 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-[#1F4452]">How Smart Treasury Works</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {/* How Smart Treasury Works */}
+          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#326273]/8 px-5 py-3">
+              <div className="flex items-center gap-2">
+                <Sprout size={14} className="text-emerald-600" />
+                <h2 className="text-sm font-bold text-[#1F4452]">How Smart Treasury Works</h2>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                Auto · non-custodial
+              </span>
+            </div>
+
+            <div className="relative grid gap-0 sm:grid-cols-4">
+              {/* Connector line (desktop) */}
+              <div className="pointer-events-none absolute left-5 right-5 top-[3.25rem] hidden h-px bg-gradient-to-r from-emerald-300/0 via-emerald-400 to-[#5C9EAD]/40 sm:block" />
+
               {[
-                { step: '1', title: 'Deposit USD',    desc: 'Operating balance converts to USDsui via Stripe Bridge. Fully backed 1:1.', icon: Wallet    },
-                { step: '2', title: 'Sui DeFi Yield', desc: 'USDsui deployed into audited Sui DeFi protocols. Yield accrues every block (~400ms).', icon: Zap       },
-                { step: '3', title: 'Daily Credit',   desc: 'Yield credited to treasury at 00:01 UTC. Withdraw anytime, T+0 settlement.', icon: Sparkles  },
-              ].map(({ step, title, desc, icon: Icon }) => (
-                <div key={step} className="rounded-lg bg-[#F6F0ED] p-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-extrabold text-white">{step}</span>
-                    <Icon size={14} className="text-emerald-600" />
+                { step: '01', title: 'Deposit USD', desc: 'Operating balance converts to USDsui via Stripe Bridge. Fully backed 1:1.', icon: CreditCard, accent: '#10B981', bg: 'bg-emerald-100', tag: 'Stripe Bridge' },
+                { step: '02', title: 'Sui DeFi Yield', desc: 'USDsui deployed into audited Sui DeFi protocols. Yield accrues every block (~400ms).', icon: Zap, accent: '#0284C7', bg: 'bg-[#0284C7]/10', tag: 'OtterSec audited' },
+                { step: '03', title: 'Auto-compound', desc: 'Daily yield is reinvested automatically, lifting nominal 4.8% APY to 4.91% effective.', icon: Sprout, accent: '#5C9EAD', bg: 'bg-[#5C9EAD]/10', tag: '4.91% eff. APY' },
+                { step: '04', title: 'T+0 Withdraw', desc: 'Yield credited at 00:01 UTC. Withdraw to operating wallet instantly, anytime.', icon: PiggyBank, accent: '#E39774', bg: 'bg-[#E39774]/10', tag: 'Instant exit' },
+              ].map(({ step, title, desc, icon: Icon, accent, bg, tag }, i, arr) => (
+                <div
+                  key={step}
+                  className={cn(
+                    'relative px-5 py-4',
+                    i < arr.length - 1 && 'sm:border-r border-[#326273]/8'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm ring-2 ring-white', bg)}
+                      style={{ color: accent }}
+                    >
+                      <Icon size={16} />
+                    </div>
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#326273]/35">{step}</span>
                   </div>
-                  <div className="mt-2 text-xs font-bold text-[#1F4452]">{title}</div>
-                  <div className="mt-1 text-[11px] leading-4.5 text-[#326273]/60">{desc}</div>
+                  <div className="mt-3 text-xs font-extrabold text-[#1F4452]">{title}</div>
+                  <div className="mt-1 text-[11px] leading-[1.125rem] text-[#326273]/65">{desc}</div>
+                  <div
+                    className="mt-2.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                    style={{ backgroundColor: `${accent}15`, color: accent }}
+                  >
+                    <CheckCircle2 size={9} />
+                    {tag}
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Footer call-out */}
+            <div className="flex flex-wrap items-center gap-3 border-t border-[#326273]/8 bg-gradient-to-r from-emerald-50 via-[#5C9EAD]/5 to-[#E39774]/5 px-5 py-3 text-[11px]">
+              <div className="flex items-center gap-1.5 font-semibold text-[#1F4452]">
+                <ShieldCheck size={12} className="text-emerald-600" /> Non-custodial · your wallet, your keys
+              </div>
+              <span className="text-[#326273]/30">•</span>
+              <div className="flex items-center gap-1.5 text-[#326273]/65">
+                <Lock size={11} className="text-[#5C9EAD]" /> No lockup · T+0 exit
+              </div>
+              <span className="text-[#326273]/30">•</span>
+              <div className="flex items-center gap-1.5 text-[#326273]/65">
+                <Sparkles size={11} className="text-[#E39774]" /> Yield offsets payment fees
+              </div>
             </div>
           </div>
         </div>
@@ -342,18 +516,22 @@ export default function TreasuryPage() {
                 <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#326273]/15 bg-[#F6F0ED] px-3 py-2.5 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
                   <span className="text-sm font-semibold text-[#326273]/50">$</span>
                   <input
-                    type="number"
-                    min="1"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      // Allow empty, digits, single decimal point
+                      if (v === '' || /^\d*\.?\d{0,2}$/.test(v)) setAmount(v);
+                    }}
                     placeholder="0.00"
-                    className="flex-1 bg-transparent text-sm font-bold text-[#1F4452] placeholder-[#326273]/30 outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#1F4452] placeholder-[#326273]/30 outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setAmount(tab === 'deposit' ? '1000' : fmtUsd(Math.floor(balance)).replace(/,/g, ''))}
-                    className="shrink-0 rounded-md bg-[#326273]/10 px-2 py-0.5 text-[10px] font-bold text-[#326273]/60 hover:bg-[#326273]/20"
+                    className="shrink-0 rounded-md bg-[#326273]/10 px-2 py-0.5 text-[10px] font-bold text-[#326273]/60 transition-colors hover:bg-[#326273]/20 hover:text-[#326273]"
                   >
                     MAX
                   </button>
@@ -405,21 +583,27 @@ export default function TreasuryPage() {
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={autoCompound}
+                aria-label="Toggle auto-compound"
                 onClick={() => setAutoCompound((v) => !v)}
                 className={cn(
-                  'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200',
-                  autoCompound ? 'bg-emerald-500' : 'bg-[#326273]/20'
+                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2',
+                  autoCompound ? 'bg-emerald-500' : 'bg-[#326273]/25 hover:bg-[#326273]/35'
                 )}
               >
-                <span className={cn(
-                  'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200',
-                  autoCompound ? 'translate-x-5' : 'translate-x-0.5'
-                )} />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-1 ring-black/5 transition-transform duration-200 ease-out',
+                    autoCompound ? 'translate-x-[22px]' : 'translate-x-0.5'
+                  )}
+                />
               </button>
             </div>
             <div className={cn(
               'mt-3 overflow-hidden rounded-lg transition-all duration-200',
-              autoCompound ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
+              autoCompound ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'
             )}>
               <div className="bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700">
                 Yield reinvested daily compounds your 4.8% nominal rate to an effective <strong>4.91% APY</strong>. Based on current balance: +${(balance * 0.0491 / 365).toFixed(3)}/day.

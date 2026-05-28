@@ -34,7 +34,7 @@ const segments = ['BPO Payroll', 'Exporters', 'Marketplaces', 'Logistics', 'Supp
 
 export default function CustomerSection() {
   return (
-    <section id="customers" className="relative bg-[#F6F0ED] py-24">
+    <section id="customers" className="relative bg-[#F6F0ED] py-16">
       <div className="container mx-auto px-6">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E39774]/25 bg-[#E39774]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C97A56]">

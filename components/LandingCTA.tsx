@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function LandingCTA() {
   return (
-    <section className="relative overflow-hidden bg-[#F6F0ED] px-6 py-24">
+    <section className="relative overflow-hidden bg-[#F6F0ED] px-6 py-16">
       <div className="absolute inset-x-0 top-1/2 h-64 -translate-y-1/2 bg-[radial-gradient(circle_at_center,rgba(92,158,173,0.16),transparent_65%)]" />
       <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-[#326273]/10 bg-[#1F4452] p-8 text-[#F6F0ED] shadow-2xl shadow-[#326273]/20 md:p-12">
         <div className="absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-[#5C9EAD]/25 blur-3xl" />
