@@ -274,16 +274,16 @@ export default function BatchPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
+      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">Batch payout</div>
-          <h1 className="text-3xl font-extrabold text-[#326273]">Upload, screen, authorize.</h1>
-          <p className="mt-1 max-w-2xl text-sm text-[#326273]/60">
-            Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor, and purpose-code checks before TOTP authorization.
+          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Batch payout</div>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Upload, screen, authorize</h1>
+          <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
+            Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor &amp; purpose-code checks before TOTP authorization.
           </p>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white px-4 py-3 text-sm font-semibold text-[#326273]">
+        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273]">
           Tier 1 limits · RM 20k / transfer
         </div>
       </header>
@@ -322,7 +322,7 @@ export default function BatchPage() {
             <button
               type="button"
               onClick={downloadSampleCsv}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#264e5b]"
             >
               <Download className="h-3.5 w-3.5" />
               Download sample

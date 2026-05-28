@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-lg border border-[#326273]/20 bg-[#F6F0ED] px-4 py-3 text-[#326273] focus:border-[#5C9EAD] focus:outline-none"
             />
-            <button className="w-full rounded-lg bg-[#5C9EAD] py-3 font-bold text-white hover:bg-[#4A8B9A]">Send reset link</button>
+            <button className="w-full rounded-lg bg-[#326273] py-3 font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]">Send reset link</button>
           </form>
         )}
         <Link href="/login" className="mt-6 block text-sm text-[#5C9EAD] hover:underline">← Back to sign in</Link>

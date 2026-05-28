@@ -28,18 +28,18 @@ export default function DashboardSettingsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
+      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">Settings</div>
-          <h1 className="text-3xl font-extrabold text-[#326273]">Compliance, security, and controls.</h1>
-          <p className="mt-1 max-w-2xl text-sm text-[#326273]/60">
+          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Settings</div>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Compliance, security &amp; controls</h1>
+          <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
             Manage the controls that decide whether a transfer can be authorized, queued, reviewed, or blocked.
           </p>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white px-4 py-3 text-sm font-semibold text-[#326273]">
-          Organization: Acme Trading Sdn Bhd
-          <div className="mt-1 text-xs font-normal text-[#326273]/50">Live sync {lastSync?.toLocaleTimeString() ?? '—'}</div>
+        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273]">
+          <div>Organization · Acme Trading Sdn Bhd</div>
+          <div className="mt-0.5 text-[11px] font-normal text-[#326273]/50">Live sync · {lastSync?.toLocaleTimeString() ?? '—'}</div>
         </div>
       </header>
 

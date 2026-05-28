@@ -1,34 +1,37 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BadgeCheck, FileCheck2, KeyRound, Landmark, LockKeyhole, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { BadgeCheck, FileCheck2, KeyRound, Landmark, LockKeyhole, ShieldCheck, Database, type LucideIcon } from 'lucide-react';
+import { WalrusLogo, SuiLogo, SumsubLogo } from '@/components/BrandLogos';
 
 const controls: { title: string; desc: string; icon: LucideIcon }[] = [
-  { title: 'KYB case management', desc: 'Business registration, ownership, and risk scoring before funds move.', icon: BadgeCheck },
-  { title: 'AML and sanctions screening', desc: 'Corridor-level policy checks for counterparties, purpose codes, and high-risk patterns.', icon: ShieldCheck },
-  { title: 'Bank-grade audit trail', desc: 'Every quote, authorization, settlement event, and receipt is traceable.', icon: FileCheck2 },
-  { title: 'Secure authorization', desc: 'Role-aware access controls, 2FA signing flows, and operator-grade safeguards.', icon: LockKeyhole },
+  { title: 'KYB case management', desc: 'Business registration, ownership structure, and risk scoring via Sumsub before any funds move.', icon: BadgeCheck },
+  { title: 'AML & sanctions screening', desc: 'Corridor-level policy checks on counterparties, purpose codes, and high-risk transaction patterns.', icon: ShieldCheck },
+  { title: 'Walrus audit anchoring', desc: 'Every day\'s events are Merkle-hashed, Seal-encrypted, stored on Walrus, and anchored as frozen AuditAnchor on Sui.', icon: Database },
+  { title: 'Secure PTB authorization', desc: 'Role-aware access controls, 2FA signing flows, and operator-grade wallet safeguards for every settlement.', icon: LockKeyhole },
 ];
 
 const metrics = [
-  { value: '24/7', label: 'screening coverage' },
+  { value: '24/7', label: 'AML screening' },
   { value: '< 1s', label: 'policy decisioning' },
-  { value: 'Global', label: 'corridor coverage' },
+  { value: '7 yr', label: 'Walrus retention' },
 ];
 
 export default function ComplianceSection() {
   return (
     <section id="compliance" className="relative overflow-hidden bg-white/45 py-24">
-      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#326273]/15 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto grid items-center gap-12 px-6 lg:grid-cols-[0.95fr_1.05fr]">
         <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#4A8895]">
             <Landmark className="h-3.5 w-3.5" />
             Compliance layer
           </div>
-          <h2 className="max-w-2xl text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">Built for regulated cross-border treasury.</h2>
+          <h2 className="max-w-2xl text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">
+            Bank-grade compliance. Chain-anchored audit.
+          </h2>
           <p className="mt-5 max-w-xl text-base leading-7 text-[#326273]/75">
-            Splash combines KYB intake, AML screening, corridor policy controls, and signed settlement records so finance teams can move capital without losing governance.
+            Splash combines Sumsub KYB, AML screening, on-chain receipts, and Walrus audit anchoring so finance teams can move capital without losing governance. Every event is verifiable by regulators without trusting Splash's servers.
           </p>
           <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
             {metrics.map((metric) => (
@@ -37,6 +40,23 @@ export default function ComplianceSection() {
                 <div className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-[#6E8A95]">{metric.label}</div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-6 flex items-center gap-4">
+            <div className="flex items-center gap-2 text-xs text-[#6E8A95]">
+              <SumsubLogo size={24} />
+              <span>KYB by Sumsub</span>
+            </div>
+            <div className="h-3 w-px bg-[#326273]/20" />
+            <div className="flex items-center gap-2 text-xs text-[#6E8A95]">
+              <WalrusLogo size={24} />
+              <span>Audit on Walrus</span>
+            </div>
+            <div className="h-3 w-px bg-[#326273]/20" />
+            <div className="flex items-center gap-2 text-xs text-[#6E8A95]">
+              <SuiLogo size={24} />
+              <span>Anchored on Sui</span>
+            </div>
           </div>
         </motion.div>
 
@@ -50,7 +70,7 @@ export default function ComplianceSection() {
               transition={{ delay: index * 0.07, duration: 0.5 }}
               className="group rounded-3xl border border-[#326273]/10 bg-white/75 p-6 shadow-lg shadow-[#326273]/5 backdrop-blur transition-all hover:-translate-y-1 hover:border-[#5C9EAD]/30 hover:shadow-xl"
             >
-              <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#326273] text-[#F6F0ED] shadow-lg shadow-[#326273]/20 transition-colors group-hover:bg-[#5C9EAD]">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#326273] text-[#F6F0ED] shadow-lg shadow-[#326273]/20 transition-colors group-hover:bg-[#5C9EAD]">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-lg font-bold text-[#1F4452]">{title}</h3>
@@ -59,19 +79,31 @@ export default function ComplianceSection() {
           ))}
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15 lg:col-span-2">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15 lg:col-span-2"
+        >
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#E39774]">
                 <KeyRound className="h-3.5 w-3.5" />
-                Audit-ready
+                Audit-ready · Regulator-verifiable
               </div>
-              <p className="mt-4 max-w-3xl text-lg leading-8 text-white/80">Export signed receipts, reconciliation records, and counterparty status from one operating layer.</p>
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-white/80">
+                Export signed receipts, Walrus blob IDs, Merkle proofs, and KYB records from one operating layer. Any auditor can verify the entire trail against the AuditAnchor on Sui — without trusting our servers.
+              </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center text-xs text-white/65">
-              {['KYB', 'AML', 'KYT'].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-mono text-sm font-semibold text-white">
-                  {item}
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {[
+                { label: 'KYB', sublabel: 'Sumsub' },
+                { label: 'AML', sublabel: 'KYT' },
+                { label: 'Walrus', sublabel: 'Audit' },
+              ].map(({ label, sublabel }) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                  <div className="font-mono text-sm font-bold text-white">{label}</div>
+                  <div className="mt-1 text-[10px] text-white/40">{sublabel}</div>
                 </div>
               ))}
             </div>

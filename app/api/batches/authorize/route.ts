@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const rows = Array.isArray(body.rows) ? (body.rows as BatchRow[]) : [];
   const totp = String(body.totp ?? '');
+  const targetCurrency = typeof body.targetCurrency === 'string' ? body.targetCurrency : 'PHP';
 
   if (!/^\d{6}$/.test(totp)) {
     return NextResponse.json({ error: 'A valid 6-digit authorization code is required' }, { status: 400 });
@@ -35,6 +36,8 @@ export async function POST(request: Request) {
         batchId: batch.id,
         rows: acceptedRows,
         totalUsd: total,
+        // Per-corridor fee — contract enforces fee_bps ≤ MAX_FEE_BPS (200).
+        targetCurrency,
       });
       updateBatch(batch.id, {
         state: 'SETTLED',

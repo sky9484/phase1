@@ -144,7 +144,7 @@ export default function StepBeneficiary({ state, set, next }: { state: TransferS
       <button
         type="submit"
         disabled={!valid}
-        className="w-full rounded-lg bg-[#5C9EAD] px-4 py-3 font-bold text-white hover:bg-[#4A8B9A] disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-lg bg-[#326273] px-4 py-3 font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b] disabled:cursor-not-allowed disabled:opacity-50"
       >
         Continue →
       </button>

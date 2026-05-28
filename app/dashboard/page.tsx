@@ -4,371 +4,542 @@ import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ArrowUpRight,
-  Banknote,
+  Bot,
   CheckCircle2,
-  Clock3,
+  FileText,
+  Globe,
   Layers,
-  LineChart,
   RefreshCw,
   Send,
   ShieldCheck,
   TrendingUp,
-  UserCircle,
-  Users,
+  Upload,
+  Wallet,
   XCircle,
-} from "lucide-react";
-import Link from "next/link";
+  Zap,
+} from 'lucide-react';
+import Link from 'next/link';
 
-import HoverPopup from "@/components/HoverPopup";
-import LiveExchangeTicker from "@/components/LiveExchangeTicker";
-import StatusBadge, { type Status } from "@/components/StatusBadge";
-import { cn } from "../../lib/utils";
+import HoverPopup from '@/components/HoverPopup';
+import LiveExchangeTicker from '@/components/LiveExchangeTicker';
+import StatusBadge, { type Status } from '@/components/StatusBadge';
+import { cn } from '../../lib/utils';
+import { getCorridorFeeBps } from '@/lib/fx/corridors';
 
-const initialStats = [
-  { label: "Total settled (30d)", value: "$39,120.00", delta: "+12.4%", icon: Banknote, hoverTitle: "Settlement volume", hoverContent: "Total value settled across all corridors in the last 30 days. Updated every 5 minutes." },
-  { label: "Active beneficiaries", value: "47", delta: "+3 this week", icon: Users, hoverTitle: "Beneficiaries", hoverContent: "Number of unique recipients with successful settlements in the last 30 days." },
-  { label: "Avg. settlement time", value: "< 5 min", delta: "On target", icon: Clock3, hoverTitle: "Settlement speed", hoverContent: "Average time from authorization to final recipient credit. SLA target is < 10 minutes." },
-  { label: "Operating balance", value: "$11,140.00", delta: "Reconciled", icon: CheckCircle2, hoverTitle: "Account balance", hoverContent: "Current reconciled balance available for settlements. Updated after each settlement window." },
+/** Convert bps to display percentage (e.g. 80 -> "0.80%"). */
+function bpsToPct(bps: number) {
+  return `${(bps / 100).toFixed(2)}%`;
+}
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+const TOP_STATS = [
+  { label: 'Operating Balance', value: null, icon: Wallet, accent: 'text-[#5C9EAD]', bg: 'bg-[#5C9EAD]/10', id: 'balance' },
+  { label: 'Volume (30d)', value: '$39,120', delta: '+12.4%', icon: ArrowUpRight, accent: 'text-[#326273]', bg: 'bg-[#326273]/10', id: 'volume' },
+  { label: 'Yield Earned (30d)', value: null, icon: TrendingUp, accent: 'text-emerald-600', bg: 'bg-emerald-100', id: 'yield' },
+  { label: 'Active Corridors', value: '8 / 8', delta: 'All live', icon: Globe, accent: 'text-[#5C9EAD]', bg: 'bg-[#5C9EAD]/10', id: 'corridors' },
+  { label: 'Settlement SLA', value: '400ms', delta: 'On target', icon: Zap, accent: 'text-[#E39774]', bg: 'bg-[#E39774]/10', id: 'sla' },
+] as const;
+
+// Corridor display rows — fee comes from lib/fx/corridors.ts (single source of
+// truth that the contract also uses), so dashboard, quote engine, and
+// settlement.move can never drift apart again.
+const INITIAL_CORRIDORS = [
+  { pair: 'USD → PHP', flag: '🇵🇭', rate: 56.42, volume: '$4.2M', sla: '4.2m', success: 99.8, currency: 'PHP', dec: 2, fee: bpsToPct(getCorridorFeeBps('PHP')) },
+  { pair: 'USD → MYR', flag: '🇲🇾', rate: 4.71,  volume: '$1.8M', sla: '5.1m', success: 98.9, currency: 'MYR', dec: 2, fee: bpsToPct(getCorridorFeeBps('MYR')) },
+  { pair: 'USD → IDR', flag: '🇮🇩', rate: 16284,  volume: '$2.1M', sla: '3.0m', success: 99.5, currency: 'IDR', dec: 0, fee: bpsToPct(getCorridorFeeBps('IDR')) },
+  { pair: 'USD → VND', flag: '🇻🇳', rate: 25385,  volume: '$0.9M', sla: '4.8m', success: 98.2, currency: 'VND', dec: 0, fee: bpsToPct(getCorridorFeeBps('VND')) },
+  { pair: 'USD → THB', flag: '🇹🇭', rate: 35.82,  volume: '$0.7M', sla: '5.5m', success: 97.8, currency: 'THB', dec: 2, fee: bpsToPct(getCorridorFeeBps('THB')) },
+  { pair: 'USD → SGD', flag: '🇸🇬', rate: 1.345,  volume: '$0.4M', sla: '6.1m', success: 99.1, currency: 'SGD', dec: 3, fee: bpsToPct(getCorridorFeeBps('SGD')) },
+  { pair: 'USD → EUR', flag: '🇪🇺', rate: 0.924,  volume: '$0.3M', sla: '6.4m', success: 97.6, currency: 'EUR', dec: 3, fee: bpsToPct(getCorridorFeeBps('EUR')) },
+  { pair: 'USD → GBP', flag: '🇬🇧', rate: 0.789,  volume: '$0.2M', sla: '7.2m', success: 97.1, currency: 'GBP', dec: 3, fee: bpsToPct(getCorridorFeeBps('GBP')) },
 ];
 
-const quickActions = [
-  { label: "New transfer", description: "Single beneficiary", href: "/dashboard/transfers", icon: Send, className: "bg-[#326273] hover:bg-[#264e5b]", iconClassName: "text-[#5C9EAD]" },
-  { label: "Batch payout", description: "CSV authorization", href: "/dashboard/batch", icon: Layers, className: "bg-[#5C9EAD] hover:bg-[#4A8B9A]", iconClassName: "text-white" },
-  { label: "Recipients", description: "Manage beneficiaries", href: "/dashboard/recipients", icon: UserCircle, className: "bg-[#1F4452] hover:bg-[#143442]", iconClassName: "text-[#E39774]" },
-  { label: "Compliance", description: "KYB and limits", href: "/dashboard/settings", icon: ShieldCheck, className: "bg-[#E39774] hover:bg-[#cd825f]", iconClassName: "text-white" },
+const PIPELINE = [
+  { label: 'Authorized',   count: 8,  amount: '$4,540', dot: 'bg-[#E39774]' },
+  { label: 'On the way',   count: 5,  amount: '$2,960', dot: 'bg-[#5C9EAD]' },
+  { label: 'Settled today',count: 19, amount: '$14,640', dot: 'bg-emerald-500' },
 ];
 
-const pipeline = [
-  { label: "Authorized", count: 8, amount: "$4,540.00", tone: "bg-[#E39774]", hoverTitle: "Authorized transfers", hoverContent: "Transfers that have been authorized and are awaiting funding. Expected to move to 'On the way' within 10 minutes." },
-  { label: "On the way", count: 5, amount: "$2,960.00", tone: "bg-[#5C9EAD]", hoverTitle: "In transit", hoverContent: "Transfers that have been funded and are being settled through partner rails. Average transit time is 3-5 minutes." },
-  { label: "Settled today", count: 19, amount: "$14,640.00", tone: "bg-[#326273]", hoverTitle: "Completed settlements", hoverContent: "Transfers that have been successfully credited to recipient accounts today. All receipts recorded on-chain." },
-];
-
-const compliance = [
-  { label: "KYB status", value: "Approved", status: "verified" as const, hoverTitle: "KYB verification", hoverContent: "Your business has completed KYB verification with Sumsub. Full access to all transfer corridors." },
-  { label: "Risk tier", value: "Tier 1", status: "verified" as const, hoverTitle: "Risk assessment", hoverContent: "Low-risk tier based on transaction history and compliance posture. Higher daily limits available." },
-  { label: "Daily limit used", value: "43%", status: "pending" as const, hoverTitle: "Daily limits", hoverContent: "43% of daily transfer limit used. You can still transfer up to $12,100 more today." },
-];
-
-const activities: Array<{
-  title: string;
-  ref: string;
-  amount: string;
-  status: Status;
-  hoverTitle: string;
-  hoverContent: string;
+type TxStatus = 'settled' | 'pending' | 'failed';
+const ACTIVITIES: Array<{
+  id: string; desc: string; corridor: string; usd: string; local: string; status: TxStatus; time: string;
 }> = [
-  { title: "Coins.ph vendor payout settled", ref: "ti_m8q4_9b21fa", amount: "PHP 42,180.00", status: "verified", hoverTitle: "Transfer settled", hoverContent: "Transfer ID: ti_m8q4_9b21fa. Recipient credited at 14:32. Receipt recorded on-chain." },
-  { title: "Batch payroll queued", ref: "batch_m8q2_12ac08", amount: "$6,670.00", status: "pending", hoverTitle: "Batch queued", hoverContent: "Batch ID: batch_m8q2_12ac08. 12 rows cleared. Awaiting TOTP authorization." },
-  { title: "KYB document hash recorded", ref: "kyb_m8pv_4d9e10", amount: "Compliance", status: "pending", hoverTitle: "KYB update", hoverContent: "Case ID: kyb_m8pv_4d9e10. New document uploaded and hashed. Sumsub verification in progress." },
-  { title: "Stripe deposit confirmed", ref: "stripe_m8pr_77a932", amount: "$3,820.00", status: "verified", hoverTitle: "Deposit confirmed", hoverContent: "Transaction ID: stripe_m8pr_77a932. Card deposit confirmed via Stripe Checkout." },
+  { id: 'ti_m8q4_9b21fa',      desc: 'Vendor payout · Coins.ph',         corridor: 'USD→PHP', usd: '$748.00',    local: 'PHP 42,180',  status: 'settled', time: '14:32' },
+  { id: 'batch_m8q2_12ac08',   desc: 'BPO payroll batch · 12 recipients', corridor: 'USD→PHP', usd: '$6,670.00',  local: 'PHP 376,377', status: 'pending', time: '13:51' },
+  { id: 'dep_m8pr_77a932',     desc: 'Stripe deposit received',            corridor: '—',        usd: '$3,820.00',  local: '—',           status: 'settled', time: '12:04' },
+  { id: 'ti_m8pa_3c44f1',      desc: 'Textile supplier · Jakarta',         corridor: 'USD→IDR', usd: '$1,200.00',  local: 'IDR 19.5M',  status: 'settled', time: '11:20' },
+  { id: 'ti_m8p9_7e88b2',      desc: 'SG marketplace payout',             corridor: 'USD→SGD', usd: '$890.00',    local: 'SGD 1,197',  status: 'settled', time: '10:55' },
+  { id: 'ti_m8p7_2b11a4',      desc: 'EUR freelancer payment',             corridor: 'USD→EUR', usd: '$260.00',    local: 'EUR 240',    status: 'failed',  time: '09:18' },
 ];
 
-const corridors = [
-  { pair: "USD → PHP", volume: 26900, rate: 56.42, currency: "PHP", width: 82, sla: "4.2m", success: 99.8, hoverTitle: "USD to Philippines", hoverContent: "Most active corridor. Partner: Coins.ph. Average settlement time: 4.2 minutes." },
-  { pair: "USD → MYR", volume: 8100, rate: 4.71, currency: "MYR", width: 42, sla: "5.1m", success: 98.9, hoverTitle: "USD to Malaysia", hoverContent: "Partner: Airwallex FPX. Supports MYR payouts to all major Malaysian banks." },
-  { pair: "USD → IDR", volume: 4080, rate: 16284, currency: "IDR", width: 24, sla: "3.0m", success: 99.5, hoverTitle: "USD to Indonesia", hoverContent: "Partner: local rails. Supports IDR payouts to all major Indonesian banks." },
-  { pair: "USD → EUR", volume: 1790, rate: 0.924, currency: "EUR", width: 18, sla: "6.4m", success: 97.6, hoverTitle: "USD to Europe", hoverContent: "EUR corridor in monitored rollout with lower live volume." },
+const COMPLIANCE: Array<{ label: string; value: string; status: Status }> = [
+  { label: 'KYB status',   value: 'Approved · Sumsub verified',       status: 'verified' },
+  { label: 'Risk tier',    value: 'Tier 1 · Low risk',                 status: 'verified' },
+  { label: 'Daily limit',  value: '43% used · $12,100 remaining',      status: 'pending'  },
+  { label: 'Walrus audit', value: 'Active · 7-year retention',         status: 'verified' },
 ];
 
-const paymentStates = [
-  { label: "Pending", count: 8, amount: "$4,540.00", icon: Clock3, tone: "border-[#E39774]/30 bg-[#E39774]/10 text-[#E39774]" },
-  { label: "Failed", count: 1, amount: "$260.00", icon: XCircle, tone: "border-red-500/30 bg-red-500/10 text-red-600" },
-  { label: "Success", count: 19, amount: "$14,640.00", icon: CheckCircle2, tone: "border-[#5C9EAD]/30 bg-[#5C9EAD]/10 text-[#5C9EAD]" },
-];
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function fmt(n: number) {
+  return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function TxPill({ status }: { status: TxStatus }) {
+  const styles = {
+    settled: 'bg-emerald-50 text-emerald-700',
+    pending:  'bg-amber-50  text-amber-700',
+    failed:   'bg-red-50    text-red-600',
+  };
+  const dots = {
+    settled: 'bg-emerald-500',
+    pending:  'bg-amber-500',
+    failed:   'bg-red-500',
+  };
+  const labels = { settled: 'Settled', pending: 'Pending', failed: 'Failed' };
+  return (
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold', styles[status])}>
+      <span className={cn('h-1.5 w-1.5 rounded-full', dots[status])} />
+      {labels[status]}
+    </span>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function DashboardOverview() {
-  const [stats, setStats] = useState(initialStats);
-  const [liveCorridors, setLiveCorridors] = useState(corridors);
+  const [corridors, setCorridors] = useState(INITIAL_CORRIDORS);
+  const [balance, setBalance]     = useState(11140.00);
+  const [yieldEarned, setYield]   = useState(98.72);
+  const [copilotDismissed, setCopilotDismissed] = useState(false);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setStats((prev) =>
-        prev.map((stat) => {
-          if (stat.label === 'Total settled (30d)') {
-            const current = Number.parseFloat(stat.value.replace('$', '').replace(',', ''));
-            const updated = current + Math.random() * 1000 - 500;
-            return {
-              ...stat,
-              value: `$${updated.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`,
-            };
-          }
-          if (stat.label === 'Operating balance') {
-            const current = Number.parseFloat(stat.value.replace('$', '').replace(',', ''));
-            const updated = current + Math.random() * 200 - 100;
-            return {
-              ...stat,
-              value: `$${updated.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`,
-            };
-          }
-          return stat;
-        })
+    const id = window.setInterval(() => {
+      setCorridors((prev) =>
+        prev.map((c) => ({
+          ...c,
+          rate: Math.max(c.rate * (1 + (Math.random() - 0.49) * 0.001), 0.001),
+        }))
       );
-    }, 8000);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setLiveCorridors((previous) =>
-        previous.map((corridor) => {
-          const volumeDelta = Math.round(Math.random() * 1800);
-          const rateDelta = (Math.random() - 0.48) * (corridor.rate * 0.0015);
-
-          return {
-            ...corridor,
-            volume: corridor.volume + volumeDelta,
-            rate: Math.max(corridor.rate + rateDelta, 0),
-            width: Math.min(corridor.width + Math.random() * 1.6, 96),
-          };
-        })
-      );
-    }, 4500);
-
-    return () => window.clearInterval(interval);
+      setBalance((v) => Math.max(v + (Math.random() - 0.5) * 40, 0));
+      setYield((v) => v + Math.random() * 0.015);
+    }, 5000);
+    return () => window.clearInterval(id);
   }, []);
 
   return (
     <div className="space-y-5">
+      {/* Live FX ticker */}
       <LiveExchangeTicker />
 
-      <header className={cn('flex', 'flex-col', 'gap-2', 'md:flex-row', 'md:items-end', 'md:justify-between')}>
+      {/* Page header */}
+      <header className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className={cn('mb-1', 'inline-flex', 'rounded-full', 'bg-[#5C9EAD]/10', 'px-2', 'py-0.5', 'text-[11px]', 'font-bold', 'uppercase', 'tracking-wide', 'text-[#5C9EAD]')}>Business console</div>
-          <h1 className={cn('text-2xl', 'font-extrabold', 'text-[#326273]')}>Overview</h1>
-          <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>
-            Acme Trading Sdn Bhd · MY to PH corridor · Updated 2 minutes ago
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#326273]/50">Business console</p>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Overview</h1>
+          <p className="mt-0.5 text-xs text-[#326273]/45">Acme Trading Sdn Bhd · Updated just now</p>
         </div>
-        <div className={cn('flex', 'items-center', 'gap-2')}>
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status="verified" />
-          <Link href="/dashboard/settings" className={cn('rounded-lg', 'border', 'border-[#326273]/10', 'bg-white', 'px-3', 'py-1.5', 'text-xs', 'font-semibold', 'text-[#326273]', 'hover:border-[#5C9EAD]')}>
-            Review limits
+          <Link
+            href="/dashboard/transfer"
+            className="flex items-center gap-2 rounded-lg bg-[#326273] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#264e5b]"
+          >
+            <Send size={14} />
+            New Transfer
+          </Link>
+          <Link
+            href="/dashboard/batch"
+            className="flex items-center gap-2 rounded-lg border border-[#326273]/20 bg-white px-4 py-2 text-sm font-semibold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]"
+          >
+            <Layers size={14} />
+            Batch Payout
           </Link>
         </div>
       </header>
 
-      <section className={cn('grid', 'grid-cols-2', 'gap-3', 'xl:grid-cols-4')}>
-        {stats.map(({ label, value, delta, icon: Icon, hoverTitle, hoverContent }) => (
-          <HoverPopup key={label} title={hoverTitle} content={hoverContent}>
-            <div className={cn('cursor-pointer', 'rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-3', 'transition-all', 'hover:shadow-md', 'hover:shadow-[#5C9EAD]/10', 'hover:border-[#5C9EAD]/30')}>
-              <div className={cn('flex', 'items-center', 'justify-between', 'gap-2')}>
-                <div className={cn('text-[11px]', 'uppercase', 'tracking-wide', 'text-[#326273]/60')}>{label}</div>
-                <div className={cn('rounded-lg', 'bg-[#F6F0ED]', 'p-1.5', 'text-[#5C9EAD]')}>
-                  <Icon size={14} />
+      {/* Top stats row */}
+      <section className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        {TOP_STATS.map(({ label, value, icon: Icon, accent, bg, id }) => {
+          const displayValue =
+            id === 'balance' ? `$${fmt(balance)}` :
+            id === 'yield'   ? `$${yieldEarned.toFixed(2)}` :
+            value ?? '—';
+          const delta =
+            id === 'balance' ? 'Reconciled' :
+            id === 'yield'   ? '4.8% APY' :
+            (TOP_STATS.find((s) => s.id === id) as { delta?: string })?.delta ?? '';
+          const deltaGreen = id === 'yield' || id === 'corridors' || id === 'sla' || id === 'balance' || id === 'volume';
+
+          return (
+            <div key={label} className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
+                <div className={cn('rounded-lg p-1.5', bg)}>
+                  <Icon size={14} className={accent} />
                 </div>
               </div>
-              <div className={cn('mt-2', 'text-xl', 'font-extrabold', 'text-[#326273]')}>{value}</div>
-              <div className={cn('mt-0.5', 'text-[11px]', 'font-semibold', 'text-[#5C9EAD]')}>{delta}</div>
+              <div className="mt-2 text-xl font-extrabold text-[#1F4452]">{displayValue}</div>
+              <div className={cn('mt-0.5 text-[11px] font-semibold', deltaGreen ? 'text-emerald-600' : 'text-[#E39774]')}>
+                {delta}
+              </div>
             </div>
-          </HoverPopup>
-        ))}
+          );
+        })}
       </section>
 
-      <section className={cn('grid', 'grid-cols-2', 'gap-2', 'xl:grid-cols-4')}>
-        {quickActions.map(({ label, description, href, icon: Icon, className, iconClassName }) => (
-          <Link key={href} href={href} className={`group flex min-h-16 items-center justify-between gap-2 rounded-xl px-3 py-3 text-white transition-all hover:-translate-y-0.5 sm:px-4 ${className}`}>
-            <div className={cn('flex', 'min-w-0', 'items-center', 'gap-2')}>
-              <div className={cn('rounded-lg', 'bg-white/10', 'p-2')}>
-                <Icon className={`h-4 w-4 ${iconClassName}`} />
-              </div>
-              <div className="min-w-0">
-                <div className={cn('truncate', 'text-sm', 'font-bold')}>{label}</div>
-                <div className={cn('mt-0.5', 'hidden', 'truncate', 'text-[11px]', 'text-white/75', 'sm:block')}>{description}</div>
-              </div>
-            </div>
-            <ArrowUpRight className={cn('h-3.5', 'w-3.5', 'shrink-0', 'transition-transform', 'group-hover:translate-x-1')} />
-          </Link>
-        ))}
-      </section>
+      {/* Main 2-col layout */}
+      <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_300px]">
 
-      <section className={cn('grid', 'gap-5', 'xl:grid-cols-[1.6fr_1fr]')}>
-        <div className="space-y-5">
-          <div className={cn('grid', 'gap-3', 'sm:grid-cols-3')}>
-            {paymentStates.map(({ label, count, amount, icon: Icon, tone }) => (
-              <div key={label} className={`rounded-xl border p-3 ${tone}`}>
-                <div className={cn('flex', 'items-center', 'justify-between')}>
-                  <div className={cn('text-[11px]', 'font-bold', 'uppercase', 'tracking-wide')}>{label} payments</div>
-                  <Icon className={cn('h-4', 'w-4')} />
-                </div>
-                <div className={cn('mt-2', 'flex', 'items-end', 'justify-between', 'gap-2')}>
-                  <div className={cn('text-2xl', 'font-extrabold')}>{count}</div>
-                  <div className={cn('text-right', 'text-xs', 'font-bold')}>{amount}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* ── LEFT COLUMN ── */}
+        <div className="min-w-0 space-y-5">
 
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Settlement pipeline</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Server-authorized transfers moving through funding, settlement, and off-ramp stages.</p>
-              </div>
-              <LineChart className="text-[#5C9EAD]" size={18} />
-            </div>
-            <div className={cn('mt-4', 'grid', 'gap-3', 'sm:grid-cols-3')}>
-              {pipeline.map((item) => (
-                <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
-                  <div className={cn('cursor-pointer', 'rounded-xl', 'bg-[#F6F0ED]', 'p-3', 'transition-all', 'hover:shadow-md', 'hover:shadow-[#5C9EAD]/10')}>
-                    <div className={cn('flex', 'items-center', 'justify-between')}>
-                      <span className={cn('text-xs', 'font-semibold', 'text-[#326273]/70')}>{item.label}</span>
-                      <span className={`h-2.5 w-2.5 rounded-full ${item.tone}`} />
-                    </div>
-                    <div className={cn('mt-2', 'text-2xl', 'font-extrabold', 'text-[#326273]')}>{item.count}</div>
-                    <div className={cn('mt-0.5', 'text-xs', 'font-semibold', 'text-[#5C9EAD]')}>{item.amount}</div>
+          {/* AI Copilot suggestion panel */}
+          {!copilotDismissed && (
+            <div className="rounded-xl border border-[#E39774]/25 border-l-4 border-l-[#E39774] bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-lg bg-[#E39774]/15 p-2">
+                    <Bot size={16} className="text-[#C97A56]" />
                   </div>
-                </HoverPopup>
-              ))}
-            </div>
-            <div className={cn('mt-4', 'rounded-xl', 'bg-[#326273]', 'p-3', 'text-white')}>
-              <div className={cn('flex', 'flex-col', 'gap-2', 'md:flex-row', 'md:items-center', 'md:justify-between')}>
-                <div>
-                  <div className={cn('text-xs', 'font-semibold', 'text-white/60')}>Next settlement window</div>
-                  <div className={cn('mt-0.5', 'text-lg', 'font-extrabold')}>Today, 16:30 MYT</div>
-                </div>
-                <div className={cn('rounded-lg', 'bg-white/10', 'px-3', 'py-1.5', 'text-xs', 'font-semibold')}>
-                  13 transfers · $7,510.00
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Corridor performance</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Locked-rate activity by payout corridor.</p>
-              </div>
-              <TrendingUp className="text-[#5C9EAD]" size={18} />
-            </div>
-            <div className={cn('mt-4', 'grid', 'gap-3', 'sm:grid-cols-2')}>
-              {liveCorridors.map((corridor) => (
-                <HoverPopup key={corridor.pair} title={corridor.hoverTitle} content={corridor.hoverContent}>
-                  <div className={cn('cursor-pointer', 'rounded-xl', 'border', 'border-[#326273]/10', 'bg-[#F6F0ED]', 'p-3', 'transition-all', 'hover:-translate-y-0.5', 'hover:border-[#5C9EAD]/30')}>
-                    <div className={cn('mb-2', 'flex', 'items-start', 'justify-between', 'gap-2', 'text-xs')}>
-                      <div>
-                        <span className={cn('font-bold', 'text-[#326273]')}>{corridor.pair}</span>
-                        <div className={cn('mt-0.5', 'text-[11px]', 'text-[#326273]/50')}>{corridor.sla} SLA · {corridor.success.toFixed(1)}% success</div>
-                      </div>
-                      <span className={cn('rounded-full', 'bg-white', 'px-2', 'py-0.5', 'text-[11px]', 'font-bold', 'text-[#326273]/70')}>$ {corridor.volume.toLocaleString()}</span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-bold text-[#1F4452]">AI Copilot</span>
+                      <span className="rounded-full bg-[#E39774]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#C97A56]">
+                        MemWal · Claude
+                      </span>
                     </div>
-                    <div className={cn('h-2', 'overflow-hidden', 'rounded-full', 'bg-white')}>
-                      <div className={cn('h-full', 'rounded-full', 'bg-[#5C9EAD]', 'transition-all')} style={{ width: `${corridor.width}%` }} />
-                    </div>
-                    <div className={cn('mt-1.5', 'flex', 'items-center', 'justify-between', 'text-[11px]', 'text-[#326273]/60')}>
-                      <span>Indicative rate</span>
-                      <span className={cn('font-mono', 'font-bold', 'text-[#326273]')}>1 USD → {corridor.rate.toLocaleString(undefined, { maximumFractionDigits: corridor.currency === 'IDR' ? 0 : 3 })} {corridor.currency}</span>
-                    </div>
+                    <p className="mt-0.5 text-[11px] text-[#326273]/55">
+                      Payroll pattern detected from 8 weeks of activity
+                    </p>
                   </div>
-                </HoverPopup>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCopilotDismissed(true)}
+                  className="shrink-0 text-[11px] text-[#326273]/35 transition-colors hover:text-[#326273]"
+                >
+                  Dismiss
+                </button>
+              </div>
+
+              <div className="mt-3 rounded-lg bg-[#F6F0ED] p-3">
+                <p className="text-sm font-semibold text-[#1F4452]">
+                  Manila BPO payroll · Friday batch window
+                </p>
+                <p className="mt-1 text-xs leading-5 text-[#326273]/65">
+                  PHP rate 56.42 is within 0.3% of your 30-day best. Typical batch runs 52 recipients
+                  (~$12,400 USD). Suggested window: 09:00 MYT — historically pre-market stable.
+                </p>
+                <div className="mt-2.5 flex items-center gap-3">
+                  <span className="text-[10px] font-semibold text-[#326273]/50">Confidence</span>
+                  <div className="flex-1 overflow-hidden rounded-full bg-white h-1.5">
+                    <div className="h-full w-[94%] rounded-full bg-[#E39774]" />
+                  </div>
+                  <span className="text-[10px] font-bold text-[#C97A56]">94%</span>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/dashboard/batch"
+                  className="rounded-lg bg-[#326273] px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#264e5b]"
+                >
+                  Pre-stage batch →
+                </Link>
+                <span className="text-[11px] text-[#326273]/50">
+                  52 recipients · $12,400 USD → PHP 699,608
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Settlement pipeline */}
+          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-[#1F4452]">Settlement Pipeline</h2>
+              <span className="rounded-full bg-[#326273]/8 px-2.5 py-1 text-[11px] font-semibold text-[#326273]/60">
+                Next window: 16:30 MYT · 13 transfers · $7,510
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {PIPELINE.map((item) => (
+                <div key={item.label} className="rounded-xl bg-[#F6F0ED] p-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn('h-2 w-2 rounded-full', item.dot)} />
+                    <span className="text-[11px] text-[#326273]/60">{item.label}</span>
+                  </div>
+                  <div className="mt-2 text-2xl font-extrabold text-[#1F4452]">{item.count}</div>
+                  <div className="mt-0.5 text-xs font-semibold text-[#5C9EAD]">{item.amount}</div>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Reconciliation status</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Treasury balance and settlement window health.</p>
+          {/* Live corridors table */}
+          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#326273]/8 px-4 py-3">
+              <h2 className="text-sm font-bold text-[#1F4452]">Live Corridors</h2>
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#326273]/50">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                8 corridors active
               </div>
-              <CheckCircle2 className="text-[#5C9EAD]" size={18} />
             </div>
-            <div className={cn('mt-4', 'grid', 'gap-3', 'sm:grid-cols-2')}>
-              <div className={cn('rounded-lg', 'bg-[#F6F0ED]', 'p-3')}>
-                <div className={cn('text-[11px]', 'uppercase', 'tracking-wide', 'text-[#326273]/60')}>Operating balance</div>
-                <div className={cn('mt-1', 'text-xl', 'font-extrabold', 'text-[#326273]')}>$11,140.00</div>
-                <div className={cn('mt-0.5', 'text-[11px]', 'font-semibold', 'text-[#5C9EAD]')}>Reconciled</div>
-              </div>
-              <div className={cn('rounded-lg', 'bg-[#F6F0ED]', 'p-3')}>
-                <div className={cn('text-[11px]', 'uppercase', 'tracking-wide', 'text-[#326273]/60')}>Pending inflow</div>
-                <div className={cn('mt-1', 'text-xl', 'font-extrabold', 'text-[#326273]')}>$4,540.00</div>
-                <div className={cn('mt-0.5', 'text-[11px]', 'font-semibold', 'text-[#E39774]')}>Awaiting deposit</div>
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-[#326273]/8 bg-[#F6F0ED]/60">
+                    <th className="px-4 py-2 text-left font-semibold text-[#326273]/50">Corridor</th>
+                    <th className="px-4 py-2 text-right font-semibold text-[#326273]/50">Rate (live)</th>
+                    <th className="hidden px-4 py-2 text-right font-semibold text-[#326273]/50 sm:table-cell">Monthly vol</th>
+                    <th className="hidden px-4 py-2 text-right font-semibold text-[#326273]/50 md:table-cell">Splash fee</th>
+                    <th className="px-4 py-2 text-right font-semibold text-[#326273]/50">Success</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {corridors.map((c, i) => (
+                    <tr
+                      key={c.pair}
+                      className={cn(
+                        'border-b border-[#326273]/5 transition-colors hover:bg-[#F6F0ED]/50',
+                        i === corridors.length - 1 && 'border-b-0'
+                      )}
+                    >
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm leading-none">{c.flag}</span>
+                          <span className="font-semibold text-[#1F4452]">{c.pair}</span>
+                          <span className="hidden rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 sm:inline">
+                            Live
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-mono font-bold text-[#1F4452]">
+                        {c.rate.toLocaleString(undefined, {
+                          maximumFractionDigits: c.dec,
+                          minimumFractionDigits: c.dec,
+                        })}
+                      </td>
+                      <td className="hidden px-4 py-2.5 text-right text-[#326273]/55 sm:table-cell">{c.volume}</td>
+                      <td className="hidden px-4 py-2.5 text-right md:table-cell">
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{c.fee}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span
+                          className={cn(
+                            'font-semibold',
+                            c.success >= 99
+                              ? 'text-emerald-600'
+                              : c.success >= 98
+                              ? 'text-[#5C9EAD]'
+                              : 'text-amber-600'
+                          )}
+                        >
+                          {c.success.toFixed(1)}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent transactions table */}
+          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
+              <h2 className="text-sm font-bold text-[#1F4452]">Recent Transactions</h2>
+              <Link
+                href="/dashboard/history"
+                className="text-[11px] font-semibold text-[#5C9EAD] transition-colors hover:text-[#326273]"
+              >
+                View all →
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-[#326273]/8 bg-[#F6F0ED]/60">
+                    <th className="px-4 py-2 text-left font-semibold text-[#326273]/50">Description</th>
+                    <th className="hidden px-4 py-2 text-left font-semibold text-[#326273]/50 sm:table-cell">Corridor</th>
+                    <th className="px-4 py-2 text-right font-semibold text-[#326273]/50">USD</th>
+                    <th className="hidden px-4 py-2 text-right font-semibold text-[#326273]/50 md:table-cell">Local</th>
+                    <th className="px-4 py-2 text-right font-semibold text-[#326273]/50">Status</th>
+                    <th className="hidden px-4 py-2 text-right font-semibold text-[#326273]/50 sm:table-cell">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ACTIVITIES.map((a, i) => (
+                    <tr
+                      key={a.id}
+                      className={cn(
+                        'border-b border-[#326273]/5 transition-colors hover:bg-[#F6F0ED]/50',
+                        i === ACTIVITIES.length - 1 && 'border-b-0'
+                      )}
+                    >
+                      <td className="px-4 py-2.5">
+                        <div className="font-semibold text-[#1F4452]">{a.desc}</div>
+                        <div className="mt-0.5 text-[10px] text-[#326273]/35">{a.id}</div>
+                      </td>
+                      <td className="hidden px-4 py-2.5 text-[#326273]/55 sm:table-cell">{a.corridor}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold text-[#1F4452]">{a.usd}</td>
+                      <td className="hidden px-4 py-2.5 text-right text-[#326273]/55 md:table-cell">{a.local}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <TxPill status={a.status} />
+                      </td>
+                      <td className="hidden px-4 py-2.5 text-right text-[#326273]/45 sm:table-cell">{a.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        <aside className="space-y-5">
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Compliance posture</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Checks required before value moves.</p>
+        {/* ── RIGHT COLUMN ── */}
+        <aside className="space-y-4">
+
+          {/* Smart Treasury */}
+          <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-lg bg-emerald-100 p-2">
+                  <TrendingUp size={16} className="text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-[#1F4452]">Smart Treasury</h2>
+                  <p className="text-[11px] text-[#326273]/50">USDsui · Labuan FSA</p>
+                </div>
               </div>
-              <ShieldCheck className="text-[#5C9EAD]" size={18} />
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                4.8% APY
+              </span>
             </div>
-            <div className={cn('mt-4', 'space-y-3')}>
-              {compliance.map((item) => (
-                <HoverPopup key={item.label} title={item.hoverTitle} content={item.hoverContent}>
-                  <div className={cn('grid', 'min-h-16', 'cursor-pointer', 'grid-cols-[1fr_auto]', 'items-center', 'gap-3', 'rounded-lg', 'bg-[#F6F0ED]', 'p-3', 'transition-all', 'hover:shadow-md', 'hover:shadow-[#5C9EAD]/10')}>
-                    <div className="min-w-0">
-                      <div className={cn('text-xs', 'font-semibold', 'text-[#326273]')}>{item.label}</div>
-                      <div className={cn('mt-0.5', 'text-[11px]', 'text-[#326273]/60')}>{item.value}</div>
+
+            <div className="mt-3">
+              <p className="text-[11px] uppercase tracking-wide text-[#326273]/45">Treasury Balance</p>
+              <p className="mt-0.5 text-2xl font-extrabold text-[#1F4452]">$24,500.00</p>
+              <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                <TrendingUp size={11} />
+                +${yieldEarned.toFixed(2)} earned this month
+              </p>
+            </div>
+
+            <div className="mt-3 space-y-1 rounded-lg bg-white/70 p-3 text-[11px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[#326273]/55">Daily yield</span>
+                <span className="font-semibold text-emerald-600">+$3.22</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#326273]/55">Status</span>
+                <span className="flex items-center gap-1 font-semibold text-emerald-600">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  Earning
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#326273]/55">Protocol</span>
+                <span className="font-semibold text-[#326273]">Sui DeFi · USDsui</span>
+              </div>
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              <Link
+                href="/dashboard/treasury"
+                className="flex-1 rounded-lg bg-emerald-600 py-1.5 text-center text-xs font-bold text-white transition-colors hover:bg-emerald-700"
+              >
+                Add funds
+              </Link>
+              <Link
+                href="/dashboard/treasury"
+                className="flex-1 rounded-lg border border-emerald-200 py-1.5 text-center text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-50"
+              >
+                Withdraw
+              </Link>
+            </div>
+          </div>
+
+          {/* Compliance posture */}
+          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-[#5C9EAD]" />
+              <h2 className="text-sm font-bold text-[#1F4452]">Compliance</h2>
+            </div>
+            <div className="mt-3 space-y-2">
+              {COMPLIANCE.map((item) => (
+                <HoverPopup key={item.label} title={item.label} content={item.value}>
+                  <div className="flex cursor-pointer items-center justify-between rounded-lg bg-[#F6F0ED] px-3 py-2 transition-colors hover:bg-[#ede8e4]">
+                    <div>
+                      <div className="text-xs font-semibold text-[#1F4452]">{item.label}</div>
+                      <div className="text-[11px] text-[#326273]/55">{item.value}</div>
                     </div>
-                    <div className="justify-self-end">
-                      <StatusBadge status={item.status} />
-                    </div>
+                    <StatusBadge status={item.status} />
                   </div>
                 </HoverPopup>
               ))}
             </div>
           </div>
 
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Recent activity</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Latest transfer, batch, and compliance events.</p>
-              </div>
-              <RefreshCw className="text-[#5C9EAD]" size={18} />
+          {/* Pending actions */}
+          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-[#E39774]" />
+              <h2 className="text-sm font-bold text-[#1F4452]">Pending Actions</h2>
             </div>
-            <div className={cn('mt-4', 'space-y-3')}>
-              {activities.map((activity) => (
-                <HoverPopup key={activity.ref} title={activity.hoverTitle} content={activity.hoverContent}>
-                  <div className={cn('cursor-pointer', 'rounded-lg', 'bg-[#F6F0ED]', 'p-3', 'transition-all', 'hover:shadow-md', 'hover:shadow-[#5C9EAD]/10')}>
-                    <div className={cn('flex', 'items-start', 'justify-between', 'gap-2')}>
-                      <div className={cn('min-w-0', 'flex-1')}>
-                        <div className={cn('text-xs', 'font-semibold', 'text-[#326273]')}>{activity.title}</div>
-                        <div className={cn('mt-0.5', 'text-[11px]', 'text-[#326273]/60')}>{activity.ref}</div>
-                      </div>
-                      <div className={cn('shrink-0', 'text-right')}>
-                        <StatusBadge status={activity.status} />
-                        <div className={cn('mt-0.5', 'text-[11px]', 'font-bold', 'text-[#5C9EAD]')}>{activity.amount}</div>
-                      </div>
-                    </div>
-                  </div>
-                </HoverPopup>
-              ))}
-            </div>
-          </div>
-
-          <div className={cn('rounded-xl', 'border', 'border-[#326273]/10', 'bg-white', 'p-4')}>
-            <div className={cn('flex', 'items-start', 'justify-between', 'gap-3')}>
-              <div>
-                <h2 className={cn('text-lg', 'font-bold', 'text-[#326273]')}>Pending actions</h2>
-                <p className={cn('mt-0.5', 'text-xs', 'text-[#326273]/60')}>Items requiring your attention.</p>
-              </div>
-              <AlertTriangle className="text-[#E39774]" size={18} />
-            </div>
-            <div className={cn('mt-4', 'space-y-2')}>
-              <div className={cn('flex', 'items-center', 'justify-between', 'rounded-lg', 'bg-[#F6F0ED]', 'p-3')}>
-                <div className={cn('text-xs', 'font-semibold', 'text-[#326273]')}>Batch payroll awaiting TOTP</div>
-                <Link href="/dashboard/batch" className={cn('rounded-md', 'bg-[#5C9EAD]', 'px-2.5', 'py-1', 'text-[11px]', 'font-bold', 'text-white', 'hover:bg-[#4A8895]')}>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2.5">
+                <div>
+                  <div className="text-xs font-semibold text-amber-800">Batch TOTP authorization</div>
+                  <div className="text-[11px] text-amber-600/70">12 transfers · $6,670</div>
+                </div>
+                <Link
+                  href="/dashboard/batch"
+                  className="shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-bold text-white transition-colors hover:bg-amber-600"
+                >
                   Authorize
                 </Link>
               </div>
-              <div className={cn('flex', 'items-center', 'justify-between', 'rounded-lg', 'bg-[#F6F0ED]', 'p-3')}>
-                <div className={cn('text-xs', 'font-semibold', 'text-[#326273]')}>KYB document review</div>
-                <Link href="/dashboard/settings" className={cn('rounded-md', 'bg-[#5C9EAD]', 'px-2.5', 'py-1', 'text-[11px]', 'font-bold', 'text-white', 'hover:bg-[#4A8895]')}>
+              <div className="flex items-center justify-between rounded-lg bg-[#F6F0ED] px-3 py-2.5">
+                <div>
+                  <div className="text-xs font-semibold text-[#1F4452]">KYB document review</div>
+                  <div className="text-[11px] text-[#326273]/55">Sumsub · in progress</div>
+                </div>
+                <Link
+                  href="/dashboard/settings"
+                  className="shrink-0 rounded-md bg-[#5C9EAD] px-2.5 py-1 text-[11px] font-bold text-white transition-colors hover:bg-[#4a8a99]"
+                >
                   Review
                 </Link>
               </div>
             </div>
           </div>
+
+          {/* Invoice upload (Walrus) */}
+          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <FileText size={16} className="text-[#5C9EAD]" />
+              <h2 className="text-sm font-bold text-[#1F4452]">Upload Invoice</h2>
+            </div>
+            <Link
+              href="/dashboard/invoices"
+              className="mt-3 flex flex-col items-center rounded-lg border-2 border-dashed border-[#326273]/15 bg-[#F6F0ED] p-4 text-center transition-colors hover:border-[#5C9EAD]/40 hover:bg-[#5C9EAD]/5"
+            >
+              <Upload size={22} className="text-[#326273]/25" />
+              <p className="mt-2 text-xs font-semibold text-[#326273]/50">Go to Invoice Vault</p>
+              <p className="mt-1 text-[10px] text-[#326273]/35">
+                Seal-encrypted · stored on Walrus · 7-yr retention
+              </p>
+            </Link>
+            <Link
+              href="/dashboard/invoices"
+              className="mt-2 block text-center text-[11px] font-semibold text-[#5C9EAD] transition-colors hover:text-[#326273]"
+            >
+              View invoice vault →
+            </Link>
+          </div>
         </aside>
-      </section>
+      </div>
     </div>
   );
 }

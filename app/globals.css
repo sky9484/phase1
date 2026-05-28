@@ -129,3 +129,63 @@
     @apply font-sans;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Dashboard Colour Themes
+   Uses [data-dash-theme] attribute on the layout wrapper.
+   [class~="..."] matches the exact Tailwind class token regardless
+   of how Lightning CSS processes escaped selectors at build time.
+   !important beats Tailwind's layered utilities in every scenario.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Navy Blue  (#1E3888 · #47A8BD · #FFAD69) ──────────────────── */
+
+[data-dash-theme="navy"] [class~="bg-[#EDE8E4]"]   { background-color: #EEF1FF !important; }
+[data-dash-theme="navy"] [class~="bg-[#F6F0ED]"]   { background-color: #F2F5FF !important; }
+[data-dash-theme="navy"] [class~="bg-[#1F4452]"]   { background-color: #1E3888 !important; }
+[data-dash-theme="navy"] [class~="bg-[#326273]"]   { background-color: #2a4d80 !important; }
+[data-dash-theme="navy"] [class~="bg-[#5C9EAD]"]   { background-color: #47A8BD !important; }
+[data-dash-theme="navy"] [class~="bg-[#E39774]"]   { background-color: #FFAD69 !important; }
+[data-dash-theme="navy"] [class~="bg-[#C97A56]"]   { background-color: #9C3848 !important; }
+[data-dash-theme="navy"] [class~="bg-[#264e5b]"]   { background-color: #152a6d !important; }
+
+[data-dash-theme="navy"] [class~="text-[#1F4452]"] { color: #1E3888 !important; }
+[data-dash-theme="navy"] [class~="text-[#326273]"] { color: #2a4d80 !important; }
+[data-dash-theme="navy"] [class~="text-[#5C9EAD]"] { color: #47A8BD !important; }
+[data-dash-theme="navy"] [class~="text-[#E39774]"] { color: #FFAD69 !important; }
+[data-dash-theme="navy"] [class~="text-[#C97A56]"] { color: #9C3848 !important; }
+
+[data-dash-theme="navy"] [class~="border-[#326273]"] { border-color: #2a4d80 !important; }
+[data-dash-theme="navy"] [class~="border-[#5C9EAD]"] { border-color: #47A8BD !important; }
+[data-dash-theme="navy"] [class~="border-[#E39774]"] { border-color: #FFAD69 !important; }
+
+[data-dash-theme="navy"] [class~="hover:bg-[#264e5b]"]:hover   { background-color: #152a6d !important; }
+[data-dash-theme="navy"] [class~="hover:bg-[#1F4452]"]:hover   { background-color: #1E3888 !important; }
+[data-dash-theme="navy"] [class~="hover:bg-[#326273]"]:hover   { background-color: #2a4d80 !important; }
+[data-dash-theme="navy"] [class~="hover:text-[#E39774]"]:hover { color: #FFAD69 !important; }
+
+/* ─── Ocean Teal  (#0FA692 · #37AD9E · #FC8F12) ─────────────────── */
+
+[data-dash-theme="teal"] [class~="bg-[#EDE8E4]"]   { background-color: #F0F8F7 !important; }
+[data-dash-theme="teal"] [class~="bg-[#F6F0ED]"]   { background-color: #F7FAFB !important; }
+[data-dash-theme="teal"] [class~="bg-[#1F4452]"]   { background-color: #0FA692 !important; }
+[data-dash-theme="teal"] [class~="bg-[#326273]"]   { background-color: #0d8a79 !important; }
+[data-dash-theme="teal"] [class~="bg-[#5C9EAD]"]   { background-color: #37AD9E !important; }
+[data-dash-theme="teal"] [class~="bg-[#E39774]"]   { background-color: #FC8F12 !important; }
+[data-dash-theme="teal"] [class~="bg-[#C97A56]"]   { background-color: #B88142 !important; }
+[data-dash-theme="teal"] [class~="bg-[#264e5b]"]   { background-color: #0a7d6e !important; }
+
+[data-dash-theme="teal"] [class~="text-[#1F4452]"] { color: #0FA692 !important; }
+[data-dash-theme="teal"] [class~="text-[#326273]"] { color: #0d8a79 !important; }
+[data-dash-theme="teal"] [class~="text-[#5C9EAD]"] { color: #37AD9E !important; }
+[data-dash-theme="teal"] [class~="text-[#E39774]"] { color: #FC8F12 !important; }
+[data-dash-theme="teal"] [class~="text-[#C97A56]"] { color: #B88142 !important; }
+
+[data-dash-theme="teal"] [class~="border-[#326273]"] { border-color: #0d8a79 !important; }
+[data-dash-theme="teal"] [class~="border-[#5C9EAD]"] { border-color: #37AD9E !important; }
+[data-dash-theme="teal"] [class~="border-[#E39774]"] { border-color: #FC8F12 !important; }
+
+[data-dash-theme="teal"] [class~="hover:bg-[#264e5b]"]:hover   { background-color: #0a7d6e !important; }
+[data-dash-theme="teal"] [class~="hover:bg-[#1F4452]"]:hover   { background-color: #0FA692 !important; }
+[data-dash-theme="teal"] [class~="hover:bg-[#326273]"]:hover   { background-color: #0d8a79 !important; }
+[data-dash-theme="teal"] [class~="hover:text-[#E39774]"]:hover { color: #FC8F12 !important; }

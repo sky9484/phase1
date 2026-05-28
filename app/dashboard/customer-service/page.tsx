@@ -145,7 +145,7 @@ export default function CustomerServicePage() {
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Support</div>
-          <h1 className="text-2xl font-extrabold text-[#326273]">Customer Service</h1>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Customer Service</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">Submit issues, bugs, or complaints. We aim to respond within 24 hours.</p>
         </div>
         <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273]">
@@ -200,14 +200,14 @@ export default function CustomerServicePage() {
                   <div className="mt-4">
                     <label className="text-xs font-semibold text-[#326273]/70">Add a follow-up message</label>
                     <textarea value={replyMessage} onChange={(event) => setReplyMessage(event.target.value)} rows={3} className="mt-1 w-full resize-none rounded-lg border border-[#326273]/20 bg-[#F6F0ED] px-4 py-3 text-sm text-[#326273] focus:border-[#5C9EAD] focus:outline-none" placeholder="Add extra details for the support team..." />
-                    <button type="button" disabled={sendingReply} onClick={() => void sendFollowUp()} className="mt-3 rounded-lg bg-[#5C9EAD] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#4A8B9A] disabled:opacity-60">
+                    <button type="button" disabled={sendingReply} onClick={() => void sendFollowUp()} className="mt-3 rounded-lg bg-[#5C9EAD] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#264e5b] disabled:opacity-60">
                       {sendingReply ? 'Sending…' : 'Send follow-up'}
                     </button>
                   </div>
                 </div>
               )}
 
-              <button onClick={reset} className="rounded-lg bg-[#326273] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#254e5c]">
+              <button onClick={reset} className="rounded-lg bg-[#326273] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#264e5b]">
                 Submit another ticket
               </button>
             </div>
@@ -266,7 +266,7 @@ export default function CustomerServicePage() {
 
               <button
                 onClick={() => void submit()}
-                className="w-full rounded-lg bg-[#5C9EAD] px-4 py-3 font-bold text-white hover:bg-[#4A8B9A]"
+                className="w-full rounded-lg bg-[#5C9EAD] px-4 py-3 font-bold text-white hover:bg-[#264e5b]"
               >
                 Submit Ticket
               </button>

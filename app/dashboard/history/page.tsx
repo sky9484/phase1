@@ -246,31 +246,31 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       {/* Header */}
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">
-            <History size={12} /> Transfer History
+          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">
+            <History size={11} /> Transfer History
           </div>
-          <h1 className="text-3xl font-extrabold text-[#326273]">History</h1>
-          <p className="mt-1 max-w-xl text-sm text-[#326273]/60">
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">History</h1>
+          <p className="mt-0.5 max-w-xl text-xs text-[#326273]/60">
             All your single transfers — live status, on-chain proofs, and failure reasons.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => void fetchTransfers(filter, true)}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#326273]/10 bg-white px-4 py-2 text-sm font-semibold text-[#326273] hover:border-[#5C9EAD]/40 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#326273]/15 bg-white px-3 py-2 text-xs font-semibold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]/40 disabled:opacity-50"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             Refresh
           </button>
           <Link
-            href="/dashboard/transfers"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
+            href="/dashboard/transfer"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#326273] px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]"
           >
             <ArrowUpRight size={14} />
             New transfer
@@ -343,8 +343,8 @@ export default function HistoryPage() {
           </p>
           {filter === 'all' && (
             <Link
-              href="/dashboard/transfers"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 py-2 text-sm font-bold text-white hover:bg-[#4A8B9A]"
+              href="/dashboard/transfer"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#326273] px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]"
             >
               <ArrowUpRight size={14} />
               Make your first transfer

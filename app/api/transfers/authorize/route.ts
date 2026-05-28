@@ -81,6 +81,9 @@ export async function POST(request: Request) {
         recipient: '',
         amountUsd: sourceAmount,
         stablecoinAmountMicro,
+        // Pass the corridor so settlement.move charges the correct fee_bps.
+        targetCurrency: serverQuote?.targetCurrency ?? amount?.targetCurrency ?? 'PHP',
+        feeBps: serverQuote?.feeBps,
       });
       updateTransferIntent(intent.id, {
         state: 'SETTLED',

@@ -1,9 +1,23 @@
 import { randomUUID } from 'crypto';
 
-import { getUsdCorridorByCurrency } from '@/lib/fx/corridors';
+import {
+  CONTRACT_MAX_FEE_BPS,
+  FALLBACK_FEE_BPS,
+  getCorridorFeeBps,
+  getUsdCorridorByCurrency,
+} from '@/lib/fx/corridors';
 import { getCachedJson, setCachedJson } from '@/lib/server/redis-cache';
 
-const PLATFORM_FEE_BPS = Number.parseInt(process.env.PLATFORM_FEE_BPS ?? '140', 10);
+/**
+ * Default platform fee — used as a floor only when corridor-specific fee
+ * isn't known. Per-corridor fees come from lib/fx/corridors.ts so the
+ * quote engine and the smart contract agree on what the user is charged.
+ * Clamped to CONTRACT_MAX_FEE_BPS so the contract will never reject.
+ */
+const DEFAULT_PLATFORM_FEE_BPS = Math.min(
+  Number.parseInt(process.env.PLATFORM_FEE_BPS ?? String(FALLBACK_FEE_BPS), 10),
+  CONTRACT_MAX_FEE_BPS,
+);
 const FIXED_FEE_CENTS = Number.parseInt(process.env.FIXED_FEE_CENTS ?? '450', 10);
 const QUOTE_TTL_SECONDS = Number.parseInt(process.env.QUOTE_TTL_SECONDS ?? '30', 10);
 
@@ -25,6 +39,8 @@ export type QuoteData = {
   toAmount: number;
   exchangeRate: string;
   platformFee: number;
+  /** Effective fee in basis points actually applied to this quote. */
+  feeBps: number;
   networkFee: number;
   fixedFee: number;
   expiresAt: string;
@@ -63,7 +79,13 @@ export async function getLiveUsdToTargetRate(targetCurrency = 'PHP'): Promise<{ 
 
 export async function calculateQuote(fromAmountCents: number, recipientId?: string, targetCurrency = 'PHP'): Promise<QuoteData> {
   const { rate, source } = await getLiveUsdToTargetRate(targetCurrency);
-  const percentageFee = Math.floor((fromAmountCents * PLATFORM_FEE_BPS) / 10_000);
+  // Per-corridor fee from the single source of truth. Already clamped to
+  // CONTRACT_MAX_FEE_BPS in getCorridorFeeBps, so it will pass the
+  // settlement.move E_FEE_EXCEEDED assertion every time.
+  const corridorFeeBps = source === 'corridor'
+    ? getCorridorFeeBps(targetCurrency)
+    : DEFAULT_PLATFORM_FEE_BPS;
+  const percentageFee = Math.floor((fromAmountCents * corridorFeeBps) / 10_000);
   const platformFee = percentageFee + FIXED_FEE_CENTS;
   const netCents = Math.max(fromAmountCents - platformFee, 0);
   const toAmount = Math.floor((netCents / 100) * rate * 100) / 100;
@@ -75,6 +97,7 @@ export async function calculateQuote(fromAmountCents: number, recipientId?: stri
     toAmount,
     exchangeRate: rate.toFixed(4),
     platformFee,
+    feeBps: corridorFeeBps,
     networkFee: 0,
     fixedFee: FIXED_FEE_CENTS,
     expiresAt,
