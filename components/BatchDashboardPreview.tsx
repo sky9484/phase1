@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 
 const rows = [
-  { name: 'Acme Trading Sdn Bhd', country: 'MY', amount: '12,400.00', status: 'settled' },
+  { name: 'Acme Trading Corp', country: 'MY', amount: '12,400.00', status: 'settled' },
   { name: 'Manila Apparel Co.', country: 'PH', amount: '8,750.50', status: 'settled' },
   { name: 'Jakarta Logistics', country: 'ID', amount: '21,000.00', status: 'settled' },
   { name: 'Singapore Wholesale Pte', country: 'SG', amount: '5,300.00', status: 'pending' },

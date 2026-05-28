@@ -28,7 +28,7 @@ type ApiResponse = {
 
 const STATE_ORDER: TransferIntentState[] = [
   'AUTHORIZED',
-  'FPX_PAID',
+  'DEPOSIT_CONFIRMED',
   'EXCHANGING',
   'EXCHANGED',
   'QUEUED',
@@ -86,7 +86,7 @@ function StateBadge({ state }: { state: TransferIntentState }) {
 function ProgressSteps({ state }: { state: TransferIntentState }) {
   if (state === 'FAILED' || state === 'REFUNDING' || state === 'REFUNDED') return null;
   const current = stateIndex(state);
-  const steps = ['Authorized', 'FPX Paid', 'Exchanging', 'Exchanged', 'Queued', 'Settling', 'Settled'];
+  const steps = ['Authorized', 'Deposit Confirmed', 'Exchanging', 'Exchanged', 'Queued', 'Settling', 'Settled'];
 
   return (
     <div className="mt-3 flex items-center gap-0.5 overflow-x-auto pb-1">
@@ -130,7 +130,7 @@ function TransferCard({ record }: { record: TransferIntentRecord }) {
           <div className="min-w-0">
             <div className="font-bold text-[#326273]">{record.recipientName}</div>
             <div className="mt-0.5 text-xs text-[#326273]/60">
-              {record.targetCurrency} {record.targetAmount} · MYR {record.sourceAmountMyr}
+              {record.targetCurrency} {record.targetAmount} · USD {record.sourceAmountUsd}
             </div>
             <div className="mt-0.5 font-mono text-[11px] text-[#326273]/40">{record.id}</div>
           </div>
@@ -221,7 +221,8 @@ export default function HistoryPage() {
   }, []);
 
   useEffect(() => {
-    void fetchTransfers(filter);
+    const timeout = setTimeout(() => void fetchTransfers(filter), 0);
+    return () => clearTimeout(timeout);
   }, [filter, fetchTransfers]);
 
   useEffect(() => {

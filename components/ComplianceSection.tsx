@@ -13,7 +13,7 @@ const controls: { title: string; desc: string; icon: LucideIcon }[] = [
 const metrics = [
   { value: '24/7', label: 'screening coverage' },
   { value: '< 1s', label: 'policy decisioning' },
-  { value: '14', label: 'ASEAN corridors' },
+  { value: 'Global', label: 'corridor coverage' },
 ];
 
 export default function ComplianceSection() {

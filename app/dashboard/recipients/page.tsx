@@ -6,9 +6,9 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 const paymentSummary = [
-  { label: 'Pending', count: 8, amount: 'MYR 21,400.00', icon: Clock3, tone: 'border-[#E39774]/30 bg-[#E39774]/10 text-[#E39774]' },
-  { label: 'Failed', count: 1, amount: 'MYR 1,220.00', icon: XCircle, tone: 'border-red-500/30 bg-red-500/10 text-red-600' },
-  { label: 'Success', count: 19, amount: 'MYR 68,880.00', icon: CheckCircle2, tone: 'border-[#5C9EAD]/30 bg-[#5C9EAD]/10 text-[#5C9EAD]' },
+  { label: 'Pending', count: 8, amount: '$4,540.00', icon: Clock3, tone: 'border-[#E39774]/30 bg-[#E39774]/10 text-[#E39774]' },
+  { label: 'Failed', count: 1, amount: '$260.00', icon: XCircle, tone: 'border-red-500/30 bg-red-500/10 text-red-600' },
+  { label: 'Success', count: 19, amount: '$14,640.00', icon: CheckCircle2, tone: 'border-[#5C9EAD]/30 bg-[#5C9EAD]/10 text-[#5C9EAD]' },
 ];
 
 const initialRecipients = [

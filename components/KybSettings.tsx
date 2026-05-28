@@ -143,13 +143,15 @@ export default function KybSettings() {
   }, [applyCaseStatus, businessName, ssmNumber]);
 
   useEffect(() => {
-    void syncLatestCaseStatus();
-
+    const timeout = setTimeout(() => void syncLatestCaseStatus(), 0);
     const interval = window.setInterval(() => {
       void syncLatestCaseStatus();
     }, 6000);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      window.clearInterval(interval);
+    };
   }, [syncLatestCaseStatus]);
 
   async function refreshCaseStatus() {

@@ -5,9 +5,9 @@ import { Quote, Sparkles } from 'lucide-react';
 
 const customers = [
   {
-    company: 'Acme Trading Sdn Bhd',
+    company: 'Acme Trading Corp',
     segment: 'Regional exporter',
-    quote: 'Splash gave our finance team one controlled workflow for supplier payouts across Malaysia, Singapore, and the Philippines.',
+    quote: 'Splash gave our finance team one controlled workflow for supplier payouts across Singapore, Philippines, and Indonesia.',
     stat: '68%',
     statLabel: 'less manual reconciliation',
   },
@@ -38,8 +38,8 @@ export default function CustomerSection() {
             <Sparkles className="h-3.5 w-3.5" />
             Customer proof
           </div>
-          <h2 className="text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">Designed for teams moving real money across SEA.</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#326273]/75">From supplier payouts to marketplace disbursements, Splash gives operators a faster way to clear, track, and reconcile cross-border payments.</p>
+          <h2 className="text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">Designed for teams moving real money globally.</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#326273]/75">From supplier payouts to marketplace disbursements, Splash gives operators a faster way to clear, track, and reconcile cross-border payments. ASEAN Power House of Settlement Engine.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-3">

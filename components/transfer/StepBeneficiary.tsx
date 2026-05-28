@@ -7,10 +7,14 @@ import type { TransferState } from '@/app/dashboard/transfer/page';
 type TransferPatch = (patch: Partial<TransferState>) => void;
 
 const RATES: Record<TransferState['amount']['targetCurrency'], number> = {
-  MYR: 1,
-  PHP: 12.08,
-  IDR: 3364,
-  SGD: 0.285,
+  MYR: 4.71,
+  PHP: 56.42,
+  IDR: 16284,
+  SGD: 1.345,
+  VND: 25385,
+  THB: 35.82,
+  EUR: 0.924,
+  GBP: 0.789,
 };
 
 export default function StepBeneficiary({ state, set, next }: { state: TransferState; set: TransferPatch; next: () => void }) {
@@ -55,7 +59,7 @@ export default function StepBeneficiary({ state, set, next }: { state: TransferS
           value={recipient.country}
           onChange={(event) => {
             const country = event.target.value as TransferState['recipient']['country'];
-            const currencyMap = { MY: 'MYR', PH: 'PHP', ID: 'IDR', SG: 'SGD' } as const;
+            const currencyMap = { MY: 'MYR', PH: 'PHP', ID: 'IDR', SG: 'SGD', VN: 'VND', TH: 'THB', EU: 'EUR', GB: 'GBP' } as const;
             set({
               recipient: { ...recipient, country },
               amount: { ...amount, targetCurrency: currencyMap[country] },
@@ -67,6 +71,10 @@ export default function StepBeneficiary({ state, set, next }: { state: TransferS
           <option value="PH">Philippines</option>
           <option value="ID">Indonesia</option>
           <option value="SG">Singapore</option>
+          <option value="VN">Vietnam</option>
+          <option value="TH">Thailand</option>
+          <option value="EU">European Union</option>
+          <option value="GB">United Kingdom</option>
         </select>
       </Field>
 
@@ -102,7 +110,7 @@ export default function StepBeneficiary({ state, set, next }: { state: TransferS
 
       <div className="space-y-3">
         <div className="rounded-xl border border-[#326273]/10 bg-[#F6F0ED] p-5">
-          <div className="mb-2 text-xs text-[#326273]/60">You send (MYR)</div>
+          <div className="mb-2 text-xs text-[#326273]/60">You send (USD)</div>
           <input
             type="number"
             min="0"

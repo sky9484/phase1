@@ -1,6 +1,6 @@
 export type TransferIntentState =
   | 'AUTHORIZED'
-  | 'FPX_PAID'
+  | 'DEPOSIT_CONFIRMED'
   | 'EXCHANGING'
   | 'EXCHANGED'
   | 'QUEUED'
@@ -17,12 +17,12 @@ export type TransferIntentRecord = {
   recipientName: string;
   targetCurrency: string;
   targetAmount: string;
-  sourceAmountMyr: string;
+  sourceAmountUsd: string;
   quoteId: string | null;
   exchangeRate: string | null;
   sourceStablecoin: 'USDC' | 'USDT';
   stablecoinAmountMicro: number;
-  daxProvider: 'HATA';
+  daxProvider: 'LABUAN' | 'STRIPE' | 'AIRWALLEX';
   daxTier: string | null;
   pegChecked: boolean;
   verificationReference: string | null;
@@ -103,7 +103,7 @@ export function createTransferIntent(input: {
   recipientName: string;
   targetCurrency: string;
   targetAmount: string;
-  sourceAmountMyr?: string;
+  sourceAmountUsd?: string;
   quoteId?: string | null;
   exchangeRate?: string | null;
   sourceStablecoin?: 'USDC' | 'USDT';
@@ -118,12 +118,12 @@ export function createTransferIntent(input: {
     recipientName: input.recipientName,
     targetCurrency: input.targetCurrency,
     targetAmount: input.targetAmount,
-    sourceAmountMyr: input.sourceAmountMyr ?? '0.00',
+    sourceAmountUsd: input.sourceAmountUsd ?? '0.00',
     quoteId: input.quoteId ?? null,
     exchangeRate: input.exchangeRate ?? null,
     sourceStablecoin: input.sourceStablecoin ?? 'USDC',
     stablecoinAmountMicro: input.stablecoinAmountMicro ?? 0,
-    daxProvider: 'HATA',
+    daxProvider: 'LABUAN',
     daxTier: input.daxTier ?? null,
     pegChecked: input.pegChecked ?? false,
     verificationReference: null,
@@ -247,7 +247,7 @@ export function listTransactions(): TransactionRecord[] {
     state: t.state,
     module: 'settlement',
     functionName: 'settle_payment',
-    amount: `MYR ${t.sourceAmountMyr}`,
+    amount: `$${t.sourceAmountUsd}`,
     digest: t.suiTxDigest,
     packageId: process.env.SPLASH_PACKAGE_ID ?? null,
     explorer: explorerLinks(t.suiTxDigest),
@@ -260,7 +260,7 @@ export function listTransactions(): TransactionRecord[] {
     state: b.state,
     module: 'settlement',
     functionName: 'settle_batch',
-    amount: `MYR ${b.totalAmount}`,
+    amount: `$${b.totalAmount}`,
     digest: b.digest,
     packageId: b.packageId,
     explorer: b.explorer,

@@ -4,15 +4,11 @@ import { useEffect, useState } from 'react';
 import { Activity, TrendingDown, TrendingUp } from 'lucide-react';
 
 const RATES = [
-  { pair: 'MYR/PHP', rate: 12.08, precision: 3 },
-  { pair: 'MYR/IDR', rate: 3364, precision: 0 },
-  { pair: 'MYR/SGD', rate: 0.285, precision: 3 },
-  { pair: 'MYR/THB', rate: 7.72, precision: 3 },
-  { pair: 'MYR/VND', rate: 5432, precision: 0 },
-  { pair: 'MYR/BND', rate: 0.285, precision: 3 },
-  { pair: 'MYR/KHR', rate: 864, precision: 0 },
-  { pair: 'MYR/LAK', rate: 4612, precision: 0 },
-  { pair: 'MYR/MMK', rate: 446, precision: 0 },
+  { pair: 'USD/PHP', rate: 56.42, precision: 2 },
+  { pair: 'USD/MYR', rate: 4.71, precision: 2 },
+  { pair: 'USD/IDR', rate: 16284, precision: 0 },
+  { pair: 'USD/EUR', rate: 0.924, precision: 3 },
+  { pair: 'USD/GBP', rate: 0.789, precision: 3 },
 ];
 
 export default function LiveExchangeTicker() {
@@ -57,7 +53,7 @@ export default function LiveExchangeTicker() {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#E39774]" />
             </span>
             <Activity className="h-4 w-4 text-[#5C9EAD]" />
-            <span>MYR LIVE FX</span>
+            <span>USD LIVE FX</span>
             <span className="hidden text-xs text-white/45 sm:inline">Updated {lastUpdate?.toLocaleTimeString() ?? '—'}</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">

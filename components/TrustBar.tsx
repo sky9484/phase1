@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { Building2, Globe2, ShieldCheck, Zap, type LucideIcon } from 'lucide-react';
 
 const partners: { name: string; desc: string; icon: LucideIcon }[] = [
-  { name: 'HATA', desc: 'Licensed Digital Asset Exchange', icon: Building2 },
-  { name: 'Coins.ph', desc: '18M+ Users in Philippines', icon: Globe2 },
+  { name: 'Stripe', desc: 'Global Payment Infrastructure', icon: Building2 },
+  { name: 'Airwallex', desc: 'Cross-Border Payments', icon: Globe2 },
+  { name: 'Walrus', desc: 'Decentralized Storage', icon: ShieldCheck },
+  { name: 'Sumsub', desc: 'KYB/KYC Compliance', icon: Zap },
   { name: 'Sui Foundation', desc: '400ms Settlement Layer', icon: Zap },
   { name: 'Bank Negara', desc: 'MSB Framework Pending', icon: ShieldCheck },
 ];

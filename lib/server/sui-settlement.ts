@@ -106,6 +106,7 @@ async function planGasCoin(neededMist: number): Promise<{ primaryId: string; mer
   return { primaryId: primary.id, mergeIds };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function updatePegOnSui(): Promise<void> {
   const SPLASH_PACKAGE_ID = optionalEnvObjectId('SPLASH_PACKAGE_ID');
   const SPLASH_PEG_STATE_ID = optionalEnvObjectId('SPLASH_PEG_STATE_ID');
@@ -205,7 +206,7 @@ function optionalEnvObjectId(key: string): string {
 export async function recordSingleTransferOnSui(input: {
   transferId: string;
   recipient: string;
-  amountMyr: number;
+  amountUsd: number;
   stablecoinAmountMicro: number;
 }) {
   const SPLASH_PACKAGE_ID = envObjectIdOrThrow('SPLASH_PACKAGE_ID');
@@ -310,7 +311,7 @@ export async function recordSingleTransferOnSui(input: {
 export async function recordBatchSettlementOnSui(input: {
   batchId: string;
   rows: SettlementBatchRow[];
-  totalMyr: number;
+  totalUsd: number;
 }) {
   const SPLASH_PACKAGE_ID = envObjectIdOrThrow('SPLASH_PACKAGE_ID');
   const SPLASH_TREASURY_ID = envObjectIdOrThrow('SPLASH_TREASURY_ID');

@@ -1,6 +1,7 @@
 import { after, NextResponse } from 'next/server';
 
-import { convertMyrToUsdc, myrSenToUsdcMicro } from '@/lib/server/hata';
+import { convertUsdToUsdc, usdCentsToUsdcMicro } from '@/lib/server/labuan-settlement';
+import { createIntercompanyTransfer } from '@/lib/server/intercompany';
 import { createTransferIntent, updateTransferIntent } from '@/lib/server/operations';
 import { pythAdapter } from '@/lib/server/pyth';
 import { calculateQuote } from '@/lib/server/quote';
@@ -10,10 +11,9 @@ import { recordSingleTransferOnSui } from '@/lib/server/sui-settlement';
 export async function POST(request: Request) {
   const body = await request.json();
   const totp = String(body.totp ?? '');
-  const paymentRail = String(body.paymentRail ?? '');
+  const paymentRail = String(body.paymentRail ?? 'STRIPE_CHECKOUT');
 
-  // FPX PayNet flow does not require TOTP in Phase 1
-  if (paymentRail !== 'FPX_PAYNET' && !/^\d{6}$/.test(totp)) {
+  if (paymentRail !== 'STRIPE_CHECKOUT' && paymentRail !== 'AIRWALLEX_WIRE' && !/^\d{6}$/.test(totp)) {
     return NextResponse.json({ error: 'A valid 6-digit authorization code is required' }, { status: 400 });
   }
 
@@ -21,8 +21,8 @@ export async function POST(request: Request) {
   const amount = body.amount as { value?: string; targetCurrency?: string } | undefined;
   const quote = body.quote as { netReceived?: string } | undefined;
   const sourceAmount = Number.parseFloat(amount?.value ?? '0');
-  const sourceAmountSen = Math.round(sourceAmount * 100);
-  const serverQuote = sourceAmountSen > 0 ? await calculateQuote(sourceAmountSen, undefined, amount?.targetCurrency ?? 'PHP') : null;
+  const sourceAmountCents = Math.round(sourceAmount * 100);
+  const serverQuote = sourceAmountCents > 0 ? await calculateQuote(sourceAmountCents, undefined, amount?.targetCurrency ?? 'PHP') : null;
   const pegStatus = await pythAdapter.getPegStatus();
 
   if (!pegStatus.pegged) {
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const stablecoinAmountMicro = sourceAmountSen > 0 ? await myrSenToUsdcMicro(sourceAmountSen) : 0;
-  const conversion = sourceAmount > 0 ? await convertMyrToUsdc(sourceAmount) : null;
+  const stablecoinAmountMicro = sourceAmountCents > 0 ? await usdCentsToUsdcMicro(sourceAmountCents) : 0;
+  const conversion = sourceAmount > 0 ? await convertUsdToUsdc(sourceAmount) : null;
   const usdcAvailableMicro = Number.parseInt(process.env.USDC_AVAILABLE_MICRO ?? '1000000000000000', 10);
   const usdtAvailableMicro = Number.parseInt(process.env.USDT_AVAILABLE_MICRO ?? '0', 10);
   const usdtBufferAgeMs = Number.parseInt(process.env.USDT_BUFFER_AGE_MS ?? '0', 10);
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     recipientName: recipient?.name ?? 'Recipient',
     targetCurrency: serverQuote?.targetCurrency ?? amount?.targetCurrency ?? 'PHP',
     targetAmount: serverQuote ? serverQuote.toAmount.toFixed(2) : quote?.netReceived ?? '0.00',
-    sourceAmountMyr: Number.isFinite(sourceAmount) ? sourceAmount.toFixed(2) : '0.00',
+    sourceAmountUsd: Number.isFinite(sourceAmount) ? sourceAmount.toFixed(2) : '0.00',
     quoteId: serverQuote?.quoteId ?? null,
     exchangeRate: serverQuote?.exchangeRate ?? null,
     sourceStablecoin,
@@ -63,6 +63,15 @@ export async function POST(request: Request) {
     pegChecked: true,
   });
 
+  // Track intercompany transfer (Splash US -> Splash Labuan) for audit/reconciliation.
+  if (conversion?.success && conversion.labuanSettlementId) {
+    createIntercompanyTransfer({
+      transferIntentId: intent.id,
+      amountUsd: conversion.usdAmount,
+      usdToUsdcRate: conversion.usdToUsdcRate,
+    });
+  }
+
   // Fire Sui settlement after responding so the HTTP round-trip is instant.
   after(async () => {
     updateTransferIntent(intent.id, { state: 'QUEUED' });
@@ -70,7 +79,7 @@ export async function POST(request: Request) {
       const result = await recordSingleTransferOnSui({
         transferId: intent.id,
         recipient: '',
-        amountMyr: sourceAmount,
+        amountUsd: sourceAmount,
         stablecoinAmountMicro,
       });
       updateTransferIntent(intent.id, {

@@ -33,7 +33,7 @@ export type KybApplicationInput = {
 export type BatchPayment = {
   employeeName: string
   wallet: string
-  amountMyr: number
+  amountUsd: number
   status: "Ready" | "Queued" | "Executed"
 }
 
@@ -70,7 +70,7 @@ export async function executeBatchSettlement(payments: BatchPayment[]) {
       businessAccount: "0xbusiness_account",
       payments: payments.map((payment) => ({
         recipient: payment.wallet,
-        amountMist: Math.round(payment.amountMyr * 1_000_000),
+        amountMist: Math.round(payment.amountUsd * 1_000_000),
       })),
     },
   })

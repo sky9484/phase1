@@ -14,12 +14,12 @@ const navLinks = [
 ];
 
 const initialCorridors = [
-  { from: 'MYR', to: 'PHP', speed: 398, volume: 4.21 },
-  { from: 'MYR', to: 'IDR', speed: 421, volume: 1.82 },
-  { from: 'MYR', to: 'SGD', speed: 374, volume: 0.94 },
-  { from: 'MYR', to: 'THB', speed: 438, volume: 0.72 },
-  { from: 'MYR', to: 'VND', speed: 446, volume: 0.61 },
-  { from: 'MYR', to: 'BND', speed: 405, volume: 0.28 },
+  { from: 'USD', to: 'PHP', speed: 398, volume: 4.21 },
+  { from: 'USD', to: 'IDR', speed: 421, volume: 1.82 },
+  { from: 'USD', to: 'SGD', speed: 374, volume: 0.94 },
+  { from: 'USD', to: 'THB', speed: 438, volume: 0.72 },
+  { from: 'USD', to: 'VND', speed: 446, volume: 0.61 },
+  { from: 'USD', to: 'EUR', speed: 405, volume: 0.28 },
 ];
 
 export default function HeroSection() {
@@ -125,27 +125,27 @@ export default function HeroSection() {
             <circle cx="900" cy="180" r="2.5" fill="#E39774" opacity="0.7" />
           </svg>
 
-          <div className="absolute right-[6%] top-[14%] hidden animate-[splashFloat_5s_ease-in-out_infinite] rounded-xl border border-l-[3px] border-[#326273]/15 border-l-[#5C9EAD] bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+          <div className="absolute right-[6%] top-[25%] hidden animate-[splashFloat_5s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#5C9EAD] shadow-[0_0_0_3px_rgba(92,158,173,0.18)]" />
+              <span className="h-2 w-2 rounded-full bg-[#5C9EAD] opacity-80" />
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">Corridor MY → PHP</div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">Corridor USD → PHP</div>
                 <div className="font-semibold">$ {liveCorridors[0].volume.toFixed(2)}M cleared</div>
               </div>
             </div>
           </div>
-          <div className="absolute right-[3%] top-[52%] hidden animate-[splashFloat_5.8s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+          <div className="absolute right-[4%] top-[45%] hidden animate-[splashFloat_5.8s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#E39774] shadow-[0_0_0_3px_rgba(227,151,116,0.22)]" />
+              <span className="h-2 w-2 rounded-full bg-[#E39774] opacity-80" />
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">FX Spread</div>
                 <div className="font-semibold">0.18% <span className="text-[#C97A56]">↓ mid-market</span></div>
               </div>
             </div>
           </div>
-          <div className="absolute bottom-[16%] right-[18%] hidden animate-[splashFloat_6.2s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
+          <div className="absolute bottom-[25%] right-[15%] hidden animate-[splashFloat_6.2s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/80 px-3 py-2 text-xs text-[#1F4452] shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#326273] shadow-[0_0_0_3px_rgba(50,98,115,0.15)]" />
+              <span className="h-2 w-2 rounded-full bg-[#326273] opacity-80" />
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-wider text-[#6E8A95]">Block #{blockHeight.toLocaleString()}</div>
                 <div className="font-semibold">finalized <span className="text-[#C97A56]">· {liveCorridors[2].speed}ms</span></div>
@@ -167,19 +167,19 @@ export default function HeroSection() {
                 Live
               </span>
               <span>New corridor · Manila</span>
-              <span className="rounded-full border border-[#326273]/15 bg-[#F6F0ED] px-2 py-1 font-mono text-[11px]">MYR → PHP</span>
+              <span className="rounded-full border border-[#326273]/15 bg-[#F6F0ED] px-2 py-1 font-mono text-[11px]">USD → PHP</span>
             </div>
 
             <h1 className="mt-4 text-[42px] font-medium leading-[1.02] tracking-[-0.025em] text-[#1F4452] sm:text-[56px]">
               <span className="block whitespace-normal min-[520px]:whitespace-nowrap">The Settlement Engine</span>
               <span className="relative inline-block whitespace-normal italic text-[#5C9EAD] min-[520px]:whitespace-nowrap">
-                for Southeast Asia.
+                for Global Business.
                 <span aria-hidden="true" className="absolute bottom-[0.04em] left-0 h-[0.08em] w-full rounded-full bg-linear-to-r from-transparent via-[#5C9EAD]/45 to-transparent" />
               </span>
             </h1>
 
             <p className="mt-4 w-full max-w-[540px] text-[16px] leading-7 text-[#326273]">
-              Splash is the institutional clearing layer for cross-border B2B payments — moving capital across <strong className="font-semibold text-[#1F4452]">14 ASEAN corridors</strong> with cryptographic finality, transparent FX, and bank-grade compliance built in.
+              Splash is the institutional clearing layer for cross-border B2B payments — moving capital across <strong className="font-semibold text-[#1F4452]">global corridors</strong> with cryptographic finality, transparent FX, and bank-grade compliance built in. ASEAN Power House of Settlement Engine.
             </p>
 
             <div className="mt-5 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-[#326273]/10 bg-white/60 px-3 py-2 text-sm text-[#326273] shadow-lg shadow-[#326273]/5 backdrop-blur">
@@ -222,7 +222,7 @@ export default function HeroSection() {
         </div>
       </div>
 
-      <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-6 pb-5 lg:px-14">
+      <div className="absolute top-[90%] left-0 right-0 z-20 mx-auto w-full max-w-[1440px] px-6 lg:px-14">
         <div className="flex items-center gap-4 overflow-hidden rounded-2xl border border-[#326273]/10 bg-white/60 px-6 py-4 shadow-xl shadow-[#326273]/10 backdrop-blur">
           <div className="border-r border-[#326273]/15 pr-5 text-[11px] font-medium uppercase tracking-[0.1em] text-[#6E8A95]">Live corridors</div>
           <div className="min-w-0 flex-1 overflow-hidden">

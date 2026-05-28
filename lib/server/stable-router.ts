@@ -22,7 +22,7 @@ export function selectStablecoin(p: RoutingParams): Stablecoin {
   }
 
   if (p.kycTier >= 3 && spreadDiff > 30) return 'USDT';
-  if (spreadDiff > 0 && spreadDiff < 15) return 'USDT';
+  if (spreadDiff > 15) return 'USDT';
 
   const minFloat = Number.parseInt(process.env.MIN_USDC_FLOAT_MICRO ?? '0', 10);
   if (minFloat > 0 && p.usdcAvailableMicro < minFloat) return 'USDT';

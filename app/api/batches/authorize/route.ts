@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       const result = await recordBatchSettlementOnSui({
         batchId: batch.id,
         rows: acceptedRows,
-        totalMyr: total,
+        totalUsd: total,
       });
       updateBatch(batch.id, {
         state: 'SETTLED',

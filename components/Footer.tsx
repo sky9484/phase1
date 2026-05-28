@@ -13,7 +13,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li>Batch Payout</li>
             <li>Cross-Border Transfer</li>
-            <li>FPX Local Rail</li>
+            <li>Global Corridors</li>
           </ul>
         </div>
         <div>
