@@ -7,61 +7,53 @@ interface LogoProps {
 
 export function SuiLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 128 128" fill="none" className={className} aria-label="Sui">
-      <defs>
-        <linearGradient id="sui-g1" x1="64" y1="8" x2="64" y2="120" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#6FBCF0" />
-          <stop offset="100%" stopColor="#4DA2FF" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M64 8 C 64 8 106 52 106 80 C 106 103.196 87.196 122 64 122 C 40.804 122 22 103.196 22 80 C 22 52 64 8 64 8 Z"
-        fill="url(#sui-g1)"
-      />
-      <path
-        d="M84.5 70 C 84.5 70 78 76 78 87 C 78 99.703 71.703 106 64 106 C 56.297 106 50 99.703 50 92 C 50 84 56 80 56 80"
-        stroke="white"
-        strokeOpacity="0.95"
-        strokeWidth="5"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
+    <img
+      src="/sui-logo.svg"
+      alt="Sui"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
 export function WalrusLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Walrus">
-      <rect width="100" height="100" rx="20" fill="#0F4C75" />
-      <ellipse cx="50" cy="48" rx="28" ry="22" fill="#1B85C8" />
-      <ellipse cx="50" cy="46" rx="22" ry="17" fill="#2BA3E8" />
-      <ellipse cx="42" cy="43" rx="5" ry="5" fill="white" />
-      <ellipse cx="58" cy="43" rx="5" ry="5" fill="white" />
-      <circle cx="42" cy="43" r="2.5" fill="#0F4C75" />
-      <circle cx="58" cy="43" r="2.5" fill="#0F4C75" />
-      <ellipse cx="50" cy="52" rx="9" ry="5" fill="#1B85C8" />
-      <path d="M38 56 L32 72 L35 73 L41 58Z" fill="#C8A882" />
-      <path d="M62 56 L68 72 L65 73 L59 58Z" fill="#C8A882" />
-    </svg>
+    <img
+      src="/walrus-logo.svg"
+      alt="Walrus"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
 export function WiseLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Wise">
-      <rect width="100" height="100" rx="16" fill="#9FE870" />
-      <path d="M18 35 L38 65 L50 45 L62 65 L82 35" stroke="#163300" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <img
+      src="/wise-logo.svg"
+      alt="Wise"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
 export function StripeLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Stripe">
-      <rect width="100" height="100" rx="16" fill="#635BFF" />
-      <path d="M50 22 C36 22 28 30 28 40 C28 52 37 56 49 59 C58 62 61 64 61 69 C61 74 57 77 50 77 C42 77 35 73 31 68 L28 80 C32 85 41 88 50 88 C65 88 74 80 74 69 C74 57 65 53 53 50 C44 47 41 45 41 40 C41 35 45 32 51 32 C58 32 64 35 68 40 L72 29 C67 24 59 22 50 22Z" fill="white" />
-    </svg>
+    <img
+      src="/stripe-logo.svg"
+      alt="Stripe"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
