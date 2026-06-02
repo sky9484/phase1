@@ -39,7 +39,7 @@ export default function Footer() {
             </p>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#E39774]/30 bg-[#E39774]/15 px-3 py-1.5 text-xs font-semibold text-[#E39774]">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E39774]" />
-              Sui Overflow Hackathon 2025 · DeFi & Payments
+              Sui Overflow Hackathon 2026
             </div>
             <div className="flex items-center gap-3">
               <SuiLogo size={28} />
@@ -91,7 +91,7 @@ export default function Footer() {
         <div className="mt-12 border-t border-white/10 pt-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="text-xs text-[#F6F0ED]/40">
-              © 2025 Splash Finance. All rights reserved. Splash operates under Bank Negara MSB framework application. Not a deposit-taking institution.
+              © 2026 Splash Finance. All rights reserved. Splash operates under Bank Negara MSB framework application. Not a deposit-taking institution.
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs text-[#F6F0ED]/40">
               <span>splashz.xyz</span>

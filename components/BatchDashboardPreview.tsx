@@ -65,7 +65,7 @@ export default function BatchDashboardPreview() {
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <div className="font-mono text-xs text-[#326273]/40">batch_2025_q4_payroll.csv</div>
+              <div className="font-mono text-xs text-[#326273]/40">batch_2026_q2_payroll.csv</div>
               <div className="mt-0.5 text-xs font-semibold text-[#6E8A95]">4 recipients · $47,450.50 USD total</div>
             </div>
             <div className="flex items-center gap-1.5 rounded-full border border-[#E39774]/30 bg-[#E39774]/10 px-2.5 py-1 text-xs font-bold text-[#C97A56]">
