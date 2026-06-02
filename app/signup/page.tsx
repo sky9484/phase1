@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, Building2, CheckCircle2, Lock, Mail } from "lucide-react";
 
 const benefits = [
-  "Instant MYR to PHP Settlements",
-  "1.5% All-in Flat Fees",
+  "Instant Global Settlements",
+  "0.8%+ Starting Fees",
   "Built-in KYB Compliance",
   "Zero Gas Fee Infrastructure",
 ];

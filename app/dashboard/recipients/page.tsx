@@ -6,9 +6,9 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 const paymentSummary = [
-  { label: 'Pending', count: 8, amount: 'MYR 21,400.00', icon: Clock3, tone: 'border-[#E39774]/30 bg-[#E39774]/10 text-[#E39774]' },
-  { label: 'Failed', count: 1, amount: 'MYR 1,220.00', icon: XCircle, tone: 'border-red-500/30 bg-red-500/10 text-red-600' },
-  { label: 'Success', count: 19, amount: 'MYR 68,880.00', icon: CheckCircle2, tone: 'border-[#5C9EAD]/30 bg-[#5C9EAD]/10 text-[#5C9EAD]' },
+  { label: 'Pending', count: 8, amount: '$4,540.00', icon: Clock3, tone: 'border-[#E39774]/30 bg-[#E39774]/10 text-[#E39774]' },
+  { label: 'Failed', count: 1, amount: '$260.00', icon: XCircle, tone: 'border-red-500/30 bg-red-500/10 text-red-600' },
+  { label: 'Success', count: 19, amount: '$14,640.00', icon: CheckCircle2, tone: 'border-[#5C9EAD]/30 bg-[#5C9EAD]/10 text-[#5C9EAD]' },
 ];
 
 const initialRecipients = [
@@ -71,16 +71,16 @@ export default function RecipientsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Recipients</div>
-          <h1 className="text-2xl font-extrabold text-[#326273]">Recipients & Payments</h1>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Recipients &amp; Payments</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">Manage beneficiaries and view payment history.</p>
         </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
-          className="flex items-center gap-2 self-start rounded-lg bg-[#5C9EAD] px-4 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]"
+          className="flex items-center gap-2 self-start rounded-lg bg-[#326273] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]"
         >
           <Plus className="h-4 w-4" />
           New recipient
@@ -153,7 +153,7 @@ export default function RecipientsPage() {
             </Field>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button onClick={addRecipient} className="rounded-lg bg-[#5C9EAD] px-4 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]">
+            <button onClick={addRecipient} className="rounded-lg bg-[#5C9EAD] px-4 py-2 text-xs font-bold text-white hover:bg-[#264e5b]">
               Save recipient
             </button>
             <button onClick={() => setShowAddForm(false)} className="rounded-lg border border-[#326273]/20 px-4 py-2 text-xs font-semibold text-[#326273]">
@@ -256,7 +256,7 @@ export default function RecipientsPage() {
               {corridorBreakdown.map((corridor) => (
                 <div key={corridor.country}>
                   <div className="flex items-center justify-between text-[11px] text-[#326273]/65">
-                    <span className="font-mono font-bold text-[#326273]">MY → {corridor.country}</span>
+                    <span className="font-mono font-bold text-[#326273]">USD → {corridor.country}</span>
                     <span>{corridor.count} · {corridor.percent}%</span>
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#F6F0ED]">
@@ -291,13 +291,13 @@ export default function RecipientsPage() {
               <Sparkles className="text-[#E39774]" size={16} />
             </div>
             <div className="mt-3 grid gap-2">
-              <Link href="/dashboard/transfers" className="flex items-center justify-between rounded-lg bg-[#326273] px-3 py-2 text-xs font-bold text-white hover:bg-[#264e5b]">
+              <Link href="/dashboard/transfer" className="flex items-center justify-between rounded-lg bg-[#326273] px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]">
                 Single transfer
                 <span className="text-[#5C9EAD]">→</span>
               </Link>
-              <Link href="/dashboard/batch" className="flex items-center justify-between rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]">
+              <Link href="/dashboard/batch" className="flex items-center justify-between rounded-lg border border-[#326273]/15 bg-white px-3 py-2 text-xs font-bold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]/40 hover:bg-[#F6F0ED]">
                 Batch CSV payout
-                <span className="text-white/80">→</span>
+                <span className="text-[#5C9EAD]">→</span>
               </Link>
             </div>
           </div>

@@ -52,8 +52,8 @@ export default function AmlKytHealthPreview() {
       },
       {
         label: 'KYT amount threshold',
-        result: numericAmount > 20000 ? 'REVIEW' : numericAmount > 0 ? 'PASS' : 'BLOCK',
-        detail: numericAmount > 20000 ? 'Above Tier 1 single-transfer threshold' : numericAmount > 0 ? 'Within Tier 1 threshold' : 'Amount must be greater than zero',
+        result: numericAmount > 5000 ? 'REVIEW' : numericAmount > 0 ? 'PASS' : 'BLOCK',
+        detail: numericAmount > 5000 ? 'Above Tier 1 single-transfer threshold' : numericAmount > 0 ? 'Within Tier 1 threshold' : 'Amount must be greater than zero',
       },
       {
         label: 'KYT structuring',
@@ -107,7 +107,7 @@ export default function AmlKytHealthPreview() {
                 <option value="XX">Unsupported corridor</option>
               </select>
             </Field>
-            <Field label="Amount (MYR)">
+            <Field label="Amount (USD)">
               <input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} className="w-full rounded-lg border border-[#326273]/20 bg-white px-4 py-3 text-[#326273] focus:border-[#5C9EAD] focus:outline-none" />
             </Field>
           </div>

@@ -1,56 +1,159 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2, Flame, ArrowRight } from 'lucide-react';
 
 const rows = [
-  { name: 'Acme Trading Sdn Bhd', country: 'MY', amount: '12,400.00', status: 'settled' },
-  { name: 'Manila Apparel Co.', country: 'PH', amount: '8,750.50', status: 'settled' },
-  { name: 'Jakarta Logistics', country: 'ID', amount: '21,000.00', status: 'settled' },
-  { name: 'Singapore Wholesale Pte', country: 'SG', amount: '5,300.00', status: 'pending' },
+  { name: 'Acme Trading Corp', corridor: 'USD→PHP', amount: '12,400.00', local: '₱699,608', status: 'settled' },
+  { name: 'Manila Apparel Co.', corridor: 'USD→PHP', amount: '8,750.50', local: '₱494,148', status: 'settled' },
+  { name: 'Jakarta Logistics', corridor: 'USD→IDR', amount: '21,000.00', local: 'Rp 341.8M', status: 'settled' },
+  { name: 'Singapore Wholesale', corridor: 'USD→SGD', amount: '5,300.00', local: 'S$7,128', status: 'pending' },
 ];
 
 export default function BatchDashboardPreview() {
   return (
-    <section id="network" className="bg-white/40 py-24">
-      <div className="container mx-auto grid items-center gap-12 px-6 md:grid-cols-2">
+    <section id="network" className="bg-white/40 py-16">
+      <div className="container mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
         <div>
-          <h2 className="mb-4 text-4xl font-extrabold text-[#326273]">One signature. Hundreds of vendors. Atomic.</h2>
-          <p className="mb-6 text-[#326273]/70">Upload a CSV, sign once, and Splash executes the entire payroll or supplier batch on Sui. If any leg fails, the whole batch reverts — no partial settlement risk.</p>
-          <ul className="space-y-3 text-sm text-[#326273]/80">
-            <li>CSV-driven onboarding for 1–10,000 recipients</li>
-            <li>Pass-or-revert atomic semantics on Sui</li>
-            <li>PDF receipt per vendor, signed event hash</li>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E39774]/25 bg-[#E39774]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C97A56]">
+            <Flame className="h-3.5 w-3.5" />
+            Atomic batch settlement
+          </div>
+          <h2 className="mb-4 text-4xl font-extrabold tracking-[-0.03em] text-[#326273]">
+            One signature. Hundreds of vendors. All-or-nothing.
+          </h2>
+          <p className="mb-6 text-[#326273]/70">
+            Upload a CSV, sign once, and Splash executes the entire payroll or supplier batch on Sui as a single hot-potato PTB. If any leg fails, the whole batch reverts — no partial settlement, no stuck funds, no manual cleanup.
+          </p>
+          <ul className="space-y-3 text-sm">
+            {[
+              'CSV-driven onboarding for 1–10,000 recipients',
+              'Hot-potato PTB: settle-or-revert in one transaction',
+              'PDF receipt per vendor, anchored on Walrus',
+              'USD in, local currency out — recipients see PHP/IDR/MYR',
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-[#326273]/80">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#5C9EAD]" />
+                {item}
+              </li>
+            ))}
           </ul>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="/login"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#5C9EAD] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#5C9EAD]/25 transition-all hover:-translate-y-0.5 hover:bg-[#4A8895]"
+            >
+              Try batch payout
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="/batch-template.csv"
+              download
+              className="inline-flex items-center gap-2 rounded-xl border border-[#326273]/15 bg-white/70 px-5 py-2.5 text-sm font-medium text-[#326273] transition-all hover:border-[#5C9EAD]/30"
+            >
+              Download CSV template
+            </a>
+          </div>
         </div>
-        <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="rounded-2xl border border-[#326273]/10 bg-white p-6 shadow-xl">
-          <div className="mb-2 font-mono text-xs text-[#326273]/50">batch_2025_11_payroll.csv</div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          className="rounded-2xl border border-[#326273]/10 bg-white p-6 shadow-xl"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <div className="font-mono text-xs text-[#326273]/40">batch_2026_q2_payroll.csv</div>
+              <div className="mt-0.5 text-xs font-semibold text-[#6E8A95]">4 recipients · $47,450.50 USD total</div>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-[#E39774]/30 bg-[#E39774]/10 px-2.5 py-1 text-xs font-bold text-[#C97A56]">
+              <Flame className="h-3 w-3" />
+              PTB active
+            </div>
+          </div>
+
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#326273]/10 text-left text-[#326273]/60">
-                <th className="py-2">Vendor</th>
-                <th>Country</th>
-                <th className="text-right">Amount (USDC)</th>
+              <tr className="border-b border-[#326273]/10 text-left text-[10px] font-bold uppercase tracking-widest text-[#326273]/40">
+                <th className="pb-2">Vendor</th>
+                <th>Corridor</th>
+                <th className="text-right">USD</th>
+                <th className="text-right">Local</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.name} className="border-b border-[#326273]/5">
-                  <td className="py-3 font-medium text-[#326273]">{row.name}</td>
-                  <td className="text-[#326273]/70">{row.country}</td>
-                  <td className="text-right font-mono text-[#326273]">{row.amount}</td>
+                <tr key={row.name} className="border-b border-[#326273]/5 last:border-0">
+                  <td className="py-3 pr-2 font-medium text-[#326273]">{row.name.split(' ')[0]}</td>
+                  <td className="pr-2 font-mono text-xs text-[#6E8A95]">{row.corridor}</td>
+                  <td className="pr-2 text-right font-mono text-xs text-[#326273]">${row.amount}</td>
+                  <td className="pr-2 text-right font-mono text-xs text-[#5C9EAD]">{row.local}</td>
                   <td>
                     {row.status === 'settled' ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#5C9EAD]"><CheckCircle2 size={14} /> Settled</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600">
+                        <CheckCircle2 size={12} />
+                        Settled
+                      </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#E39774]"><Loader2 size={14} className="animate-spin" /> Pending</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#E39774]">
+                        <Loader2 size={12} className="animate-spin" />
+                        Pending
+                      </span>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-[#326273]/15 bg-[#F6F0ED]/60">
+                <td className="py-2.5 pr-2 text-[10px] font-bold uppercase tracking-widest text-[#6E8A95]" colSpan={2}>
+                  Batch total
+                </td>
+                <td className="pr-2 text-right font-mono text-xs font-bold text-[#1F4452]">$47,450.50</td>
+                <td className="pr-2 text-right font-mono text-[10px] text-[#5C9EAD]">3 currencies</td>
+                <td className="text-[10px] font-bold uppercase text-[#C97A56]">PTB-pending</td>
+              </tr>
+            </tfoot>
           </table>
+
+          <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl border border-[#326273]/10 bg-[#F6F0ED]/70 p-3">
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#1F4452]">4</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">recipients</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#5C9EAD]">421ms</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">est. settle</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-[#C97A56]">$379.60</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">fee · 0.80%</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-sm font-bold text-green-600">$0.00</div>
+              <div className="text-[9px] uppercase tracking-wider text-[#6E8A95]">gas paid</div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-xl bg-[#1F4452] p-4">
+            <div className="flex items-center justify-between">
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#E39774]">
+                PTB construction
+              </div>
+              <div className="font-mono text-[10px] text-white/40">tx_8f3c…a2e1</div>
+            </div>
+            <div className="mt-2 font-mono text-xs leading-5 text-green-300">
+              <span className="text-[#6E8A95]">// Step 1:</span> create PaymentIntent {'<'}USDsui{'>'}<br />
+              <span className="text-[#6E8A95]">// Step 2:</span> settle → consumes hot potato<br />
+              <span className="text-[#6E8A95]">// Step 3:</span> freeze PaymentReceipt on Sui<br />
+              <span className="text-[#6E8A95]">// Step 4:</span> anchor Merkle root on Walrus<br />
+              <span className="text-green-400">✓</span>{' '}
+              <span className="text-white/70">Entire batch: settle or revert</span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

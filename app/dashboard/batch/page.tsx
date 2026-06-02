@@ -43,7 +43,7 @@ type CsvRow = {
   amount?: string | number;
 };
 
-const supportedCountries = new Set(["MY", "PH", "ID", "SG"]);
+const supportedCountries = new Set(["MY", "PH", "ID", "SG", "VN", "TH", "EU", "GB"]);
 const sentinelNames = ["sanction", "blocked", "pep hit", "watchlist"];
 
 const sampleCsvRows: Array<{ name: string; address: string; country: string; purpose: string; amount: string }> = [
@@ -117,8 +117,8 @@ function evaluateRow(row: Omit<BatchRow, "status" | "checks">, duplicateCount: n
     },
     {
       label: "KYT amount rule",
-      result: amount > 20000 ? "REVIEW" : amount > 0 ? "PASS" : "BLOCK",
-      detail: amount > 20000 ? "Above Tier 1 single-transfer review threshold" : amount > 0 ? "Within Tier 1 single-transfer threshold" : "Amount must be greater than zero",
+      result: amount > 5000 ? "REVIEW" : amount > 0 ? "PASS" : "BLOCK",
+      detail: amount > 5000 ? "Above Tier 1 single-transfer review threshold" : amount > 0 ? "Within Tier 1 single-transfer threshold" : "Amount must be greater than zero",
     },
     {
       label: "KYT structuring",
@@ -163,14 +163,17 @@ export default function BatchPage() {
 
   useEffect(() => {
     if (!batchId) return;
-    void pollBatch(batchId);
+    const timeout = setTimeout(() => void pollBatch(batchId), 0);
     const interval = setInterval(async () => {
       const state = await pollBatch(batchId);
       if (state === 'SETTLED' || state === 'FAILED' || state === 'REFUNDED') {
         clearInterval(interval);
       }
     }, 2000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [batchId, pollBatch]);
 
   const acceptedRows = useMemo(() => rows.filter((row) => row.status === "ready" || row.status === "queued"), [rows]);
@@ -271,16 +274,16 @@ export default function BatchPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
+      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-2 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">Batch payout</div>
-          <h1 className="text-3xl font-extrabold text-[#326273]">Upload, screen, authorize.</h1>
-          <p className="mt-1 max-w-2xl text-sm text-[#326273]/60">
-            Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor, and purpose-code checks before TOTP authorization.
+          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Batch payout</div>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Upload, screen, authorize</h1>
+          <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
+            Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor &amp; purpose-code checks before TOTP authorization.
           </p>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white px-4 py-3 text-sm font-semibold text-[#326273]">
+        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273]">
           Tier 1 limits · RM 20k / transfer
         </div>
       </header>
@@ -295,15 +298,15 @@ export default function BatchPage() {
         <HoverPopup title="Blocked" content="Rows that failed compliance checks. Common reasons: sanctions/PEP hits, unsupported corridors, or invalid amounts.">
           <SummaryCard icon={XCircle} label="Blocked" value={String(blockedRows.length)} tone="text-red-600" />
         </HoverPopup>
-        <HoverPopup title="Cleared amount" content="Total MYR value of cleared rows. This is the amount that will be authorized and queued for settlement.">
-          <SummaryCard icon={CheckCircle2} label="Cleared amount" value={`MYR ${acceptedTotal.toFixed(2)}`} tone="text-[#5C9EAD]" />
+        <HoverPopup title="Cleared amount" content="Total USD value of cleared rows. This is the amount that will be authorized and queued for settlement.">
+          <SummaryCard icon={CheckCircle2} label="Cleared amount" value={`$${acceptedTotal.toFixed(2)}`} tone="text-[#5C9EAD]" />
         </HoverPopup>
       </section>
 
       <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#5C9EAD]/40 bg-white p-8 text-center hover:border-[#5C9EAD] md:p-10">
         <Upload className="text-[#5C9EAD]" />
         <span className="font-semibold text-[#326273]">{rows.length ? `${rows.length} rows loaded — upload another CSV to replace` : "Click to upload CSV"}</span>
-        <span className="text-xs text-[#326273]/50">Supported corridors: MY, PH, ID, SG · Amounts in MYR</span>
+        <span className="text-xs text-[#326273]/50">Supported corridors: MY, PH, ID, SG, VN, TH, EU, GB · Amounts in USD</span>
         <input type="file" accept=".csv" className="hidden" onChange={(event) => event.target.files?.[0] && onFile(event.target.files[0])} />
       </label>
 
@@ -313,13 +316,13 @@ export default function BatchPage() {
             <div>
               <h2 className="text-lg font-bold text-[#326273]">CSV format example</h2>
               <p className="mt-1 text-xs text-[#326273]/60">
-                Columns are <code className="font-mono text-[11px]">name,address,country,purpose,amount</code>. Amounts in MYR, country is ISO-2.
+                Columns are <code className="font-mono text-[11px]">name,address,country,purpose,amount</code>. Amounts in USD, country is ISO-2.
               </p>
             </div>
             <button
               type="button"
               onClick={downloadSampleCsv}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#4A8B9A]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5C9EAD] px-3 py-2 text-xs font-bold text-white hover:bg-[#264e5b]"
             >
               <Download className="h-3.5 w-3.5" />
               Download sample
@@ -343,7 +346,7 @@ export default function BatchPage() {
                     <td className="p-3 font-mono text-[11px] text-[#326273]/70">{row.address}</td>
                     <td className="p-3 font-semibold text-[#326273]">{row.country}</td>
                     <td className="p-3 text-[#326273]/70">{row.purpose}</td>
-                    <td className="p-3 text-right font-mono text-[#326273]">MYR {row.amount}</td>
+                    <td className="p-3 text-right font-mono text-[#326273]">$ {row.amount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -406,9 +409,9 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
                             <div className="font-medium text-[#326273]">{row.name || "Unnamed beneficiary"}</div>
                             <div className="mt-1 font-mono text-xs text-[#326273]/50">{row.address || "Missing reference"}</div>
                           </td>
-                          <td className="font-semibold text-[#326273]">MY → {row.country || "—"}</td>
+                          <td className="font-semibold text-[#326273]">USD → {row.country || "—"}</td>
                           <td className="text-[#326273]/70">{row.purpose || "Needs purpose code"}</td>
-                          <td className="text-right font-mono text-[#326273]">MYR {Number.parseFloat(row.amount || "0").toFixed(2)}</td>
+                          <td className="text-right font-mono text-[#326273]">$ {Number.parseFloat(row.amount || "0").toFixed(2)}</td>
                           <td>
                             <div className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${badgeClass(result)}`}>{result}</div>
                           </td>
@@ -424,9 +427,9 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
               <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
                 <h2 className="text-xl font-bold text-[#326273]">Authorization summary</h2>
                 <div className="mt-4 space-y-3 text-sm">
-                  <Row label="Uploaded total" value={`MYR ${total.toFixed(2)}`} />
-                  <Row label="Cleared total" value={`MYR ${acceptedTotal.toFixed(2)}`} />
-                  <Row label="Estimated fees" value={`MYR ${estimatedFees.toFixed(2)}`} />
+                  <Row label="Uploaded total" value={`$${total.toFixed(2)}`} />
+                  <Row label="Cleared total" value={`$${acceptedTotal.toFixed(2)}`} />
+                  <Row label="Estimated fees" value={`$${estimatedFees.toFixed(2)}`} />
                   <Row label="Rows excluded" value={`${reviewRows.length + blockedRows.length}`} />
                 </div>
                 <form
@@ -552,7 +555,7 @@ function BatchStatusPanel({ status }: { status: BatchStatus }) {
 
       <div className="flex items-center gap-3 text-[11px] text-[#326273]/50">
         <Clock size={11} />
-        <span>{status.acceptedRows} rows · MYR {status.totalAmount}</span>
+        <span>{status.acceptedRows} rows · $ {status.totalAmount}</span>
         {!isDone && !isFailed && <Loader2 size={11} className="animate-spin ml-auto" />}
       </div>
     </div>

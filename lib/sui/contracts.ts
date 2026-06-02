@@ -1,7 +1,19 @@
 import { Transaction } from "@mysten/sui/transactions"
 
+import {
+  CONTRACT_MAX_FEE_BPS,
+  FALLBACK_FEE_BPS,
+  getCorridorFeeBps,
+} from "@/lib/fx/corridors"
 import { getContractConfig } from "@/lib/server/contract-config"
 import { executeSponsoredTransaction } from "@/lib/sui/gas"
+
+function clampFeeBps(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return FALLBACK_FEE_BPS
+  }
+  return Math.min(Math.floor(value), CONTRACT_MAX_FEE_BPS)
+}
 
 export function buildUpdatePriceTx(usdcPrice: number, usdtPrice: number): Transaction {
   const cfg = getContractConfig();
@@ -32,7 +44,7 @@ export type KybApplicationInput = {
 export type BatchPayment = {
   employeeName: string
   wallet: string
-  amountMyr: number
+  amountUsd: number
   status: "Ready" | "Queued" | "Executed"
 }
 
@@ -60,7 +72,18 @@ export function buildSubmitBusinessApplicationTx(input: Required<Pick<KybApplica
   return tx
 }
 
-export async function executeBatchSettlement(payments: BatchPayment[]) {
+export async function executeBatchSettlement(
+  payments: BatchPayment[],
+  options: { targetCurrency?: string; feeBps?: number } = {},
+) {
+  const feeBps = clampFeeBps(
+    typeof options.feeBps === "number"
+      ? options.feeBps
+      : options.targetCurrency
+        ? getCorridorFeeBps(options.targetCurrency)
+        : undefined,
+  )
+
   return executeSponsoredTransaction({
     kind: "settlement::settle_batch",
     sender: "0xmerchant",
@@ -68,9 +91,11 @@ export async function executeBatchSettlement(payments: BatchPayment[]) {
       module: "splash_protocol::settlement",
       function: "settle_batch",
       businessAccount: "0xbusiness_account",
+      feeBps,
+      targetCurrency: options.targetCurrency,
       payments: payments.map((payment) => ({
         recipient: payment.wallet,
-        amountMist: Math.round(payment.amountMyr * 1_000_000),
+        amountMist: Math.round(payment.amountUsd * 1_000_000),
       })),
     },
   })

@@ -74,8 +74,8 @@ export default function StepStatus({ state, set, next }: { state: TransferState;
   }, [chainState, status]);
   const stages = [
     {
-      label: 'MYR received',
-      detail: `FPX authorization captured MYR ${state.amount.value || '0.00'}`,
+      label: 'USD received',
+      detail: `Stripe/Airwallex deposit confirmed $${state.amount.value || '0.00'}`,
       icon: Banknote,
     },
     {
@@ -106,7 +106,7 @@ export default function StepStatus({ state, set, next }: { state: TransferState;
             </div>
             <h2 className="mt-3 text-2xl font-extrabold">{status === 'success' ? 'Recipient payment confirmed' : status === 'failed' ? 'Settlement failed' : 'Moving money now'}</h2>
             <p className="mt-1 text-sm text-white/65">
-              {status === 'success' ? 'Payment is confirmed. Redirecting to receipt…' : status === 'failed' ? 'No funds were released. Please retry this transfer.' : 'MYR funding is being converted and finalized through Splash on Sui.'}
+              {status === 'success' ? 'Payment is confirmed. Redirecting to receipt…' : status === 'failed' ? 'No funds were released. Please retry this transfer.' : 'USD funding is being converted and finalized through Splash on Sui.'}
             </p>
           </div>
           <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm">

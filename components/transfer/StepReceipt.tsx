@@ -30,15 +30,15 @@ export default function StepReceipt({ state, reset }: { state: TransferState; re
         txDigest={digest ?? state.receiptObjectId ?? 'Pending'}
         sender="Splash operator"
         recipient={state.recipient.bank?.account ?? state.recipient.name}
-        amount={state.quote?.netReceived ?? state.amount.value}
-        currency={state.amount.targetCurrency}
+        amount={state.amount.value}
+        currency="USD"
         fee={state.quote?.fee ?? '0.00'}
         timestamp={issuedAt}
         reference={reference}
         explorerUrl={explorerUrl}
       />
       <div className="flex flex-wrap gap-3">
-        <button onClick={() => print()} className="flex-1 min-w-[140px] rounded-lg bg-[#5C9EAD] py-3 font-bold text-white hover:bg-[#4A8B9A]">Download PDF</button>
+        <button onClick={() => print()} className="flex-1 min-w-[140px] rounded-lg bg-[#326273] py-3 font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]">Download PDF</button>
         {explorerUrl && (
           <a
             href={explorerUrl}

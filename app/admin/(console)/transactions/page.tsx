@@ -13,7 +13,7 @@ export default async function AdminTransactionsPage() {
   const usdtDevBps = Math.abs(pegStatus.usdtUsd.price - 1.0) * 10_000;
   const maxDev = Math.max(usdcDevBps, usdtDevBps);
   const zone = maxDev > 30 ? 'red' : maxDev > 15 ? 'yellow' : 'green';
-  const volume = transfers.reduce((sum, transfer) => sum + Number.parseFloat(transfer.sourceAmountMyr || '0'), 0);
+  const volume = transfers.reduce((sum, transfer) => sum + Number.parseFloat(transfer.sourceAmountUsd || '0'), 0);
   const fees = volume * 0.015;
 
   return (
@@ -38,7 +38,7 @@ export default async function AdminTransactionsPage() {
           {transfers.slice(0, 8).map((transfer) => (
             <div key={transfer.id} className="grid gap-3 p-4 text-sm md:grid-cols-[120px_1fr_auto] md:items-center">
               <div className="text-xs font-semibold text-[#326273]/65">{new Date(transfer.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-              <div className="font-mono font-semibold text-[#1f4350]">RM {transfer.sourceAmountMyr} → {transfer.targetAmount} {transfer.targetCurrency}</div>
+              <div className="font-mono font-semibold text-[#1f4350]">$ {transfer.sourceAmountUsd} → {transfer.targetAmount} {transfer.targetCurrency}</div>
               <div className="rounded-full bg-[#F6F0ED] px-3 py-1 text-xs font-bold text-[#326273]">{transfer.state}</div>
             </div>
           ))}
@@ -140,7 +140,7 @@ export default async function AdminTransactionsPage() {
                       </div>
                     </td>
                     <td className="text-right text-[#326273]">{batch.acceptedRows}</td>
-                    <td className="text-right font-mono text-[#326273]">MYR {batch.totalAmount}</td>
+                    <td className="text-right font-mono text-[#326273]">$ {batch.totalAmount}</td>
                     <td className="font-mono text-xs text-[#326273]/70">{batch.digest || '—'}</td>
                     <td className="font-mono text-xs text-[#326273]/70">{batch.packageId || '—'}</td>
                     <td>

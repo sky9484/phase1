@@ -12,11 +12,11 @@ export type TransferState = {
   step: 1 | 2 | 3 | 4;
   recipient: {
     name: string;
-    country: 'MY' | 'PH' | 'ID' | 'SG';
+    country: 'MY' | 'PH' | 'ID' | 'SG' | 'VN' | 'TH' | 'EU' | 'GB';
     rail: 'bank';
     bank?: { swift: string; account: string };
   };
-  amount: { value: string; sourceCurrency: 'MYR'; targetCurrency: 'MYR' | 'PHP' | 'IDR' | 'SGD' };
+  amount: { value: string; sourceCurrency: 'USD'; targetCurrency: 'MYR' | 'PHP' | 'IDR' | 'SGD' | 'VND' | 'THB' | 'EUR' | 'GBP' };
   quote?: { fxRate: number; netReceived: string; fee: string };
   txDigest?: string;
   txStatus?: 'pending' | 'success' | 'failed';
@@ -27,7 +27,7 @@ export type TransferState = {
 const initial: TransferState = {
   step: 1,
   recipient: { name: '', country: 'PH', rail: 'bank' },
-  amount: { value: '', sourceCurrency: 'MYR', targetCurrency: 'PHP' },
+  amount: { value: '', sourceCurrency: 'USD', targetCurrency: 'PHP' },
 };
 
 const stepLabels = ['Beneficiary', 'Quote & Send', 'Status', 'Receipt'] as const;
@@ -36,7 +36,7 @@ const sidePanels = [
   {
     icon: ShieldCheck,
     title: 'No stored credentials',
-    body: 'Splash never holds your bank login. Each authorization happens directly with PayNet FPX.',
+    body: 'Splash never holds bank login details. Deposits are confirmed through Stripe Checkout or Airwallex wire.',
   },
   {
     icon: Timer,
@@ -60,18 +60,18 @@ export default function TransferPage() {
   }, [set]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">
             Transfer
           </div>
-          <h1 className="text-2xl font-extrabold text-[#326273]">Send a payout</h1>
+          <h1 className="text-2xl font-extrabold text-[#1F4452]">Send a payout</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">
-            Capture a beneficiary, lock the quote, authorize via PayNet FPX, then download the on-chain receipt.
+            Capture a beneficiary, lock the USD quote, confirm deposit, then download the on-chain receipt.
           </p>
         </div>
-        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273]">
+        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273] shadow-sm">
           Step {state.step} of 4 · {stepLabels[state.step - 1]}
         </div>
       </header>
@@ -90,13 +90,13 @@ export default function TransferPage() {
           <div className="rounded-2xl border border-[#326273]/10 bg-[#326273] p-5 text-white">
             <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">Live transfer</div>
             <div className="mt-2 text-lg font-extrabold">
-              {state.amount.value ? `MYR ${state.amount.value}` : 'Awaiting amount'}
+              {state.amount.value ? `$${state.amount.value}` : 'Awaiting amount'}
             </div>
             <div className="mt-1 text-xs text-white/65">
-              {state.recipient.name ? `To ${state.recipient.name}` : 'No beneficiary selected'} · MY → {state.recipient.country}
+              {state.recipient.name ? `To ${state.recipient.name}` : 'No beneficiary selected'} · USD → {state.recipient.country}
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
-              <Pill label="Source" value="MYR" />
+              <Pill label="Source" value="USD" />
               <Pill label="Target" value={state.amount.targetCurrency} />
             </div>
           </div>

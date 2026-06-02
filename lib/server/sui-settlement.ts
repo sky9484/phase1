@@ -1,6 +1,11 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import {
+  CONTRACT_MAX_FEE_BPS,
+  FALLBACK_FEE_BPS,
+  getCorridorFeeBps,
+} from '@/lib/fx/corridors';
 import { getContractConfig, type ContractConfigField } from '@/lib/server/contract-config';
 
 const execFileAsync = promisify(execFile);
@@ -16,14 +21,79 @@ function optionalConfigId(field: ContractConfigField): string {
   return value ? requireSuiObjectId(value, field) : '';
 }
 
+/**
+ * Resolve the fee in bps to pass to settlement.move. Always clamped to
+ * CONTRACT_MAX_FEE_BPS so the on-chain E_FEE_EXCEEDED assertion will pass.
+ */
+function resolveFeeBps(input: { feeBps?: number; targetCurrency?: string }): number {
+  const explicit = input.feeBps;
+  if (typeof explicit === 'number' && Number.isFinite(explicit) && explicit >= 0) {
+    return Math.min(Math.floor(explicit), CONTRACT_MAX_FEE_BPS);
+  }
+  if (input.targetCurrency) {
+    return getCorridorFeeBps(input.targetCurrency);
+  }
+  return FALLBACK_FEE_BPS;
+}
+
+/**
+ * Abort code → human message. Update this every time a contract gains a new
+ * abort code; the SECURITY.md pre-deploy gate (#20) requires drift = 0.
+ * Code-range conventions (loose):
+ *   1–99    business_account
+ *   100–199 settlement
+ *   300–399 peg_monitor
+ *   400–499 payment_intent
+ *   500–599 audit_anchor
+ *   600–699 dual_treasury
+ *   700–799 smart_treasury
+ *   800–899 receipt_v2
+ */
 const ABORT_CODES: Record<number, string> = {
+  // ── business_account ──────────────────────────────────────────────────────
   1: 'E_ALREADY_VERIFIED — BusinessAccount is already KYB-verified on-chain.',
+
+  // ── settlement ───────────────────────────────────────────────────────────
   100: 'E_NOT_VERIFIED — BusinessAccount is not KYB-verified. Call verify_business with AdminCap first.',
   101: 'E_INSUFFICIENT_FUNDS — Coin value too small (fee > payment). Send a larger coin.',
   102: 'E_EMPTY_BATCH — Empty payments vector. Add at least one payment.',
+  103: 'E_FEE_EXCEEDED — fee_bps passed to settle_payment/settle_batch is above MAX_FEE_BPS (200). Check the corridor fee in lib/fx/corridors.ts.',
+
+  // ── peg_monitor ──────────────────────────────────────────────────────────
   300: 'E_PEG_BROKEN_USDC — USDC deviation > 30 bps. Update peg with valid data.',
   301: 'E_PEG_BROKEN_USDT — USDT deviation > 30 bps. Update peg with valid data.',
-  302: 'E_PEG_STALE — Peg price update is older than 60 seconds. The app refreshes it automatically; verify SPLASH_ADMIN_CAP_ID and SPLASH_PEG_STATE_ID if this appears.',
+  302: 'E_PEG_STALE — Peg price update is older than 60 seconds OR no real update_peg has fired since init. The app refreshes it automatically; verify SPLASH_ADMIN_CAP_ID and SPLASH_PEG_STATE_ID if this appears.',
+  303: 'E_TIMESTAMP_REGRESSION — peg_monitor::update_peg called with a Clock timestamp older than the stored one. Indicates a clock bug or replay.',
+
+  // ── payment_intent ───────────────────────────────────────────────────────
+  400: 'E_NOT_PENDING — payment_intent confirm/cancel called on an intent that is not in STATUS_PENDING.',
+  401: 'E_EXPIRED — payment_intent::confirm_payment_intent called past intent.expires_at.',
+  402: 'E_INSUFFICIENT_PAYMENT — coin value below intent.amount_usd on confirm.',
+  403: 'E_NOT_YET_EXPIRED — payment_intent::cancel_payment_intent called before intent.expires_at.',
+  404: 'E_UNAUTHORIZED — payment_intent action attempted by an address other than intent.sender.',
+  405: 'E_INVALID_AMOUNT — payment_intent::create_payment_intent called with amount_usd = 0.',
+
+  // ── audit_anchor ─────────────────────────────────────────────────────────
+  500: 'E_EMPTY_HASH — audit_anchor::anchor_audit_hash called with an empty audit_hash string.',
+  501: 'E_EMPTY_ANCHOR — audit_anchor::anchor_audit_hash called with an empty anchor_id.',
+
+  // ── dual_treasury ────────────────────────────────────────────────────────
+  600: 'E_USDT_TTL_EXCEEDED — USDT settlement attempted past USDT_MAX_HOLD_MS (30 minutes). Sweep expected.',
+  601: 'E_USDT_BUFFER_EMPTY — dual_treasury::emergency_sweep called with zero balance.',
+  602: 'E_USDT_SWEEP_TOO_EARLY — emergency_sweep called before USDT_SWEEP_TRIGGER_MS (27 minutes).',
+  603: 'E_USDT_INSUFFICIENT_KYC_TIER — settle_usdt called with kyc_tier below min_kyc_tier.',
+  604: 'E_USDT_INSUFFICIENT_BALANCE — settle_usdt requested more than the buffer holds.',
+
+  // ── smart_treasury ───────────────────────────────────────────────────────
+  700: 'E_INSUFFICIENT_BALANCE — smart_treasury::withdraw requested more than the treasury holds.',
+  701: 'E_ZERO_AMOUNT — smart_treasury deposit/withdraw called with amount = 0.',
+  702: 'E_RECIPIENT_INVALID — smart_treasury::withdraw recipient is the zero address.',
+
+  // ── receipt_v2 ───────────────────────────────────────────────────────────
+  800: 'E_EMPTY_RECEIPT_ID — receipt_v2::create_receipt called with empty receipt_id.',
+  801: 'E_EMPTY_TX_DIGEST — receipt_v2::create_receipt called with empty tx_digest.',
+  802: 'E_RECEIPT_ZERO_AMOUNT — receipt_v2::create_receipt called with amount_usd = 0.',
+  803: 'E_RECEIPT_INVALID_RECIPIENT — receipt_v2::create_receipt called with recipient = 0x0.',
 };
 
 function humanizeSuiError(rawError: string | undefined | null, stderr: string): string {
@@ -119,6 +189,7 @@ async function planGasCoin(neededMist: number): Promise<{ primaryId: string; mer
   return { primaryId: primary.id, mergeIds };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function updatePegOnSui(): Promise<void> {
   const SPLASH_PACKAGE_ID = optionalConfigId('packageId');
   const SPLASH_PEG_STATE_ID = optionalConfigId('pegStateId');
@@ -203,8 +274,12 @@ function requireSuiObjectId(value: string, label: string) {
 export async function recordSingleTransferOnSui(input: {
   transferId: string;
   recipient: string;
-  amountMyr: number;
+  amountUsd: number;
   stablecoinAmountMicro: number;
+  /** ISO 4217 code of the destination corridor (e.g. 'PHP'). */
+  targetCurrency?: string;
+  /** Override the corridor fee. Bounded to CONTRACT_MAX_FEE_BPS. */
+  feeBps?: number;
 }) {
   const cfg = getContractConfig();
   const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
@@ -218,7 +293,10 @@ export async function recordSingleTransferOnSui(input: {
   const recipientAddress = SPLASH_TEST_RECIPIENT_ADDRESS || input.recipient;
   requireSuiAddress(recipientAddress, 'Transfer recipient');
 
-  // Use at least 1_000 MIST so the fee calc (150 bps) leaves a positive net amount.
+  const feeBps = resolveFeeBps({ feeBps: input.feeBps, targetCurrency: input.targetCurrency });
+
+  // Use at least 1_000_000 MIST so the fee calc (≤ MAX_FEE_BPS = 200 bps)
+  // leaves a positive net amount per the contract's E_INSUFFICIENT_FUNDS check.
   const paymentMist = Math.max(1_000_000, input.stablecoinAmountMicro);
 
   // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
@@ -252,7 +330,9 @@ export async function recordSingleTransferOnSui(input: {
     // 2. Split payment from gas
     '--split-coins', 'gas', `[${paymentMist}]`,
     '--assign', 'payment',
-    // 3. Settle — assert_pegged reads the freshly-updated PegState from step 1
+    // 3. Settle — assert_pegged reads the freshly-updated PegState from step 1.
+    //    fee_bps is passed as a u64 so the contract collects the corridor-
+    //    specific fee (E_FEE_EXCEEDED if > 200).
     '--move-call',
     `${SPLASH_PACKAGE_ID}::settlement::settle_payment`,
     `<${USDC_TYPE}>`,
@@ -261,6 +341,7 @@ export async function recordSingleTransferOnSui(input: {
     `@${SPLASH_PEG_STATE_ID}`,
     'payment.0',
     `@${recipientAddress}`,
+    feeBps.toString(),
     '@0x6',
     '--gas-coin', `@${primaryId}`,
     '--gas-budget', gasBudget,
@@ -272,6 +353,8 @@ export async function recordSingleTransferOnSui(input: {
     usdcType: USDC_TYPE,
     function: 'settle_payment',
     paymentMist,
+    feeBps,
+    targetCurrency: input.targetCurrency,
     recipient: recipientAddress,
     gasCoin: primaryId,
     mergedCoinCount: mergeIds.length,
@@ -310,7 +393,11 @@ export async function recordSingleTransferOnSui(input: {
 export async function recordBatchSettlementOnSui(input: {
   batchId: string;
   rows: SettlementBatchRow[];
-  totalMyr: number;
+  totalUsd: number;
+  /** ISO 4217 code of the destination corridor (e.g. 'PHP'). One fee per batch. */
+  targetCurrency?: string;
+  /** Override the corridor fee. Bounded to CONTRACT_MAX_FEE_BPS. */
+  feeBps?: number;
 }) {
   const cfg = getContractConfig();
   const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
@@ -320,6 +407,7 @@ export async function recordBatchSettlementOnSui(input: {
   if (!cfg.usdcType) throw new Error('USDC_TYPE is not configured. Set it in admin → Contract config (or in .env.local) and try again.');
   const USDC_TYPE = cfg.usdcType;
   const SPLASH_TEST_RECIPIENT_ADDRESS = cfg.testRecipientAddress;
+  const feeBps = resolveFeeBps({ feeBps: input.feeBps, targetCurrency: input.targetCurrency });
 
   // Peg refresh is bundled into the same PTB below — no separate tx, no staleness race.
   const SPLASH_ADMIN_CAP_ID = configIdOrThrow('adminCapId', 'SPLASH_ADMIN_CAP_ID');
@@ -369,6 +457,7 @@ export async function recordBatchSettlementOnSui(input: {
     `@${SPLASH_BUSINESS_ACCOUNT_ID}`,
     `@${SPLASH_PEG_STATE_ID}`,
     'payments',
+    feeBps.toString(),
     '@0x6',
     '--gas-budget',
     gasBudget,
@@ -379,6 +468,8 @@ export async function recordBatchSettlementOnSui(input: {
     package: SPLASH_PACKAGE_ID,
     module: 'settlement',
     function: 'settle_batch',
+    feeBps,
+    targetCurrency: input.targetCurrency,
     args: ptbArgs,
   });
 

@@ -19,9 +19,10 @@ const MAX_DEVIATION_PPM: u64 = 3_000;
 /// Reject if last operator update is older than 60 seconds.
 const MAX_STALENESS_MS:  u64 = 60_000;
 
-const E_PEG_BROKEN_USDC: u64 = 300;
-const E_PEG_BROKEN_USDT: u64 = 301;
-const E_PEG_STALE:       u64 = 302;
+const E_PEG_BROKEN_USDC:         u64 = 300;
+const E_PEG_BROKEN_USDT:         u64 = 301;
+const E_PEG_STALE:               u64 = 302;
+const E_TIMESTAMP_REGRESSION:    u64 = 303;
 
 public struct PegState has key {
     id: UID,
@@ -47,8 +48,8 @@ public struct PegUpdated has copy, drop {
 public fun init_peg_state(_admin: &AdminCap, clock: &Clock, ctx: &mut TxContext) {
     let state = PegState {
         id: object::new(ctx),
-        usdc_deviation_ppm: 0,
-        usdt_deviation_ppm: 0,
+        usdc_deviation_ppm: MAX_DEVIATION_PPM + 1,
+        usdt_deviation_ppm: MAX_DEVIATION_PPM + 1,
         last_update_ms: clock::timestamp_ms(clock),
         update_count: 0,
     };
@@ -64,9 +65,14 @@ public fun update_peg(
     clock: &Clock,
     _ctx: &mut TxContext,
 ) {
+    let now = clock::timestamp_ms(clock);
+    if (state.update_count > 0) {
+        assert!(now > state.last_update_ms, E_TIMESTAMP_REGRESSION);
+    };
+
     state.usdc_deviation_ppm = usdc_deviation_ppm;
     state.usdt_deviation_ppm = usdt_deviation_ppm;
-    state.last_update_ms = clock::timestamp_ms(clock);
+    state.last_update_ms = now;
     state.update_count = state.update_count + 1;
 
     event::emit(PegUpdated {
@@ -74,7 +80,7 @@ public fun update_peg(
         sequence: state.update_count,
         usdc_deviation_ppm,
         usdt_deviation_ppm,
-        timestamp_ms: state.last_update_ms,
+        timestamp_ms: now,
     });
 }
 

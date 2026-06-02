@@ -8,11 +8,17 @@ use sui::coin::{Self, Coin};
 use sui::event;
 use sui::sui::SUI;
 
+// ─── Abort codes ────────────────────────────────────────────────────────────
 const E_NOT_VERIFIED: u64 = 100;
 const E_INSUFFICIENT_FUNDS: u64 = 101;
 const E_EMPTY_BATCH: u64 = 102;
-const FEE_BPS: u64 = 150;
+/// Caller passed fee_bps above MAX_FEE_BPS. Prevents fee gouging.
+const E_FEE_EXCEEDED: u64 = 103;
+
+// ─── Constants ──────────────────────────────────────────────────────────────
 const BPS_DENOMINATOR: u64 = 10_000;
+/// Hard ceiling on per-settlement fee. 200 bps = 2.00%.
+const MAX_FEE_BPS: u64 = 200;
 
 public struct SettlementPool<phantom T> has key {
     id: UID,
@@ -30,6 +36,7 @@ public struct PaymentSettled has copy, drop {
     recipient: address,
     gross_amount: u64,
     protocol_fee: u64,
+    fee_bps: u64,
     net_amount: u64,
 }
 
@@ -38,6 +45,7 @@ public struct PaymentExecuted has copy, drop {
     recipient: address,
     gross_amount: u64,
     protocol_fee: u64,
+    fee_bps: u64,
     net_amount: u64,
 }
 
@@ -65,14 +73,16 @@ public fun settle_payment<T>(
     peg_state: &PegState,
     payment: Coin<T>,
     recipient: address,
+    fee_bps: u64,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     assert!(business_account::is_verified(business_account), E_NOT_VERIFIED);
+    assert!(fee_bps <= MAX_FEE_BPS, E_FEE_EXCEEDED);
     peg_monitor::assert_pegged(peg_state, clock);
 
     let gross = coin::value(&payment);
-    let fee = gross * FEE_BPS / BPS_DENOMINATOR;
+    let fee = gross * fee_bps / BPS_DENOMINATOR;
     let net = gross - fee;
 
     assert!(net > 0, E_INSUFFICIENT_FUNDS);
@@ -88,6 +98,7 @@ public fun settle_payment<T>(
         recipient,
         gross_amount: gross,
         protocol_fee: fee,
+        fee_bps,
         net_amount: net,
     });
 }
@@ -97,10 +108,12 @@ public fun settle_batch<T>(
     business_account: &BusinessAccount,
     peg_state: &PegState,
     payments: vector<Payment>,
+    fee_bps: u64,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
     assert!(business_account::is_verified(business_account), E_NOT_VERIFIED);
+    assert!(fee_bps <= MAX_FEE_BPS, E_FEE_EXCEEDED);
     peg_monitor::assert_pegged(peg_state, clock);
     assert!(vector::length(&payments) > 0, E_EMPTY_BATCH);
 
@@ -109,8 +122,11 @@ public fun settle_batch<T>(
 
     while (!vector::is_empty(&payments)) {
         let payment = vector::pop_back(&mut payments);
-        let fee = payment.amount * FEE_BPS / BPS_DENOMINATOR;
+        let fee = payment.amount * fee_bps / BPS_DENOMINATOR;
         let net = payment.amount - fee;
+
+        assert!(net > 0, E_INSUFFICIENT_FUNDS);
+
         let fee_balance = balance::split(&mut pool.balance, fee);
         let payout_balance = balance::split(&mut pool.balance, net);
 
@@ -122,6 +138,7 @@ public fun settle_batch<T>(
             recipient: payment.recipient,
             gross_amount: payment.amount,
             protocol_fee: fee,
+            fee_bps,
             net_amount: net,
         });
     };
@@ -132,10 +149,11 @@ public fun settle_sui_batch(
     business_account: &BusinessAccount,
     peg_state: &PegState,
     payments: vector<Payment>,
+    fee_bps: u64,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    settle_batch<SUI>(pool, business_account, peg_state, payments, clock, ctx);
+    settle_batch<SUI>(pool, business_account, peg_state, payments, fee_bps, clock, ctx);
 }
 
 public fun pool_balance<T>(pool: &SettlementPool<T>): u64 {
@@ -144,4 +162,8 @@ public fun pool_balance<T>(pool: &SettlementPool<T>): u64 {
 
 public fun protocol_fees<T>(pool: &SettlementPool<T>): u64 {
     balance::value(&pool.protocol_fees)
+}
+
+public fun max_fee_bps(): u64 {
+    MAX_FEE_BPS
 }
