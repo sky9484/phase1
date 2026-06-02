@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { ClipboardCheck, Headphones, LayoutDashboard } from 'lucide-react';
+import { ClipboardCheck, Headphones, LayoutDashboard, Settings2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import AdminLogoutButton from '@/components/admin/AdminLogoutButton';
@@ -13,6 +13,7 @@ const navItems = [
   { label: 'Overview', href: '/admin', icon: LayoutDashboard },
   { label: 'KYB Review', href: '/admin/kyb', icon: ClipboardCheck },
   { label: 'Support', href: '/admin/support', icon: Headphones },
+  { label: 'Contract config', href: '/admin/contracts', icon: Settings2 },
 ];
 
 export default async function AdminConsoleLayout({ children }: { children: ReactNode }) {

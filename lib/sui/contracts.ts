@@ -5,7 +5,7 @@ import {
   FALLBACK_FEE_BPS,
   getCorridorFeeBps,
 } from "@/lib/fx/corridors"
-import { SPLASH_PACKAGE_ID } from "@/lib/sui"
+import { getContractConfig } from "@/lib/server/contract-config"
 import { executeSponsoredTransaction } from "@/lib/sui/gas"
 
 function clampFeeBps(value: number | undefined): number {
@@ -16,17 +16,16 @@ function clampFeeBps(value: number | undefined): number {
 }
 
 export function buildUpdatePriceTx(usdcPrice: number, usdtPrice: number): Transaction {
-  const pegStateId = process.env.SPLASH_PEG_STATE_ID ?? '';
-  const adminCapId = process.env.SPLASH_ADMIN_CAP_ID ?? '';
+  const cfg = getContractConfig();
   const usdcDevPpm = Math.max(0, Math.round(Math.abs(usdcPrice - 1.0) * 1_000_000));
   const usdtDevPpm = Math.max(0, Math.round(Math.abs(usdtPrice - 1.0) * 1_000_000));
 
   const tx = new Transaction();
   tx.moveCall({
-    target: `${SPLASH_PACKAGE_ID}::peg_monitor::update_peg`,
+    target: `${cfg.packageId}::peg_monitor::update_peg`,
     arguments: [
-      tx.object(pegStateId),
-      tx.object(adminCapId),
+      tx.object(cfg.pegStateId),
+      tx.object(cfg.adminCapId),
       tx.pure.u64(usdcDevPpm),
       tx.pure.u64(usdtDevPpm),
       tx.object('0x6'),
@@ -62,10 +61,11 @@ export async function submitBusinessApplication(input: KybApplicationInput) {
 }
 
 export function buildSubmitBusinessApplicationTx(input: Required<Pick<KybApplicationInput, "ssmNumber" | "kybCid">>) {
+  const cfg = getContractConfig()
   const tx = new Transaction()
 
   tx.moveCall({
-    target: `${SPLASH_PACKAGE_ID}::business_account::submit_application`,
+    target: `${cfg.packageId}::business_account::submit_application`,
     arguments: [tx.pure.string(input.ssmNumber), tx.pure.string(input.kybCid)],
   })
 

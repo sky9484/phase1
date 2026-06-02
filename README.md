@@ -78,10 +78,14 @@ sui client publish --gas-budget 100000000
 
 After publishing:
 
-1. Copy the published package ID into `SPLASH_PACKAGE_ID`.
-2. Create or configure the operator treasury object for the settlement asset.
-3. Copy the treasury object ID into `SPLASH_TREASURY_ID`.
-4. Restart the Next.js dev server so server environment variables refresh.
+1. Sign in at `/admin/login` and open **Contract config** in the sidebar.
+2. Paste the new package, treasury, admin cap, peg state, business
+   account, and transfer coin IDs into the form and save. Changes apply
+   to the next request — no server restart required.
+
+`.env.local` still works as the boot-time fallback. See
+[`docs/contract-config.md`](./docs/contract-config.md) for details and
+[`docs/openapi.yaml`](./docs/openapi.yaml) for the admin API contract.
 
 ## Important routes
 
@@ -98,5 +102,6 @@ After publishing:
 - `/admin`
 - `/admin/kyb`
 - `/admin/support`
+- `/admin/contracts`
 - `/transfer/fpx`
 - `/api/kyb/upload`
