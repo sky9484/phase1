@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Quote, Sparkles } from 'lucide-react';
+import AmbientBackground from '@/components/AmbientBackground';
 
 const customers = [
   {
@@ -34,8 +35,9 @@ const segments = ['BPO Payroll', 'Exporters', 'Marketplaces', 'Logistics', 'Supp
 
 export default function CustomerSection() {
   return (
-    <section id="customers" className="relative bg-[#F6F0ED] py-16">
-      <div className="container mx-auto px-6">
+    <section id="customers" className="relative overflow-hidden splash-page-bg py-16">
+      <AmbientBackground variant="mint" />
+      <div className="container relative mx-auto px-6">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E39774]/25 bg-[#E39774]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C97A56]">
             <Sparkles className="h-3.5 w-3.5" />
@@ -65,7 +67,7 @@ export default function CustomerSection() {
                   {customer.corridor}
                 </span>
               </div>
-              <p className="mt-5 flex-1 text-base leading-7 text-[#326273]/80">"{customer.quote}"</p>
+              <p className="mt-5 flex-1 text-base leading-7 text-[#326273]/80">&quot;{customer.quote}&quot;</p>
               <div className="mt-7 border-t border-[#326273]/10 pt-5">
                 <div className="font-bold text-[#1F4452]">{customer.company}</div>
                 <div className="mt-0.5 text-sm text-[#6E8A95]">{customer.segment}</div>

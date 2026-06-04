@@ -50,7 +50,13 @@
 }
 
 :root {
-  --background: #f6f0ed;
+  --splash-page-bg: #ece3de;
+  --splash-page-bg-deep: #e5d8d1;
+  /* Extended accent palette (see tailwind.config.ts → colors.splash) */
+  --splash-gold: #d9a441;
+  --splash-mint: #6fb4a0;
+  --splash-indigo: #2b3a67;
+  --background: var(--splash-page-bg);
   --foreground: #326273;
   --card: #fffaf6;
   --card-foreground: #326273;
@@ -58,9 +64,9 @@
   --popover-foreground: #326273;
   --primary: #5c9ead;
   --primary-foreground: #fffaf6;
-  --secondary: #ecddd4;
+  --secondary: #e2d3ca;
   --secondary-foreground: #326273;
-  --muted: #eadfd9;
+  --muted: #d9cbc4;
   --muted-foreground: #6d7f86;
   --accent: #e39774;
   --accent-foreground: #fffaf6;
@@ -189,3 +195,159 @@
 [data-dash-theme="teal"] [class~="hover:bg-[#1F4452]"]:hover   { background-color: #0FA692 !important; }
 [data-dash-theme="teal"] [class~="hover:bg-[#326273]"]:hover   { background-color: #0d8a79 !important; }
 [data-dash-theme="teal"] [class~="hover:text-[#E39774]"]:hover { color: #FC8F12 !important; }
+
+/* ─── Azure Sky  (#022B3A · #1F7A8C · #2384E4) ──────────────────── */
+
+[data-dash-theme="azure"] [class~="bg-[#EDE8E4]"]   { background-color: #E1E5F2 !important; }
+[data-dash-theme="azure"] [class~="bg-[#F6F0ED]"]   { background-color: #EEF0F8 !important; }
+[data-dash-theme="azure"] [class~="bg-[#1F4452]"]   { background-color: #022B3A !important; }
+[data-dash-theme="azure"] [class~="bg-[#326273]"]   { background-color: #1F7A8C !important; }
+[data-dash-theme="azure"] [class~="bg-[#5C9EAD]"]   { background-color: #2BACC5 !important; }
+[data-dash-theme="azure"] [class~="bg-[#E39774]"]   { background-color: #2384E4 !important; }
+[data-dash-theme="azure"] [class~="bg-[#C97A56]"]   { background-color: #13589C !important; }
+[data-dash-theme="azure"] [class~="bg-[#264e5b]"]   { background-color: #011A23 !important; }
+
+[data-dash-theme="azure"] [class~="text-[#1F4452]"] { color: #022B3A !important; }
+[data-dash-theme="azure"] [class~="text-[#326273]"] { color: #0C3139 !important; }
+[data-dash-theme="azure"] [class~="text-[#5C9EAD]"] { color: #1F7A8C !important; }
+[data-dash-theme="azure"] [class~="text-[#E39774]"] { color: #13589C !important; }
+[data-dash-theme="azure"] [class~="text-[#C97A56]"] { color: #13589C !important; }
+
+[data-dash-theme="azure"] [class~="border-[#326273]"] { border-color: #1F7A8C !important; }
+[data-dash-theme="azure"] [class~="border-[#5C9EAD]"] { border-color: #2BACC5 !important; }
+[data-dash-theme="azure"] [class~="border-[#E39774]"] { border-color: #2384E4 !important; }
+
+[data-dash-theme="azure"] [class~="hover:bg-[#264e5b]"]:hover   { background-color: #011A23 !important; }
+[data-dash-theme="azure"] [class~="hover:bg-[#1F4452]"]:hover   { background-color: #022B3A !important; }
+[data-dash-theme="azure"] [class~="hover:bg-[#326273]"]:hover   { background-color: #1F7A8C !important; }
+[data-dash-theme="azure"] [class~="hover:text-[#E39774]"]:hover { color: #13589C !important; }
+
+/* Darker default canvas only. Do not override all cream utility classes,
+   because many of those are cards, inputs, badges, and table rows. */
+body {
+  background:
+    linear-gradient(180deg, var(--splash-page-bg) 0%, #efe6e1 42%, var(--splash-page-bg-deep) 100%);
+}
+
+.splash-page-bg {
+  background:
+    linear-gradient(180deg, var(--splash-page-bg) 0%, #efe6e1 42%, var(--splash-page-bg-deep) 100%);
+}
+
+/* Themed page canvas — keeps landing / auth / admin / dashboard cohesive
+   when a non-default colour theme is active. */
+[data-dash-theme="navy"] body,
+[data-dash-theme="navy"] .splash-page-bg {
+  background: linear-gradient(180deg, #EEF1FF 0%, #E7ECFF 45%, #DCE4FF 100%);
+}
+[data-dash-theme="teal"] body,
+[data-dash-theme="teal"] .splash-page-bg {
+  background: linear-gradient(180deg, #F0F8F7 0%, #E6F4F2 45%, #D8EEEB 100%);
+}
+[data-dash-theme="azure"] body,
+[data-dash-theme="azure"] .splash-page-bg {
+  background: linear-gradient(180deg, #E6F1FC 0%, #E1E5F2 45%, #CCE2F9 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Ambient section motion  (bankex-style living background)
+   Drives <AmbientBackground/> — large blurred orbs that slowly drift,
+   a faint scanning sheen, and a parallax dot grid. GPU-cheap: only
+   transform/opacity animate. Honors prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes splashOrbA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%      { transform: translate3d(6%, -5%, 0) scale(1.12); }
+  66%      { transform: translate3d(-4%, 4%, 0) scale(0.94); }
+}
+@keyframes splashOrbB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-7%, 6%, 0) scale(1.15); }
+}
+@keyframes splashOrbC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  40%      { transform: translate3d(5%, 5%, 0) scale(0.92); }
+  75%      { transform: translate3d(-3%, -6%, 0) scale(1.1); }
+}
+@keyframes splashSheen {
+  0%   { transform: translateX(-60%) skewX(-12deg); opacity: 0; }
+  45%  { opacity: 0.22; }
+  100% { transform: translateX(160%) skewX(-12deg); opacity: 0; }
+}
+@keyframes splashGridDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 56px 56px; }
+}
+
+.splash-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  will-change: transform;
+  pointer-events: none;
+}
+.splash-grid {
+  position: absolute;
+  inset: -2px;
+  background-image:
+    radial-gradient(circle at center, rgba(50, 98, 115, 0.18) 1px, transparent 1.4px);
+  background-size: 56px 56px;
+  animation: splashGridDrift 9s linear infinite;
+  pointer-events: none;
+}
+.splash-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 38%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 250, 246, 0.45),
+    transparent
+  );
+  animation: splashSheen 14s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-orb,
+  .splash-grid,
+  .splash-sheen { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Dashboard card surface
+   A refined replacement for the flat `border-white/70 bg-white shadow-sm`
+   cards: a faint warm gradient, a visible slate hairline, and a layered
+   soft shadow that reads as elevation without heaviness.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dash-card {
+  border-radius: 0.85rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(50, 98, 115, 0.14);
+  box-shadow:
+    0 1px 2px rgba(50, 98, 115, 0.06),
+    0 10px 24px -16px rgba(50, 98, 115, 0.26);
+}
+/* Slightly elevated variant for primary/highlighted panels. */
+.dash-card-raised {
+  border-radius: 1rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(50, 98, 115, 0.16);
+  box-shadow:
+    0 2px 6px rgba(50, 98, 115, 0.07),
+    0 18px 40px -20px rgba(50, 98, 115, 0.32);
+}
+.dash-card-interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.dash-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(92, 158, 173, 0.55);
+  box-shadow:
+    0 2px 6px rgba(50, 98, 115, 0.07),
+    0 22px 46px -20px rgba(50, 98, 115, 0.34);
+}

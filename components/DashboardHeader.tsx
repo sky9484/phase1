@@ -11,13 +11,9 @@ import {
   Settings,
 } from 'lucide-react';
 
-export type Theme = 'default' | 'navy' | 'teal';
+import { THEMES, type DashTheme } from '@/components/dash-theme';
 
-const THEMES: { id: Theme; label: string; colors: [string, string, string] }[] = [
-  { id: 'default', label: 'Splash',      colors: ['#1F4452', '#5C9EAD', '#E39774'] },
-  { id: 'navy',    label: 'Navy Blue',   colors: ['#1E3888', '#47A8BD', '#FFAD69'] },
-  { id: 'teal',    label: 'Ocean Teal',  colors: ['#0FA692', '#37AD9E', '#FC8F12'] },
-];
+export type Theme = DashTheme;
 
 interface DashboardHeaderProps {
   theme: Theme;

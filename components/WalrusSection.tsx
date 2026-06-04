@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Database, Lock, FileText, BarChart3, ShieldCheck, Key } from 'lucide-react';
+import { Database, FileText, BarChart3, ShieldCheck, Key } from 'lucide-react';
 import { WalrusLogo, SuiLogo } from '@/components/BrandLogos';
+import AmbientBackground from '@/components/AmbientBackground';
 
 const features = [
   {
@@ -30,7 +31,8 @@ const features = [
 
 export default function WalrusSection() {
   return (
-    <section id="walrus" className="relative overflow-hidden bg-[#F6F0ED] py-16">
+    <section id="walrus" className="relative overflow-hidden splash-page-bg py-16">
+      <AmbientBackground variant="indigo" sheen />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
@@ -52,7 +54,7 @@ export default function WalrusSection() {
               <span className="text-[#5C9EAD]">Permanently.</span>
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-[#326273]/75">
-              Walrus is Sui's decentralized storage layer. Splash uses it for two critical workflows: invoice storage and daily compliance anchoring. Every blob is Seal-encrypted and pinned for 7 years.
+              Walrus is Sui&apos;s decentralized storage layer. Splash uses it for two critical workflows: invoice storage and daily compliance anchoring. Every blob is Seal-encrypted and pinned for 7 years.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -127,7 +129,7 @@ export default function WalrusSection() {
                 </div>
                 <div>
                   <h3 className="font-bold text-[#1F4452]">Seal encryption</h3>
-                  <p className="text-xs text-[#6E8A95]">Sui's identity-based encryption</p>
+                  <p className="text-xs text-[#6E8A95]">Sui&apos;s identity-based encryption</p>
                 </div>
               </div>
               <p className="text-sm leading-6 text-[#326273]/70">

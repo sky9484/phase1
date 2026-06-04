@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F6F0ED] p-6">
+    <main className="flex min-h-screen items-center justify-center splash-page-bg p-6">
       <div className="w-full max-w-md rounded-2xl border border-[#326273]/10 bg-white p-8 shadow-xl">
         <div className="mb-1 text-2xl font-extrabold text-[#326273]">Reset password</div>
         <p className="mb-6 text-sm text-[#326273]/60">We&apos;ll email you a reset link.</p>

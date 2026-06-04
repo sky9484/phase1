@@ -357,6 +357,14 @@ const PROMPT_CHIPS = [
   'Recommend a treasury deposit',
 ];
 
+function formatChatTime(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CopilotPage() {
@@ -399,21 +407,21 @@ export default function CopilotPage() {
     const trimmed = text.trim();
     if (!trimmed || thinking || streaming) return;
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = formatChatTime();
     const userMsgId = ++msgIdRef.current;
 
     setMessages((prev) => [...prev, { id: userMsgId, role: 'user', text: trimmed, time: now }]);
     setInput('');
     setThinking(true);
 
-    const delay = 1100 + Math.random() * 900;
+    const delay = 1500;
 
     setTimeout(() => {
       const reply = matchResponse(trimmed, fallbackIdxRef);
       setThinking(false);
 
       const assistantMsgId = ++msgIdRef.current;
-      const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const replyTime = formatChatTime();
 
       setMessages((prev) => [
         ...prev,
@@ -535,10 +543,10 @@ export default function CopilotPage() {
           )}
 
           {/* Chat panel */}
-          <div className="flex flex-col overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm" style={{ minHeight: 500 }}>
+          <div className="dash-card-raised flex flex-col overflow-hidden" style={{ minHeight: 500 }}>
 
             {/* Chat header */}
-            <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-[#326273]/8 bg-gradient-to-r from-[#F6F0ED]/80 via-white to-white px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-lg bg-[#E39774]/15 p-1.5">
                   <Bot size={15} className="text-[#C97A56]" />
@@ -559,7 +567,7 @@ export default function CopilotPage() {
             {/* Messages */}
             <div
               ref={scrollRef}
-              className="flex-1 space-y-4 overflow-y-auto p-4"
+              className="flex-1 space-y-4 overflow-y-auto bg-[#F6F0ED]/50 p-4"
               style={{ scrollbarWidth: 'none' }}
             >
               {messages.map((msg, i) => {
@@ -577,8 +585,8 @@ export default function CopilotPage() {
                       className={cn(
                         'max-w-[82%] rounded-2xl px-3.5 py-2.5 text-xs leading-5',
                         msg.role === 'assistant'
-                          ? 'bg-[#F6F0ED] text-[#1F4452]'
-                          : 'bg-[#326273] text-white'
+                          ? 'border border-[#326273]/8 bg-white text-[#1F4452] shadow-sm'
+                          : 'bg-gradient-to-br from-[#326273] to-[#3C7388] text-white shadow-sm'
                       )}
                     >
                       {msg.role === 'assistant' ? (
@@ -607,7 +615,7 @@ export default function CopilotPage() {
                   <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E39774]/15">
                     <Bot size={14} className="text-[#C97A56]" />
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-2xl bg-[#F6F0ED] px-4 py-3">
+                  <div className="flex items-center gap-1.5 rounded-2xl border border-[#326273]/8 bg-white px-4 py-3 shadow-sm">
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#326273]/40 [animation-delay:0ms]" />
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#326273]/40 [animation-delay:150ms]" />
                     <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#326273]/40 [animation-delay:300ms]" />
@@ -637,7 +645,7 @@ export default function CopilotPage() {
             <div className="border-t border-[#326273]/8 p-3">
               <form
                 onSubmit={handleFormSubmit}
-                className="flex items-center gap-2 rounded-xl bg-[#F6F0ED] px-3 py-2"
+                className="flex items-center gap-2 rounded-xl border border-[#326273]/12 bg-white px-3 py-2 transition-all focus-within:border-[#5C9EAD] focus-within:ring-2 focus-within:ring-[#5C9EAD]/15"
               >
                 <input
                   ref={inputRef}
@@ -664,7 +672,7 @@ export default function CopilotPage() {
         <aside className="space-y-4">
 
           {/* MemWal memory */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Brain size={15} className="text-[#5C9EAD]" />
@@ -707,7 +715,7 @@ export default function CopilotPage() {
           </div>
 
           {/* Settings */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <h2 className="text-sm font-bold text-[#1F4452]">Copilot Settings</h2>
             <div className="mt-3 space-y-3">
               {[
@@ -767,7 +775,7 @@ export default function CopilotPage() {
           </div>
 
           {/* What MemWal stores */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <div className="flex items-center gap-2">
               <Lock size={14} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">What MemWal Stores</h2>

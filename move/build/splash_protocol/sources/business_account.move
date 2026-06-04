@@ -4,6 +4,8 @@ use std::string::String;
 use sui::event;
 
 const E_ALREADY_VERIFIED: u64 = 1;
+const E_EMPTY_SSM_NUMBER: u64 = 2;
+const E_EMPTY_KYB_CID: u64 = 3;
 
 public struct AdminCap has key, store {
     id: UID,
@@ -37,6 +39,9 @@ fun init(ctx: &mut TxContext) {
 
 #[allow(lint(self_transfer))]
 public fun submit_application(ssm_number: String, kyb_cid: String, ctx: &mut TxContext) {
+    assert!(std::string::length(&ssm_number) > 0, E_EMPTY_SSM_NUMBER);
+    assert!(std::string::length(&kyb_cid) > 0, E_EMPTY_KYB_CID);
+
     let owner = tx_context::sender(ctx);
     let account = BusinessAccount {
         id: object::new(ctx),

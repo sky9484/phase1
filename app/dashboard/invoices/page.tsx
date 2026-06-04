@@ -231,6 +231,7 @@ export default function InvoicesPage() {
   function makeNewInvoice(fileName: string): Invoice {
     invCountRef.current++;
     const num = String(invCountRef.current).padStart(3, '0');
+    const blobSuffix = `${num}_${fileName.replace(/[^a-z0-9]/gi, '').slice(0, 12).toLowerCase() || 'invoice'}`;
     return {
       id: `INV-2026-${num}`,
       vendor: fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' ').trim() || 'New Invoice',
@@ -240,7 +241,7 @@ export default function InvoicesPage() {
       date: '28 May 2026',
       dueDate: '28 May 2026',
       status: 'draft',
-      walrusCid: `walrus:blobId_${Math.random().toString(36).slice(2, 18)}`,
+      walrusCid: `walrus:blobId_${blobSuffix}`,
       sealEncrypted: true,
       anchorObjectId: null,
       purpose: 'Uploaded invoice',

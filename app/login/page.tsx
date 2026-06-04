@@ -87,7 +87,7 @@ export default function LoginPage() {
   if (authorizing) return <SplashLoading label="Securing your session" />;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-6 text-[#326273] sm:px-6 sm:py-8">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#326273] px-4 py-6 text-[#326273] sm:px-6 sm:py-8">
       <LoginSeaBackground />
 
       {/* ── Top-left home link ───────────────────────────────────────────── */}

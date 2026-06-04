@@ -53,7 +53,10 @@
       "Bash(git -C \"D:/latest-splash\" status)",
       "Bash(git -C \"D:/latest-splash\" add -A)",
       "Bash(git -C \"D:/latest-splash\" status --short)",
-      "Bash(git -C \"D:/latest-splash\" log --oneline -3)"
+      "Bash(git -C \"D:/latest-splash\" log --oneline -3)",
+      "PowerShell(Write-Output \"TEMP=$env:TEMP\"; Write-Output \"TMP=$env:TMP\"; git -C D:\\\\latest-splash status --short 2>&1 | Select-Object -First 5)",
+      "PowerShell(New-Item -ItemType Directory -Force \"D:\\\\latest-splash\\\\.tmp\" | Out-Null; $env:TEMP=\"D:\\\\latest-splash\\\\.tmp\"; $env:TMP=\"D:\\\\latest-splash\\\\.tmp\"; Write-Output \"tmp ready\"; Test-Path \"D:\\\\latest-splash\\\\node_modules\\\\.bin\\\\next.cmd\")",
+      "PowerShell(git -C D:\\\\latest-splash diff --stat -- app/dashboard/layout.tsx components/Footer.tsx components/LandingCTA.tsx components/FloatingCopilot.tsx components/BrandLogos.tsx app/globals.css app/layout.tsx 2>&1)"
     ]
   }
 }

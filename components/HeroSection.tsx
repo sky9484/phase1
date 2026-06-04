@@ -7,9 +7,9 @@ import { motion } from 'framer-motion';
 import { SuiLogo } from '@/components/BrandLogos';
 
 const navLinks = [
-  { label: 'How it Works', href: '#how-it-works' },
+  { label: 'How it works', href: '#how-it-works' },
   { label: 'Corridors', href: '#corridors' },
-  { label: 'Features', href: '#features' },
+  { label: 'Phase 1', href: '#features' },
   { label: 'Compliance', href: '#compliance' },
   { label: 'Roadmap', href: '#roadmap' },
 ];
@@ -59,7 +59,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative flex min-h-screen flex-col overflow-hidden bg-[#F6F0ED] text-[#326273]">
+    <section className="relative flex min-h-screen flex-col overflow-hidden splash-page-bg text-[#326273]">
       <style>{`
         @keyframes splashGlow {
           0%, 100% { box-shadow: 0 0 0 0 rgba(227,151,116,0.55), 0 0 10px rgba(227,151,116,0.55); }
@@ -79,7 +79,6 @@ export default function HeroSection() {
         }
       `}</style>
 
-      {/* Nav */}
       <nav className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-[#326273]/10 bg-[#F6F0ED]/92 shadow-sm backdrop-blur-md' : 'border-b border-transparent bg-transparent'}`}>
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-8 px-6 py-3 lg:px-14">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-[#1F4452]">
@@ -109,9 +108,7 @@ export default function HeroSection() {
         </div>
       </nav>
 
-      {/* Hero body */}
       <div className="relative flex flex-1 items-center overflow-hidden pb-20 pt-16 lg:min-h-0">
-        {/* Background */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-y-0 right-0 h-full w-[1565px] max-w-[calc(100vw+520px)]">
             <Image
@@ -133,12 +130,11 @@ export default function HeroSection() {
             <path className="animate-[splashFlow_10s_linear_infinite]" d="M 900 180 C 800 220, 720 260, 620 300" fill="none" stroke="#E39774" strokeOpacity="0.35" strokeWidth="1" strokeDasharray="2 6" />
           </svg>
 
-          {/* Floating badges */}
           <div className="absolute right-[7%] top-[22%] hidden animate-[splashFloat_5s_ease-in-out_infinite] rounded-xl border border-[#326273]/15 bg-white/85 px-2.5 py-1.5 shadow-xl shadow-[#326273]/10 backdrop-blur lg:block">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
               <div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">USD → PHP · Live</div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">USD to PHP live</div>
                 <div className="text-xs font-bold text-[#1F4452]">${liveCorridors[0].volume.toFixed(2)}M cleared</div>
               </div>
             </div>
@@ -148,8 +144,8 @@ export default function HeroSection() {
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-[#E39774]" />
               <div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">Hot-Potato PTB</div>
-                <div className="text-xs font-bold text-[#1F4452]">Settle or revert <span className="text-[#C97A56]">· Sui only</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">Settlement safeguard</div>
+                <div className="text-xs font-bold text-[#1F4452]">Pay out or revert <span className="text-[#C97A56]">- no stuck funds</span></div>
               </div>
             </div>
           </div>
@@ -159,13 +155,12 @@ export default function HeroSection() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#0284C7]" />
               <div>
                 <div className="font-mono text-[9px] uppercase tracking-wider text-[#6E8A95]">Block #{blockHeight.toLocaleString()}</div>
-                <div className="text-xs font-bold text-[#1F4452]">finalized <span className="text-[#C97A56]">· {liveCorridors[0].speed}ms</span></div>
+                <div className="text-xs font-bold text-[#1F4452]">finalized <span className="text-[#C97A56]">- {liveCorridors[0].speed}ms</span></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main content */}
         <div className="relative z-20 w-full max-w-[760px] px-6 py-16 md:pl-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -173,83 +168,73 @@ export default function HeroSection() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="flex w-full max-w-[700px] flex-col items-start"
           >
-            {/* Live badge */}
             <div className="mb-4 inline-flex flex-wrap items-center gap-2 rounded-full border border-[#E39774]/30 bg-white/70 px-3 py-1.5 text-xs font-medium backdrop-blur">
               <span className="inline-flex items-center gap-1 rounded-full border border-[#E39774]/40 bg-[#E39774]/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C97A56]">
                 <span className="h-1.5 w-1.5 animate-[splashGlow_1.6s_ease-in-out_infinite] rounded-full bg-[#E39774]" />
                 Live
               </span>
-              <span className="font-mono text-[#326273]">USD → MYR</span>
+              <span className="font-mono text-[#326273]">USD payment desk</span>
             </div>
 
             <h1 className="mt-3 text-[42px] font-extrabold leading-[1.02] tracking-[-0.03em] text-[#1F4452] sm:text-[58px]">
-              <span className="block">The USD-First</span>
+              <span className="block">Global USD payments,</span>
               <span className="relative inline-block italic text-[#5C9EAD]">
-                Settlement Engine.
+                built for business.
                 <span aria-hidden="true" className="absolute bottom-[0.04em] left-0 h-[0.07em] w-full rounded-full bg-gradient-to-r from-transparent via-[#5C9EAD]/40 to-transparent" />
               </span>
             </h1>
 
             <p className="mt-4 w-full max-w-[560px] text-[15px] leading-6 text-[#326273]">
-              Splash moves USD to 8 local currencies in{' '}
-              <strong className="font-semibold text-[#1F4452]">400ms</strong> with hot-potato atomicity —
-              a settlement guarantee{' '}
-              <strong className="font-semibold text-[#1F4452]">only Sui can offer</strong>. AI Copilot, Walrus audit trail, and 4.8% yield on idle USD included —{' '}
-              <strong className="font-semibold text-[#1F4452]">regulated for serious Business</strong>.
+              Splash helps finance teams send cross-border payouts, manage USD liquidity, and keep every transaction audit-ready from one operating desk. Sui settlement runs under the hood; your team gets familiar payment controls.
             </p>
 
-            {/* Live stats pill */}
             <div className="mt-5 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-[#326273]/10 bg-white/65 px-3.5 py-2.5 text-sm text-[#326273] shadow-lg shadow-[#326273]/5 backdrop-blur">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="absolute inline-flex h-full w-full animate-[splashGlow_1.6s_ease-in-out_infinite] rounded-full bg-[#E39774] opacity-70" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#E39774]" />
               </span>
               <span className="font-mono font-bold text-[#C97A56]">400ms</span>
-              <span>settlement · Sui</span>
+              <span>settlement</span>
               <span className="hidden h-4 w-px bg-[#326273]/20 sm:block" />
               <span className="font-mono font-bold text-[#1F4452]">0.80%</span>
-              <span>low cost · all corridors</span>
+              <span>fee floor</span>
               <span className="hidden h-4 w-px bg-[#326273]/20 sm:block" />
               <span className="font-mono font-bold text-[#1F4452]">4.8%</span>
-              <span>APY on idle USD</span>
+              <span>treasury APY</span>
             </div>
 
-            {/* CTAs */}
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/login"
                 className="inline-flex h-[50px] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#5C9EAD] px-7 text-base font-semibold text-white shadow-lg shadow-[#5C9EAD]/35 transition-all hover:-translate-y-0.5 hover:bg-[#4A8895]"
               >
-                Start sending USD →
+                Open payment desk
               </Link>
               <a
                 href="#how-it-works"
                 className="inline-flex h-[50px] items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-[#326273]/15 bg-white/70 px-6 text-base font-medium text-[#1F4452] backdrop-blur transition-all hover:border-[#5C9EAD]/30 hover:bg-white/90"
               >
-                See how it works
+                See how payouts work
               </a>
             </div>
 
-            {/* Tech stack */}
             <div className="mt-7 flex flex-wrap items-center gap-4">
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#6E8A95]">Built on</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#6E8A95]">Powered by</span>
               <span className="h-px w-8 bg-gradient-to-r from-[#326273]/40 to-transparent" />
               <div className="flex items-center gap-3">
                 {stackLogos.map(({ Logo, label }) => (
                   <div key={label} className="flex items-center gap-1.5" title={label}>
                     <Logo size={24} />
-                    <span className="text-xs font-medium text-[#326273]/70">{label}</span>
+                    <span className="text-xs font-medium text-[#326273]/70">{label} infrastructure</span>
                   </div>
                 ))}
               </div>
             </div>
-
           </motion.div>
         </div>
       </div>
 
-      {/* Live corridors ticker */}
-      <div className="absolute top-[85%] left-0 right-0 z-20 mx-auto w-full max-w-[1440px] px-6 lg:px-14">
+      <div className="absolute left-0 right-0 top-[85%] z-20 mx-auto w-full max-w-[1440px] px-6 lg:px-14">
         <div className="flex items-center gap-4 overflow-hidden rounded-2xl border border-[#326273]/10 bg-white/65 px-5 py-3.5 shadow-xl shadow-[#326273]/10 backdrop-blur">
           <div className="shrink-0 border-r border-[#326273]/15 pr-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6E8A95]">
             Live rates
@@ -259,7 +244,7 @@ export default function HeroSection() {
               {[...liveCorridors, ...liveCorridors].map(({ from, to, rate, speed }, index) => (
                 <span key={`${from}-${to}-${index}`} className="inline-flex items-center gap-2 font-mono text-xs text-[#326273]">
                   <span className="font-bold text-[#1F4452]">{from}</span>
-                  <span className="font-bold text-[#C97A56]">→</span>
+                  <span className="font-bold text-[#C97A56]">to</span>
                   <span className="font-bold text-[#1F4452]">{to}</span>
                   <span className="text-[#326273]/60">{rate}</span>
                   <span className="rounded-full bg-[#5C9EAD]/12 px-2 py-0.5 text-[#5C9EAD]">{speed}ms</span>

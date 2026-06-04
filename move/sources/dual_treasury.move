@@ -11,6 +11,9 @@ const E_USDT_BUFFER_EMPTY: u64 = 601;
 const E_USDT_SWEEP_TOO_EARLY: u64 = 602;
 const E_USDT_INSUFFICIENT_KYC_TIER: u64 = 603;
 const E_USDT_INSUFFICIENT_BALANCE: u64 = 604;
+const E_USDT_ACTIVE_BUFFER: u64 = 605;
+const E_USDT_ZERO_AMOUNT: u64 = 606;
+const E_USDT_INVALID_RECIPIENT: u64 = 607;
 const USDT_MAX_HOLD_MS: u64 = 1_800_000;
 const USDT_SWEEP_TRIGGER_MS: u64 = 1_620_000;
 
@@ -48,19 +51,38 @@ public fun create_buffer<USDT>(_: &AdminCap, ctx: &mut TxContext): UsdtBuffer<US
     }
 }
 
+/// Share a freshly-created buffer so it becomes a shared object that
+/// `deposit`/`settle_usdt`/`emergency_sweep` (all of which take
+/// `&mut UsdtBuffer`) can reference from a PTB.
+///
+/// `UsdtBuffer` only has the `key` ability (no `store`), so it cannot be
+/// shared with `transfer::public_share_object` from outside this module —
+/// without this entry the object returned by `create_buffer` could never be
+/// persisted or used. Compose in one PTB: create_buffer → share_buffer.
+public fun share_buffer<USDT>(buffer: UsdtBuffer<USDT>) {
+    transfer::share_object(buffer);
+}
+
+/// Convenience: create the buffer and share it in a single call.
+public fun create_and_share_buffer<USDT>(admin: &AdminCap, ctx: &mut TxContext) {
+    share_buffer(create_buffer<USDT>(admin, ctx));
+}
+
 public fun deposit<USDT>(
     buffer: &mut UsdtBuffer<USDT>,
     coin: Coin<USDT>,
     clock: &Clock,
-    cap: &AdminCap,
+    _admin: &AdminCap,
 ) {
-    let _ = cap;
     let amount = coin::value(&coin);
     let now_ms = clock::timestamp_ms(clock);
 
+    assert!(amount > 0, E_USDT_ZERO_AMOUNT);
+    assert!(balance::value(&buffer.balance) == 0, E_USDT_ACTIVE_BUFFER);
+
     balance::join(&mut buffer.balance, coin::into_balance(coin));
     buffer.intake_ms = now_ms;
-    buffer.intake_amount = buffer.intake_amount + amount;
+    buffer.intake_amount = amount;
 
     event::emit(UsdtDeposited {
         amount,
@@ -71,7 +93,7 @@ public fun deposit<USDT>(
 
 public fun settle_usdt<USDT>(
     buffer: &mut UsdtBuffer<USDT>,
-    cap: &AdminCap,
+    _admin: &AdminCap,
     recipient: address,
     amount: u64,
     payout_id: vector<u8>,
@@ -80,34 +102,49 @@ public fun settle_usdt<USDT>(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    let _ = cap;
+    assert!(amount > 0, E_USDT_ZERO_AMOUNT);
+    assert!(recipient != @0x0, E_USDT_INVALID_RECIPIENT);
     assert!(kyc_tier >= min_kyc_tier, E_USDT_INSUFFICIENT_KYC_TIER);
 
-    let age_ms = clock::timestamp_ms(clock) - buffer.intake_ms;
+    let balance_value = balance::value(&buffer.balance);
+    assert!(balance_value > 0, E_USDT_BUFFER_EMPTY);
+    assert!(buffer.intake_ms > 0, E_USDT_BUFFER_EMPTY);
+
+    let age_ms = buffer_age_ms(buffer, clock);
     assert!(age_ms < USDT_MAX_HOLD_MS, E_USDT_TTL_EXCEEDED);
-    assert!(balance::value(&buffer.balance) >= amount, E_USDT_INSUFFICIENT_BALANCE);
+    assert!(balance_value >= amount, E_USDT_INSUFFICIENT_BALANCE);
 
     let coin = coin::from_balance(balance::split(&mut buffer.balance, amount), ctx);
     transfer::public_transfer(coin, recipient);
+
+    if (balance::value(&buffer.balance) == 0) {
+        buffer.intake_ms = 0;
+        buffer.intake_amount = 0;
+    };
 
     event::emit(UsdtSettled { payout_id, amount, age_ms, recipient });
 }
 
 public fun emergency_sweep<USDT>(
     buffer: &mut UsdtBuffer<USDT>,
-    cap: &AdminCap,
+    _admin: &AdminCap,
     recipient: address,
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    let _ = cap;
-    let age_ms = clock::timestamp_ms(clock) - buffer.intake_ms;
-    assert!(age_ms >= USDT_SWEEP_TRIGGER_MS, E_USDT_SWEEP_TOO_EARLY);
+    assert!(recipient != @0x0, E_USDT_INVALID_RECIPIENT);
 
     let amount = balance::value(&buffer.balance);
     assert!(amount > 0, E_USDT_BUFFER_EMPTY);
+    assert!(buffer.intake_ms > 0, E_USDT_BUFFER_EMPTY);
+
+    let age_ms = buffer_age_ms(buffer, clock);
+    assert!(age_ms >= USDT_SWEEP_TRIGGER_MS, E_USDT_SWEEP_TOO_EARLY);
 
     let coin = coin::from_balance(balance::split(&mut buffer.balance, amount), ctx);
+    buffer.intake_ms = 0;
+    buffer.intake_amount = 0;
+
     event::emit(UsdtSwept { amount, age_ms });
     transfer::public_transfer(coin, recipient);
 }
@@ -117,7 +154,7 @@ public fun usdt_balance<USDT>(buffer: &UsdtBuffer<USDT>): u64 {
 }
 
 public fun usdt_age_ms<USDT>(buffer: &UsdtBuffer<USDT>, clock: &Clock): u64 {
-    if (buffer.intake_ms == 0) { 0 } else { clock::timestamp_ms(clock) - buffer.intake_ms }
+    buffer_age_ms(buffer, clock)
 }
 
 public fun ttl_remaining_ms<USDT>(buffer: &UsdtBuffer<USDT>, clock: &Clock): u64 {
@@ -131,4 +168,13 @@ public fun sweep_trigger_ms(): u64 {
 
 public fun max_hold_ms(): u64 {
     USDT_MAX_HOLD_MS
+}
+
+fun buffer_age_ms<USDT>(buffer: &UsdtBuffer<USDT>, clock: &Clock): u64 {
+    if (buffer.intake_ms == 0) {
+        0
+    } else {
+        let now_ms = clock::timestamp_ms(clock);
+        if (now_ms > buffer.intake_ms) { now_ms - buffer.intake_ms } else { 0 }
+    }
 }

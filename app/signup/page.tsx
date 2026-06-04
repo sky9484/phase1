@@ -13,7 +13,7 @@ const benefits = [
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F6F0ED] p-6">
+    <div className="flex min-h-screen items-center justify-center splash-page-bg p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

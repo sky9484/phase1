@@ -52,12 +52,16 @@ function resolveFeeBps(input: { feeBps?: number; targetCurrency?: string }): num
 const ABORT_CODES: Record<number, string> = {
   // ── business_account ──────────────────────────────────────────────────────
   1: 'E_ALREADY_VERIFIED — BusinessAccount is already KYB-verified on-chain.',
+  2: 'E_EMPTY_SSM_NUMBER — BusinessAccount application submitted without a registration number.',
+  3: 'E_EMPTY_KYB_CID — BusinessAccount application submitted without a KYB document CID.',
 
   // ── settlement ───────────────────────────────────────────────────────────
   100: 'E_NOT_VERIFIED — BusinessAccount is not KYB-verified. Call verify_business with AdminCap first.',
   101: 'E_INSUFFICIENT_FUNDS — Coin value too small (fee > payment). Send a larger coin.',
   102: 'E_EMPTY_BATCH — Empty payments vector. Add at least one payment.',
   103: 'E_FEE_EXCEEDED — fee_bps passed to settle_payment/settle_batch is above MAX_FEE_BPS (200). Check the corridor fee in lib/fx/corridors.ts.',
+  104: 'E_INVALID_RECIPIENT — settlement recipient is the zero address.',
+  105: 'E_INVALID_AMOUNT — settlement amount or deposit coin value is zero.',
 
   // ── peg_monitor ──────────────────────────────────────────────────────────
   300: 'E_PEG_BROKEN_USDC — USDC deviation > 30 bps. Update peg with valid data.',
@@ -72,6 +76,9 @@ const ABORT_CODES: Record<number, string> = {
   403: 'E_NOT_YET_EXPIRED — payment_intent::cancel_payment_intent called before intent.expires_at.',
   404: 'E_UNAUTHORIZED — payment_intent action attempted by an address other than intent.sender.',
   405: 'E_INVALID_AMOUNT — payment_intent::create_payment_intent called with amount_usd = 0.',
+  406: 'E_INVALID_RECIPIENT — payment_intent recipient is the zero address.',
+  407: 'E_EMPTY_TARGET_CURRENCY — payment_intent target currency is empty.',
+  408: 'E_INVALID_FX_RATE — payment_intent FX rate must be greater than zero.',
 
   // ── audit_anchor ─────────────────────────────────────────────────────────
   500: 'E_EMPTY_HASH — audit_anchor::anchor_audit_hash called with an empty audit_hash string.',
@@ -83,6 +90,9 @@ const ABORT_CODES: Record<number, string> = {
   602: 'E_USDT_SWEEP_TOO_EARLY — emergency_sweep called before USDT_SWEEP_TRIGGER_MS (27 minutes).',
   603: 'E_USDT_INSUFFICIENT_KYC_TIER — settle_usdt called with kyc_tier below min_kyc_tier.',
   604: 'E_USDT_INSUFFICIENT_BALANCE — settle_usdt requested more than the buffer holds.',
+  605: 'E_USDT_ACTIVE_BUFFER — deposit attempted while the USDT buffer still holds an active intake.',
+  606: 'E_USDT_ZERO_AMOUNT — dual_treasury deposit or settlement amount is zero.',
+  607: 'E_USDT_INVALID_RECIPIENT — dual_treasury recipient is the zero address.',
 
   // ── smart_treasury ───────────────────────────────────────────────────────
   700: 'E_INSUFFICIENT_BALANCE — smart_treasury::withdraw requested more than the treasury holds.',

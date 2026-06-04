@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# local temp redirect (used when the system temp drive is full)
+/.tmp/
+
 # production
 /build
 

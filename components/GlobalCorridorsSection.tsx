@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Globe2 } from 'lucide-react';
+import AmbientBackground from '@/components/AmbientBackground';
 
 const seaCorridors = [
   { flag: '🇵🇭', currency: 'PHP', name: 'Philippines', rate: '56.42', status: 'active', volume: '$4.2M' },
@@ -78,6 +79,7 @@ function CorridorRow({
 export default function GlobalCorridorsSection() {
   return (
     <section id="corridors" className="relative overflow-hidden bg-white/45 py-16">
+      <AmbientBackground variant="sunset" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <div className="mb-12 grid gap-12 lg:grid-cols-[1fr_2fr]">

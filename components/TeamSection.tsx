@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Mail } from 'lucide-react';
+import AmbientBackground from '@/components/AmbientBackground';
 
 function LinkedInIcon({ className }: { className?: string }) {
   return (
@@ -31,7 +32,7 @@ const team = [
     role: 'Fullstack Engineer',
     initials: 'JY',
     bio: '40+ global hackathon winner across every major chain. Ships full-stack product end-to-end.',
-    accent: '#7C3AED',
+    accent: '#2B3A67',
   },
   {
     name: 'Liew Qi Jian',
@@ -44,8 +45,9 @@ const team = [
 
 export default function TeamSection() {
   return (
-    <section id="team" className="bg-[#F6F0ED] py-16">
-      <div className="container mx-auto px-6">
+    <section id="team" className="relative overflow-hidden splash-page-bg py-16">
+      <AmbientBackground variant="teal" />
+      <div className="container relative mx-auto px-6">
         <div className="mb-12 max-w-2xl">
           <h2 className="mb-3 text-4xl font-extrabold text-[#326273]">Built by experts in cross-border finance.</h2>
           <p className="text-[#326273]/70">A focused team combining deep experience in traditional banking, Sui Move engineering, and high-performance product delivery.</p>

@@ -15,7 +15,7 @@ import WalrusSection from "@/components/WalrusSection";
 
 export default function Home() {
   return (
-    <main className="min-h-svh overflow-hidden bg-[#F6F0ED] text-[#326273]">
+    <main className="min-h-svh overflow-hidden splash-page-bg text-[#326273]">
       <HeroSection />
       <TrustBar />
       <SectionDivider variant="splash" />

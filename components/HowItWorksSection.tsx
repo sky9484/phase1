@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CreditCard, Flame, ArrowRight, Database, CheckCircle2, Brain } from 'lucide-react';
+import AmbientBackground from '@/components/AmbientBackground';
 
 const steps = [
   {
@@ -19,7 +20,7 @@ const steps = [
     title: 'AI Copilot Advises',
     subtitle: 'MemWal · Claude API',
     desc: 'Treasury Copilot checks live FX rates, your pending invoices from Walrus, and your behavioral patterns to suggest optimal timing.',
-    color: '#7C3AED',
+    color: '#2B3A67',
     tag: 'MemWal patterns',
   },
   {
@@ -45,7 +46,8 @@ const steps = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative overflow-hidden bg-[#F6F0ED] py-16">
+    <section id="how-it-works" className="relative overflow-hidden splash-page-bg py-16">
+      <AmbientBackground variant="teal" grid />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
       <div className="container mx-auto px-6">
         <motion.div
@@ -64,7 +66,7 @@ export default function HowItWorksSection() {
             <span className="text-[#5C9EAD]">Guaranteed.</span>
           </h2>
           <p className="mt-5 max-w-xl text-base leading-7 text-[#326273]/75">
-            Every Splash payment flows through a four-step process backed by Sui's hot-potato object model. Funds move atomically — no partial fills, no stuck capital, no manual reconciliation.
+            Every Splash payment flows through a four-step process backed by Sui&apos;s hot-potato object model. Funds move atomically — no partial fills, no stuck capital, no manual reconciliation.
           </p>
         </motion.div>
 
@@ -130,17 +132,17 @@ export default function HowItWorksSection() {
                 Move code · payment_intent.move
               </div>
               <div className="rounded-xl bg-black/30 p-4 font-mono text-xs leading-5 text-green-300">
-                <span className="text-[#6E8A95]">/// HOT POTATO — no store, no drop, no key</span><br />
+                <span className="text-[#6E8A95]">{'/// HOT POTATO — no store, no drop, no key'}</span><br />
                 <span className="text-[#5C9EAD]">public struct</span> <span className="text-white">PaymentIntent</span>
                 <span className="text-[#6E8A95]">{'<phantom T>'}</span> {'{'}<br />
                 {'    '}<span className="text-[#E39774]">coin</span>: <span className="text-[#5C9EAD]">Coin</span>
                 <span className="text-[#6E8A95]">{'<T>'}</span>,<br />
                 {'    '}<span className="text-[#E39774]">amount_usd</span>: <span className="text-[#5C9EAD]">u64</span>,<br />
                 {'    '}<span className="text-[#E39774]">corridor</span>: <span className="text-[#5C9EAD]">vector</span>
-                <span className="text-[#6E8A95]">{'<u8>'}</span>, <span className="text-[#6E8A95]">// "USD-PHP"</span><br />
+                <span className="text-[#6E8A95]">{'<u8>'}</span>, <span className="text-[#6E8A95]">{'// "USD-PHP"'}</span><br />
                 {'    '}<span className="text-[#E39774]">local_currency</span>: <span className="text-[#5C9EAD]">vector</span>
                 <span className="text-[#6E8A95]">{'<u8>'}</span>,<br />
-                {'}'} <span className="text-[#6E8A95]">// ← no `has store, drop, key` = physically cannot get stuck</span>
+                {'}'} <span className="text-[#6E8A95]">{'// ← no `has store, drop, key` = physically cannot get stuck'}</span>
               </div>
             </div>
 

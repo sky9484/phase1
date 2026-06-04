@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle2, Loader2, Flame, ArrowRight } from 'lucide-react';
+import AmbientBackground from '@/components/AmbientBackground';
 
 const rows = [
   { name: 'Acme Trading Corp', corridor: 'USD→PHP', amount: '12,400.00', local: '₱699,608', status: 'settled' },
@@ -12,8 +13,9 @@ const rows = [
 
 export default function BatchDashboardPreview() {
   return (
-    <section id="network" className="bg-white/40 py-16">
-      <div className="container mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
+    <section id="network" className="relative overflow-hidden bg-white/40 py-16">
+      <AmbientBackground variant="teal" sheen />
+      <div className="container relative mx-auto grid items-center gap-12 px-6 lg:grid-cols-2">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E39774]/25 bg-[#E39774]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#C97A56]">
             <Flame className="h-3.5 w-3.5" />
@@ -146,10 +148,10 @@ export default function BatchDashboardPreview() {
               <div className="font-mono text-[10px] text-white/40">tx_8f3c…a2e1</div>
             </div>
             <div className="mt-2 font-mono text-xs leading-5 text-green-300">
-              <span className="text-[#6E8A95]">// Step 1:</span> create PaymentIntent {'<'}USDsui{'>'}<br />
-              <span className="text-[#6E8A95]">// Step 2:</span> settle → consumes hot potato<br />
-              <span className="text-[#6E8A95]">// Step 3:</span> freeze PaymentReceipt on Sui<br />
-              <span className="text-[#6E8A95]">// Step 4:</span> anchor Merkle root on Walrus<br />
+              <span className="text-[#6E8A95]">{'// Step 1:'}</span> create PaymentIntent {'<'}USDsui{'>'}<br />
+              <span className="text-[#6E8A95]">{'// Step 2:'}</span> settle → consumes hot potato<br />
+              <span className="text-[#6E8A95]">{'// Step 3:'}</span> freeze PaymentReceipt on Sui<br />
+              <span className="text-[#6E8A95]">{'// Step 4:'}</span> anchor Merkle root on Walrus<br />
               <span className="text-green-400">✓</span>{' '}
               <span className="text-white/70">Entire batch: settle or revert</span>
             </div>

@@ -45,9 +45,18 @@ public struct PegUpdated has copy, drop {
 }
 
 /// Bootstrap: admin creates the shared PegState. Call once after publish.
+///
+/// H-05 fix: initialize deviations *above* MAX_DEVIATION_PPM so any
+/// `assert_pegged` call before the first real `update_peg` aborts with
+/// `E_PEG_BROKEN_USDC`. Previously this struct was initialized with
+/// deviation=0 + a fresh timestamp, which let settlements proceed against
+/// zero peg data for up to 60 seconds before the operator daemon had ever
+/// pushed a real Pyth reading. Now: the operator MUST push at least one
+/// real reading before settlements can fire.
 public fun init_peg_state(_admin: &AdminCap, clock: &Clock, ctx: &mut TxContext) {
     let state = PegState {
         id: object::new(ctx),
+        // One ppm above the max — fails `assert_pegged` until first real update.
         usdc_deviation_ppm: MAX_DEVIATION_PPM + 1,
         usdt_deviation_ppm: MAX_DEVIATION_PPM + 1,
         last_update_ms: clock::timestamp_ms(clock),
@@ -57,6 +66,10 @@ public fun init_peg_state(_admin: &AdminCap, clock: &Clock, ctx: &mut TxContext)
 }
 
 /// Operator pushes a fresh Hermes-derived peg reading. AdminCap-gated.
+///
+/// L-06 fix: assert the new timestamp is strictly newer than the stored
+/// one (allowing equality on the first update from genesis) to guard
+/// against clock regression bugs or replay-style races.
 public fun update_peg(
     state: &mut PegState,
     _admin: &AdminCap,
@@ -66,6 +79,8 @@ public fun update_peg(
     _ctx: &mut TxContext,
 ) {
     let now = clock::timestamp_ms(clock);
+    // First update from genesis (update_count == 0) is allowed to equal
+    // the init timestamp; subsequent updates must strictly advance.
     if (state.update_count > 0) {
         assert!(now > state.last_update_ms, E_TIMESTAMP_REGRESSION);
     };

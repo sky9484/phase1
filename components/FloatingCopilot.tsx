@@ -105,6 +105,14 @@ const QUICK_CHIPS = [
   'Compliance status',
 ];
 
+function formatChatTime(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FloatingCopilot() {
@@ -119,7 +127,7 @@ export default function FloatingCopilot() {
       id: 1,
       role: 'assistant',
       text: opening,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: formatChatTime(),
     },
   ]);
 
@@ -154,7 +162,7 @@ export default function FloatingCopilot() {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = formatChatTime();
     const userMsgId = ++msgIdRef.current;
 
     setMessages((prev) => [...prev, { id: userMsgId, role: 'user', text: trimmed, time: now }]);
@@ -166,7 +174,7 @@ export default function FloatingCopilot() {
       setThinking(false);
 
       const assistantMsgId = ++msgIdRef.current;
-      const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const replyTime = formatChatTime();
       setMessages((prev) => [
         ...prev,
         { id: assistantMsgId, role: 'assistant', text: '', time: replyTime },
@@ -191,7 +199,7 @@ export default function FloatingCopilot() {
           );
         }
       }, 18);
-    }, 900 + Math.random() * 700);
+    }, 1200);
   }
 
   return (

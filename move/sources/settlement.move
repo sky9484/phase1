@@ -14,6 +14,8 @@ const E_INSUFFICIENT_FUNDS: u64 = 101;
 const E_EMPTY_BATCH: u64 = 102;
 /// Caller passed fee_bps above MAX_FEE_BPS. Prevents fee gouging.
 const E_FEE_EXCEEDED: u64 = 103;
+const E_INVALID_RECIPIENT: u64 = 104;
+const E_INVALID_AMOUNT: u64 = 105;
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BPS_DENOMINATOR: u64 = 10_000;
@@ -54,6 +56,8 @@ public struct PaymentExecuted has copy, drop {
 }
 
 public fun new_payment(recipient: address, amount: u64): Payment {
+    assert!(recipient != @0x0, E_INVALID_RECIPIENT);
+    assert!(amount > 0, E_INVALID_AMOUNT);
     Payment { recipient, amount }
 }
 
@@ -68,6 +72,7 @@ public fun create_pool<T>(ctx: &mut TxContext) {
 }
 
 public fun deposit<T>(pool: &mut SettlementPool<T>, coin: Coin<T>) {
+    assert!(coin::value(&coin) > 0, E_INVALID_AMOUNT);
     balance::join(&mut pool.balance, coin::into_balance(coin));
 }
 
@@ -85,9 +90,11 @@ public fun settle_payment<T>(
 ) {
     assert!(business_account::is_verified(business_account), E_NOT_VERIFIED);
     assert!(fee_bps <= MAX_FEE_BPS, E_FEE_EXCEEDED);
+    assert!(recipient != @0x0, E_INVALID_RECIPIENT);
     peg_monitor::assert_pegged(peg_state, clock);
 
     let gross = coin::value(&payment);
+    assert!(gross > 0, E_INVALID_AMOUNT);
     let fee = gross * fee_bps / BPS_DENOMINATOR;
     let net = gross - fee;
 
@@ -132,6 +139,9 @@ public fun settle_batch<T>(
 
     while (!vector::is_empty(&payments)) {
         let payment = vector::pop_back(&mut payments);
+        assert!(payment.recipient != @0x0, E_INVALID_RECIPIENT);
+        assert!(payment.amount > 0, E_INVALID_AMOUNT);
+
         let fee = payment.amount * fee_bps / BPS_DENOMINATOR;
         let net = payment.amount - fee;
 

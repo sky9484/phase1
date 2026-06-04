@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState, type ReactNode } from 'react';
 import FloatingCopilot from '../../components/FloatingCopilot';
 import DashboardHeader, { type Theme } from '../../components/DashboardHeader';
+import { useDashTheme } from '@/components/dash-theme';
 import {
   Bot,
   FileText,
@@ -74,10 +75,34 @@ const TEAL_CSS = `
 [data-dash-theme="teal"] [class~="hover:text-[#E39774]"]:hover { color:#FC8F12!important }
 `;
 
+const AZURE_CSS = `
+[data-dash-theme="azure"] [class~="bg-[#EDE8E4]"]   { background-color:#E1E5F2!important }
+[data-dash-theme="azure"] [class~="bg-[#F6F0ED]"]   { background-color:#EEF0F8!important }
+[data-dash-theme="azure"] [class~="bg-[#1F4452]"]   { background-color:#022B3A!important }
+[data-dash-theme="azure"] [class~="bg-[#326273]"]   { background-color:#1F7A8C!important }
+[data-dash-theme="azure"] [class~="bg-[#5C9EAD]"]   { background-color:#2BACC5!important }
+[data-dash-theme="azure"] [class~="bg-[#E39774]"]   { background-color:#2384E4!important }
+[data-dash-theme="azure"] [class~="bg-[#C97A56]"]   { background-color:#13589C!important }
+[data-dash-theme="azure"] [class~="bg-[#264e5b]"]   { background-color:#011A23!important }
+[data-dash-theme="azure"] [class~="text-[#1F4452]"] { color:#022B3A!important }
+[data-dash-theme="azure"] [class~="text-[#326273]"] { color:#0C3139!important }
+[data-dash-theme="azure"] [class~="text-[#5C9EAD]"] { color:#1F7A8C!important }
+[data-dash-theme="azure"] [class~="text-[#E39774]"] { color:#13589C!important }
+[data-dash-theme="azure"] [class~="text-[#C97A56]"] { color:#13589C!important }
+[data-dash-theme="azure"] [class~="border-[#326273]"] { border-color:#1F7A8C!important }
+[data-dash-theme="azure"] [class~="border-[#5C9EAD]"] { border-color:#2BACC5!important }
+[data-dash-theme="azure"] [class~="border-[#E39774]"] { border-color:#2384E4!important }
+[data-dash-theme="azure"] [class~="hover:bg-[#264e5b]"]:hover   { background-color:#011A23!important }
+[data-dash-theme="azure"] [class~="hover:bg-[#1F4452]"]:hover   { background-color:#022B3A!important }
+[data-dash-theme="azure"] [class~="hover:bg-[#326273]"]:hover   { background-color:#1F7A8C!important }
+[data-dash-theme="azure"] [class~="hover:text-[#E39774]"]:hover { color:#13589C!important }
+`;
+
 const THEME_CSS: Record<Theme, string> = {
   default: '',
   navy:    NAVY_CSS,
   teal:    TEAL_CSS,
+  azure:   AZURE_CSS,
 };
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
@@ -116,19 +141,11 @@ const navGroups: NavGroup[] = [
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [theme,      setTheme]      = useState<Theme>('default');
+  const [theme,      handleThemeChange] = useDashTheme();
   const router   = useRouter();
   const pathname = usePathname();
 
-  /* 1. Restore persisted theme from localStorage */
-  useEffect(() => {
-    const saved = localStorage.getItem('dashboardTheme') as Theme | null;
-    if (saved && (['default', 'navy', 'teal'] as Theme[]).includes(saved)) {
-      setTheme(saved);
-    }
-  }, []);
-
-  /* 2. Inject / update theme <style> tag whenever theme changes.
+  /* 1. Inject / update theme <style> tag whenever theme changes.
         This bypasses any build-time CSS processing and guarantees the
         [class~="..."] rules are live in the document immediately. */
   useEffect(() => {
@@ -142,11 +159,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     el.textContent = THEME_CSS[theme];
   }, [theme]);
 
-  function handleThemeChange(next: Theme) {
-    setTheme(next);
-    localStorage.setItem('dashboardTheme', next);
-  }
-
   function logout() {
     router.replace('/login');
   }
@@ -158,7 +170,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
      * [data-dash-theme="navy"] / [data-dash-theme="teal"] descendants.
      */
     <div data-dash-theme={theme}>
-      <div className="flex min-h-screen bg-[#EDE8E4]">
+      <div className="flex min-h-screen splash-page-bg">
 
         {/* ── Desktop top header ───────────────────────────────── */}
         <DashboardHeader

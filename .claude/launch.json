@@ -6,7 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
-      "autoPort": true
+      "autoPort": true,
+      "env": {
+        "TEMP": "D:\\latest-splash\\.tmp",
+        "TMP": "D:\\latest-splash\\.tmp",
+        "TMPDIR": "D:\\latest-splash\\.tmp",
+        "NEXT_TELEMETRY_DISABLED": "1"
+      }
     }
   ]
 }

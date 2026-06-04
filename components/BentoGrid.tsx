@@ -1,151 +1,365 @@
 'use client';
 
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Lock, Brain, Flame, TrendingUp, Globe2, type LucideIcon } from 'lucide-react';
-import { SuiLogo, WalrusLogo, MemWalLogo, SumsubLogo, StripeLogo, AirwallexLogo } from '@/components/BrandLogos';
+import {
+  ArrowRight,
+  BadgeCheck,
+  Brain,
+  Database,
+  Landmark,
+  Layers3,
+  LockKeyhole,
+  Network,
+  ShieldCheck,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
+import {
+  AirwallexLogo,
+  MemWalLogo,
+  PythLogo,
+  StripeLogo,
+  SuiLogo,
+  SumsubLogo,
+  WalrusLogo,
+} from '@/components/BrandLogos';
+import AmbientBackground from '@/components/AmbientBackground';
 
-const features: { title: string; desc: string; icon: LucideIcon; tag?: string; highlight?: boolean }[] = [
+type StackLayer = {
+  id: string;
+  number: string;
+  title: string;
+  label: string;
+  summary: string;
+  proof: string;
+  icon: LucideIcon;
+  partners: string[];
+  stats: { label: string; value: string }[];
+};
+
+const stackLayers: StackLayer[] = [
   {
-    title: 'Hot-Potato Settlement',
-    desc: 'PaymentIntent has no store, drop, or key ability. It must be consumed in the same PTB or the transaction aborts. Funds physically cannot get stuck — a primitive only Sui can offer.',
-    icon: Flame,
-    tag: 'Sui-only',
-    highlight: true,
-  },
-  {
-    title: '400ms Finality',
-    desc: 'Sub-second on-chain finality on Sui Layer-1. No gas fees. No block congestion. Every settlement is final and verifiable on-chain.',
+    id: 'request',
+    number: '01',
+    title: 'Payment request',
+    label: 'Amount, corridor, recipient',
+    summary:
+      'Finance teams start with familiar payment inputs: who to pay, which corridor to use, how much to send, and what the recipient receives.',
+    proof: 'The user experience stays close to a banking dashboard. The settlement engine handles atomic execution behind the scenes.',
     icon: Zap,
+    partners: ['Sui'],
+    stats: [
+      { label: 'settlement', value: '400ms' },
+      { label: 'fee floor', value: '0.80%' },
+    ],
   },
   {
-    title: 'Walrus Audit Trail',
-    desc: 'Invoices are Seal-encrypted and stored on Walrus permanently. Daily Merkle roots are anchored on Sui as frozen AuditAnchor objects — tamper-evident for regulators.',
-    icon: Lock,
+    id: 'risk',
+    number: '02',
+    title: 'Risk checks',
+    label: 'KYB, limits, peg health',
+    summary:
+      'Before a payout moves, Splash checks business verification, corridor limits, treasury state, and stablecoin peg conditions.',
+    proof: 'This is the language Web2 buyers expect: approval, controls, limits, and exception handling.',
+    icon: ShieldCheck,
+    partners: ['Sumsub', 'Pyth'],
+    stats: [
+      { label: 'peg guard', value: '30bps' },
+      { label: 'freshness', value: '60s' },
+    ],
   },
   {
-    title: 'AI Treasury Copilot',
-    desc: 'MemWal stores your behavioral patterns across sessions. Claude API generates rate alerts, batch suggestions, and invoice-driven forecasts — AI proposes, you sign.',
+    id: 'treasury',
+    number: '03',
+    title: 'Treasury routing',
+    label: 'USD liquidity and stablecoin rails',
+    summary:
+      'Idle USD, payout liquidity, and stablecoin inventory are separated so operations can scale without mixing customer actions with treasury controls.',
+    proof: 'Treasury is presented as cash management, not token management.',
+    icon: Landmark,
+    partners: ['Sui', 'Airwallex'],
+    stats: [
+      { label: 'treasury APY', value: '4.8%' },
+      { label: 'USDT hold', value: '30m' },
+    ],
+  },
+  {
+    id: 'audit',
+    number: '04',
+    title: 'Audit record',
+    label: 'Receipts, invoices, retention',
+    summary:
+      'Every payment can connect to a receipt, invoice record, and tamper-evident storage trail for finance, compliance, and audit teams.',
+    proof: 'The value is simple: faster reconciliation and cleaner evidence when a buyer, auditor, or regulator asks for proof.',
+    icon: Database,
+    partners: ['Walrus', 'Sui'],
+    stats: [
+      { label: 'retention', value: '7 yrs' },
+      { label: 'anchors', value: 'daily' },
+    ],
+  },
+  {
+    id: 'operator',
+    number: '05',
+    title: 'Operator support',
+    label: 'AI suggestions, human approval',
+    summary:
+      'The copilot helps operators spot corridor timing, invoice context, and payment patterns, while final approval stays with the business user.',
+    proof: 'AI proposes. Operators approve. That is the right control model for institutional users.',
     icon: Brain,
+    partners: ['MemWal'],
+    stats: [
+      { label: 'AI mode', value: 'advise' },
+      { label: 'approval', value: 'human' },
+    ],
   },
   {
-    title: 'Smart Treasury 4.8% APY',
-    desc: 'Idle USD earns yield in USDsui via Sui DeFi. Your balance, accrued yield, and withdrawal history are tracked on-chain per user in SmartTreasury objects.',
-    icon: TrendingUp,
-  },
-  {
-    title: '8 Live Corridors',
-    desc: 'USD → PHP, MYR, IDR, VND, THB, SGD, EUR, GBP. One platform, one fee structure, one API. Every corridor is designed from Day 1 to scale to 200+ countries.',
-    icon: Globe2,
+    id: 'rails',
+    number: '06',
+    title: 'Funding and payout rails',
+    label: 'Card, bank, wallet, local payout',
+    summary:
+      'Funding and off-ramp partners connect the product to payment methods businesses already understand.',
+    proof: 'The product should feel like a modern finance desk, not a wallet tutorial.',
+    icon: Network,
+    partners: ['Stripe', 'Airwallex'],
+    stats: [
+      { label: 'phase 1', value: '8 corridors' },
+      { label: 'interface', value: 'Web2' },
+    ],
   },
 ];
 
-const metrics = [
-  { value: '400ms', label: 'settlement finality' },
-  { value: '0.80%', label: 'starting fee, all corridors' },
-  { value: '4.8%', label: 'APY on idle USD' },
+const stackPartners = [
+  { Logo: SuiLogo, name: 'Sui', role: 'settlement' },
+  { Logo: WalrusLogo, name: 'Walrus', role: 'audit storage' },
+  { Logo: MemWalLogo, name: 'MemWal', role: 'operator memory' },
+  { Logo: PythLogo, name: 'Pyth', role: 'peg data' },
+  { Logo: StripeLogo, name: 'Stripe', role: 'USD funding' },
+  { Logo: AirwallexLogo, name: 'Airwallex', role: 'payment rails' },
+  { Logo: SumsubLogo, name: 'Sumsub', role: 'KYB review' },
+];
+
+const operatingSteps = [
+  'Create payment',
+  'Check business risk',
+  'Route treasury',
+  'Approve payout',
+  'Archive proof',
 ];
 
 export default function BentoGrid() {
+  const [activeId, setActiveId] = useState(stackLayers[0].id);
+  const activeLayer = useMemo(
+    () => stackLayers.find((layer) => layer.id === activeId) ?? stackLayers[0],
+    [activeId]
+  );
+  const ActiveIcon = activeLayer.icon;
+
   return (
-    <section id="features" className="relative overflow-hidden bg-white/45 py-16">
+    <section id="features" className="relative overflow-hidden bg-white/45 py-16 text-[#326273]">
+      <AmbientBackground variant="gold" grid />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
-      <div className="container mx-auto px-6">
-        <div className="grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="container relative mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.55 }}
+          className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]"
+        >
+          <div className="max-w-xl lg:sticky lg:top-28">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#5C9EAD]">
+              <Layers3 className="h-3.5 w-3.5" />
+              Phase 1 stack
+            </div>
+            <h2 className="max-w-lg text-4xl font-extrabold text-[#1F4452] md:text-5xl">
+              The payment desk Web2 businesses can understand.
+            </h2>
+            <p className="mt-5 max-w-lg text-base leading-7 text-[#326273]/75">
+              Phase 1 should not read like a protocol diagram. It should show a clean operating path: request, risk checks, treasury routing, approval, and audit proof.
+            </p>
+
+            <div className="mt-8 grid max-w-lg gap-3 sm:grid-cols-3">
+              {[
+                { value: '8', label: 'corridors' },
+                { value: '0.80%', label: 'fee floor' },
+                { value: '7 yrs', label: 'audit retention' },
+              ].map((metric) => (
+                <div key={metric.label} className="rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/80 p-4 shadow-sm">
+                  <div className="font-mono text-2xl font-semibold text-[#C97A56]">{metric.value}</div>
+                  <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#326273]/55">{metric.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/login"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#5C9EAD] px-4 text-sm font-semibold text-white shadow-lg shadow-[#5C9EAD]/25 transition hover:-translate-y-0.5 hover:bg-[#326273]"
+              >
+                Open payment desk
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a
+                href="#roadmap"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#326273]/15 bg-white/70 px-4 text-sm font-semibold text-[#1F4452] transition hover:border-[#5C9EAD]/30 hover:bg-white"
+              >
+                View rollout
+                <BadgeCheck className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#326273]/10 bg-white/80 shadow-2xl shadow-[#326273]/10 backdrop-blur">
+            <div className="flex items-center justify-between border-b border-[#326273]/10 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5C9EAD]/12 text-[#5C9EAD]">
+                  <ActiveIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#326273]/45">Selected layer</div>
+                  <div className="text-sm font-bold text-[#1F4452]">{activeLayer.title}</div>
+                </div>
+              </div>
+              <div className="rounded-full border border-[#E39774]/30 bg-[#E39774]/12 px-3 py-1 font-mono text-xs font-bold text-[#C97A56]">
+                {activeLayer.number}
+              </div>
+            </div>
+
+            <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="border-b border-[#326273]/10 p-3 lg:border-b-0 lg:border-r">
+                <div className="grid gap-2">
+                  {stackLayers.map((layer) => {
+                    const Icon = layer.icon;
+                    const isActive = layer.id === activeId;
+                    return (
+                      <button
+                        key={layer.id}
+                        type="button"
+                        onClick={() => setActiveId(layer.id)}
+                        className={`group grid min-h-[82px] grid-cols-[42px_1fr] items-start gap-3 rounded-2xl border p-3 text-left transition ${
+                          isActive
+                            ? 'border-[#E39774]/35 bg-[#E39774]/10 text-[#1F4452] shadow-lg shadow-[#E39774]/10'
+                            : 'border-[#326273]/10 bg-[#F6F0ED]/65 text-[#326273] hover:border-[#5C9EAD]/30 hover:bg-white'
+                        }`}
+                      >
+                        <span className={`flex h-9 w-9 items-center justify-center rounded-xl font-mono text-[11px] font-bold ${
+                          isActive ? 'bg-[#E39774] text-white' : 'bg-[#326273] text-[#F6F0ED]'
+                        }`}>
+                          {layer.number}
+                        </span>
+                        <span>
+                          <span className="flex items-center gap-2 text-sm font-bold">
+                            <Icon className={isActive ? 'h-4 w-4 text-[#C97A56]' : 'h-4 w-4 text-[#5C9EAD]'} />
+                            {layer.title}
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-[#326273]/65">{layer.label}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-5">
+                <div className="min-h-[318px] rounded-3xl border border-[#326273]/10 bg-[#F6F0ED]/70 p-5">
+                  <div className="mb-5 flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#C97A56]">
+                        {activeLayer.label}
+                      </div>
+                      <h3 className="mt-2 text-2xl font-extrabold text-[#1F4452]">{activeLayer.title}</h3>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5C9EAD]/12 text-[#5C9EAD]">
+                      <ActiveIcon className="h-6 w-6" />
+                    </div>
+                  </div>
+
+                  <p className="text-sm leading-6 text-[#326273]/75">{activeLayer.summary}</p>
+                  <div className="mt-5 rounded-2xl border border-[#5C9EAD]/18 bg-white/65 p-4 text-sm leading-6 text-[#1F4452]">
+                    {activeLayer.proof}
+                  </div>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {activeLayer.stats.map((stat) => (
+                      <div key={stat.label} className="rounded-2xl border border-[#326273]/10 bg-white/70 p-3">
+                        <div className="font-mono text-xl font-semibold text-[#C97A56]">{stat.value}</div>
+                        <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#326273]/55">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
+                    {activeLayer.partners.map((partner) => (
+                      <span key={partner} className="rounded-full border border-[#326273]/10 bg-white/70 px-2.5 py-1 text-xs font-semibold text-[#326273]/70">
+                        {partner}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="lg:sticky lg:top-28"
+            transition={{ duration: 0.55 }}
+            className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15"
           >
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#4A8895]">
-              <Zap className="h-3.5 w-3.5" />
-              Phase 1 · Infrastructure
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#E39774]">Operating flow</div>
+                <h3 className="mt-1 text-xl font-bold text-white">One governed path from request to proof</h3>
+              </div>
+              <LockKeyhole className="h-5 w-5 text-[#E39774]" />
             </div>
-            <h2 className="max-w-lg text-4xl font-extrabold tracking-[-0.03em] text-[#1F4452] md:text-5xl">
-              Six primitives no competitor has together.
-            </h2>
-            <p className="mt-5 max-w-lg text-base leading-7 text-[#326273]/75">
-              Hot-potato atomicity. Walrus audit anchoring. MemWal AI memory. Smart treasury yield. Global corridors. All in one USD-first platform on Sui.
-            </p>
-            <div className="mt-8 grid max-w-lg gap-3 sm:grid-cols-3">
-              {metrics.map((metric) => (
-                <div key={metric.label} className="rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/80 p-4 shadow-sm">
-                  <div className="font-mono text-2xl font-semibold text-[#C97A56]">{metric.value}</div>
-                  <div className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-[#6E8A95]">{metric.label}</div>
+            <div className="grid gap-3 md:grid-cols-5">
+              {operatingSteps.map((step, index) => (
+                <div key={step} className="relative rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="font-mono text-[11px] text-[#E39774]">0{index + 1}</div>
+                  <div className="mt-3 min-h-[44px] text-sm font-semibold leading-5 text-white/80">{step}</div>
+                  {index < operatingSteps.length - 1 && (
+                    <div className="absolute -right-3 top-1/2 hidden h-px w-6 bg-[#E39774]/35 md:block" />
+                  )}
                 </div>
               ))}
             </div>
           </motion.div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {features.map(({ title, desc, icon: Icon, tag, highlight }, index) => (
-              <motion.div
-                key={title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.07, duration: 0.5 }}
-                className={`group relative rounded-3xl border p-6 shadow-lg shadow-[#326273]/5 backdrop-blur transition-all hover:-translate-y-1 hover:shadow-xl ${
-                  highlight
-                    ? 'border-[#E39774]/40 bg-gradient-to-b from-[#E39774]/8 to-white/90 ring-1 ring-[#E39774]/20'
-                    : 'border-[#326273]/10 bg-white/75 hover:border-[#5C9EAD]/30'
-                }`}
-              >
-                {tag && (
-                  <span className="absolute right-4 top-4 rounded-full bg-[#E39774]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#C97A56]">
-                    {tag}
-                  </span>
-                )}
-                <div
-                  className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg transition-colors ${
-                    highlight
-                      ? 'bg-[#E39774] text-white group-hover:bg-[#C97A56]'
-                      : 'bg-[#326273] text-[#F6F0ED] group-hover:bg-[#5C9EAD]'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-bold text-[#1F4452]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#326273]/70">{desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-12 rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-7 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15"
-        >
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#E39774]">
-                <Zap className="h-3.5 w-3.5" />
-                Technology stack
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1, duration: 0.55 }}
+            className="rounded-3xl border border-[#326273]/10 bg-white/80 p-6 shadow-xl shadow-[#326273]/10"
+          >
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#326273]/50">Integrated with</div>
+                <h3 className="mt-1 text-xl font-extrabold text-[#1F4452]">Phase 1 partners</h3>
               </div>
-              <p className="mt-4 max-w-lg text-lg leading-8 text-white/80">
-                Powered by Sui, Walrus, MemWal, Pyth, Stripe, Airwallex, and Sumsub — built as an infrastructure layer, not a consumer app.
-              </p>
+              <Network className="h-5 w-5 text-[#5C9EAD]" />
             </div>
-            <div className="grid grid-cols-3 gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                { Logo: SuiLogo, name: 'Sui' },
-                { Logo: WalrusLogo, name: 'Walrus' },
-                { Logo: MemWalLogo, name: 'MemWal' },
-                { Logo: SumsubLogo, name: 'Sumsub' },
-                { Logo: StripeLogo, name: 'Stripe' },
-                { Logo: AirwallexLogo, name: 'Airwallex' },
-              ].map(({ Logo, name }) => (
-                <div key={name} className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition-all hover:bg-white/10">
-                  <Logo size={28} />
-                  <span className="text-xs font-semibold text-white/80">{name}</span>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {stackPartners.map(({ Logo, name, role }) => (
+                <div key={name} className="rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/65 p-3 transition hover:border-[#5C9EAD]/30 hover:bg-white">
+                  <div className="flex items-center gap-2">
+                    <Logo size={22} className="shrink-0" />
+                    <span className="text-sm font-bold text-[#1F4452]">{name}</span>
+                  </div>
+                  <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#326273]/55">{role}</div>
                 </div>
               ))}
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

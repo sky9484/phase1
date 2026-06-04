@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import ThemeInitScript from "@/components/ThemeInitScript";
+import FloatingThemeToggle from "@/components/FloatingThemeToggle";
 import { Providers } from "./providers";
 
 const fontSans = Geist({
@@ -31,9 +33,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${fontSans.variable} ${fontMono.variable} h-full font-sans antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full bg-[#F6F0ED] text-[#326273]">
+      <body suppressHydrationWarning className="min-h-full splash-page-bg text-[#326273]">
+        <ThemeInitScript />
         <ThemeProvider>
           <Providers>{children}</Providers>
+          <FloatingThemeToggle />
         </ThemeProvider>
       </body>
     </html>

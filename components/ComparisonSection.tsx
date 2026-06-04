@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Banknote, Check, X } from 'lucide-react';
 import { WiseLogo } from '@/components/BrandLogos';
+import AmbientBackground from '@/components/AmbientBackground';
 
 type FeatureRow = {
   label: string;
@@ -39,8 +40,9 @@ function CellValue({ value }: { value: string | boolean }) {
 
 export default function ComparisonSection() {
   return (
-    <section id="comparison" className="bg-[#F6F0ED] py-16">
-      <div className="container mx-auto px-6">
+    <section id="comparison" className="relative overflow-hidden splash-page-bg py-16">
+      <AmbientBackground variant="mint" />
+      <div className="container relative mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}

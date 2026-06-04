@@ -19,7 +19,7 @@ export default function SectionDivider({ variant = 'wave', label }: SectionDivid
           height="20"
           viewBox="0 0 120 20"
           fill="none"
-          className="relative bg-[#F6F0ED] px-4"
+          className="relative bg-[var(--splash-page-bg)] px-4"
         >
           <motion.path
             d="M2 10 Q 15 2, 30 10 T 60 10 T 90 10 T 118 10"
@@ -46,7 +46,7 @@ export default function SectionDivider({ variant = 'wave', label }: SectionDivid
     return (
       <div aria-hidden="true" className="relative flex items-center justify-center py-4">
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-linear-to-r from-transparent via-[#326273]/12 to-transparent" />
-        <div className="relative flex items-center gap-2 bg-[#F6F0ED] px-5">
+        <div className="relative flex items-center gap-2 bg-[var(--splash-page-bg)] px-5">
           {[0, 1, 2].map((i) => (
             <motion.span
               key={i}
@@ -65,7 +65,7 @@ export default function SectionDivider({ variant = 'wave', label }: SectionDivid
     return (
       <div aria-hidden="true" className="relative flex items-center justify-center py-5">
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-linear-to-r from-transparent via-[#326273]/15 to-transparent" />
-        <div className="relative flex items-center gap-3 bg-[#F6F0ED] px-5">
+        <div className="relative flex items-center gap-3 bg-[var(--splash-page-bg)] px-5">
           <span className="h-px w-8 bg-[#326273]/20" />
           <motion.span
             className="relative flex h-2.5 w-2.5"
@@ -97,7 +97,7 @@ export default function SectionDivider({ variant = 'wave', label }: SectionDivid
     <div aria-hidden="true" className="relative flex items-center justify-center py-5">
       <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-linear-to-r from-transparent via-[#326273]/15 to-transparent" />
       <motion.div
-        className="relative flex items-center gap-2 bg-[#F6F0ED] px-5"
+        className="relative flex items-center gap-2 bg-[var(--splash-page-bg)] px-5"
         initial={{ opacity: 0, y: 6 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}

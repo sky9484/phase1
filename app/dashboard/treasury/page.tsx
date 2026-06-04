@@ -215,7 +215,7 @@ export default function TreasuryPage() {
           { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-emerald-100', ac: 'text-emerald-600', subTone: 'positive' as const },
           { label: 'Days Active',      val: '31',                            sub: 'Since 27 Apr 2026',       icon: Clock,     bg: 'bg-[#326273]/10', ac: 'text-[#326273]', subTone: 'muted' as const },
         ].map(({ label, val, sub, icon: Icon, bg, ac, subTone }) => (
-          <div key={label} className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div key={label} className="dash-card dash-card-interactive p-4">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
               <div className={cn('rounded-lg p-1.5', bg)}><Icon size={14} className={ac} /></div>
@@ -233,7 +233,7 @@ export default function TreasuryPage() {
         <div className="space-y-5">
 
           {/* Yield chart — interactive */}
-          <div className="rounded-xl border border-white/70 bg-white p-5 shadow-sm">
+          <div className="dash-card-raised p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -377,7 +377,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Transaction history */}
-          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+          <div className="dash-card overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
               <h2 className="text-sm font-bold text-[#1F4452]">Treasury Activity</h2>
               <button
@@ -422,7 +422,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* How Smart Treasury Works */}
-          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+          <div className="dash-card overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-5 py-3">
               <div className="flex items-center gap-2">
                 <Sprout size={14} className="text-emerald-600" />
@@ -493,7 +493,7 @@ export default function TreasuryPage() {
         <aside className="space-y-4">
 
           {/* Deposit / Withdraw form */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <div className="flex rounded-lg bg-[#F6F0ED] p-1">
               {(['deposit', 'withdraw'] as const).map((t) => (
                 <button
@@ -575,7 +575,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Auto-compound toggle */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold text-[#1F4452]">Auto-compound</div>
@@ -612,7 +612,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Risk & compliance */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-card p-4">
             <div className="flex items-center gap-2">
               <ShieldCheck size={15} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">Risk & Compliance</h2>
