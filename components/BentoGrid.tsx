@@ -305,61 +305,56 @@ export default function BentoGrid() {
           </div>
         </motion.div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl shadow-[#326273]/15"
-          >
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <div className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#E39774]">Operating flow</div>
-                <h3 className="mt-1 text-xl font-bold text-white">One governed path from request to proof</h3>
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.55 }}
+          className="mt-10 rounded-3xl border border-[#326273]/10 bg-white/85 p-6 shadow-xl shadow-[#326273]/10 backdrop-blur sm:p-8"
+        >
+          {/* Operating flow — top, centered */}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#C97A56]">
+              <LockKeyhole className="h-3.5 w-3.5" />
+              Operating flow
+            </div>
+            <h3 className="mt-1 text-xl font-extrabold text-[#1F4452] md:text-2xl">One governed path from request to proof</h3>
+          </div>
+          <div className="mx-auto mt-6 grid max-w-3xl gap-3 md:grid-cols-5">
+            {operatingSteps.map((step, index) => (
+              <div key={step} className="relative rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/70 p-3 transition hover:border-[#5C9EAD]/30 hover:bg-white">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#5C9EAD]/12 font-mono text-[11px] font-bold text-[#5C9EAD]">0{index + 1}</div>
+                <div className="mt-3 min-h-[44px] text-sm font-semibold leading-5 text-[#1F4452]">{step}</div>
+                {index < operatingSteps.length - 1 && (
+                  <div className="absolute -right-3 top-1/2 hidden h-px w-6 bg-[#5C9EAD]/35 md:block" />
+                )}
               </div>
-              <LockKeyhole className="h-5 w-5 text-[#E39774]" />
-            </div>
-            <div className="grid gap-3 md:grid-cols-5">
-              {operatingSteps.map((step, index) => (
-                <div key={step} className="relative rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <div className="font-mono text-[11px] text-[#E39774]">0{index + 1}</div>
-                  <div className="mt-3 min-h-[44px] text-sm font-semibold leading-5 text-white/80">{step}</div>
-                  {index < operatingSteps.length - 1 && (
-                    <div className="absolute -right-3 top-1/2 hidden h-px w-6 bg-[#E39774]/35 md:block" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
+            ))}
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1, duration: 0.55 }}
-            className="rounded-3xl border border-[#326273]/10 bg-white/80 p-6 shadow-xl shadow-[#326273]/10"
-          >
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <div className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#326273]/50">Integrated with</div>
-                <h3 className="mt-1 text-xl font-extrabold text-[#1F4452]">Phase 1 partners</h3>
-              </div>
-              <Network className="h-5 w-5 text-[#5C9EAD]" />
+          {/* Divider */}
+          <div className="my-8 h-px bg-gradient-to-r from-transparent via-[#326273]/15 to-transparent" />
+
+          {/* Integrated with — bottom, centered */}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#326273]/50">
+              <Network className="h-3.5 w-3.5 text-[#5C9EAD]" />
+              Integrated with
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {stackPartners.map(({ Logo, name, role }) => (
-                <div key={name} className="rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/65 p-3 transition hover:border-[#5C9EAD]/30 hover:bg-white">
-                  <div className="flex items-center gap-2">
-                    <Logo size={22} className="shrink-0" />
-                    <span className="text-sm font-bold text-[#1F4452]">{name}</span>
-                  </div>
-                  <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#326273]/55">{role}</div>
+            <h3 className="mt-1 text-xl font-extrabold text-[#1F4452] md:text-2xl">Phase 1 partners</h3>
+          </div>
+          <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
+            {stackPartners.map(({ Logo, name, role }) => (
+              <div key={name} className="rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]/65 p-3 transition hover:border-[#5C9EAD]/30 hover:bg-white">
+                <div className="flex items-center gap-2">
+                  <Logo size={22} className="shrink-0" />
+                  <span className="text-sm font-bold text-[#1F4452]">{name}</span>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+                <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#326273]/55">{role}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );

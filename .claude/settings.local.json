@@ -56,7 +56,18 @@
       "Bash(git -C \"D:/latest-splash\" log --oneline -3)",
       "PowerShell(Write-Output \"TEMP=$env:TEMP\"; Write-Output \"TMP=$env:TMP\"; git -C D:\\\\latest-splash status --short 2>&1 | Select-Object -First 5)",
       "PowerShell(New-Item -ItemType Directory -Force \"D:\\\\latest-splash\\\\.tmp\" | Out-Null; $env:TEMP=\"D:\\\\latest-splash\\\\.tmp\"; $env:TMP=\"D:\\\\latest-splash\\\\.tmp\"; Write-Output \"tmp ready\"; Test-Path \"D:\\\\latest-splash\\\\node_modules\\\\.bin\\\\next.cmd\")",
-      "PowerShell(git -C D:\\\\latest-splash diff --stat -- app/dashboard/layout.tsx components/Footer.tsx components/LandingCTA.tsx components/FloatingCopilot.tsx components/BrandLogos.tsx app/globals.css app/layout.tsx 2>&1)"
+      "PowerShell(git -C D:\\\\latest-splash diff --stat -- app/dashboard/layout.tsx components/Footer.tsx components/LandingCTA.tsx components/FloatingCopilot.tsx components/BrandLogos.tsx app/globals.css app/layout.tsx 2>&1)",
+      "Bash(curl -s -o /dev/null -w \"port3000 HTTP %{http_code}\\\\n\" http://localhost:3000 --max-time 4)",
+      "Bash(taskkill /PID 9832 /F)",
+      "PowerShell(try { Stop-Process -Id 9832 -Force -ErrorAction Stop; \"killed 9832\" } catch { \"9832 not running: $\\($_.Exception.Message\\)\" }; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1 OwningProcess)",
+      "Bash(git checkout *)",
+      "Bash(echo \"=== Downloads \\(logo-ish\\) ===\" && ls -lat \"/c/Users/danie/Downloads\" 2>/dev/null | grep -iE \"pyth|airwallex|sumsub|\\\\.svg|\\\\.png\" | head -30; echo \"=== Desktop \\(logo-ish\\) ===\" && ls -lat \"/c/Users/danie/OneDrive/Desktop\" 2>/dev/null | grep -iE \"pyth|airwallex|sumsub|logo|\\\\.svg|\\\\.png\" | head -30)",
+      "Bash(python -c \"import pypdf\")",
+      "Bash(python -c \"import fitz\")",
+      "Bash(python -c \"import PyPDF2\")",
+      "Bash(pip list *)",
+      "PowerShell($env:TEMP=\"D:\\\\latest-splash\\\\.tmp\"; $env:TMP=\"D:\\\\latest-splash\\\\.tmp\"; python -m pip install --quiet --disable-pip-version-check pypdf 2>&1 | Select-Object -Last 3; python -c \"import pypdf; print\\('pypdf', pypdf.__version__\\)\")",
+      "PowerShell($env:TEMP=\"D:\\\\latest-splash\\\\.tmp\"; $env:TMP=\"D:\\\\latest-splash\\\\.tmp\"; Set-Location D:\\\\latest-splash; & \".\\\\node_modules\\\\.bin\\\\tsc.cmd\" --noEmit 2>&1 | Select-Object -First 30; \"EXIT: $LASTEXITCODE\")"
     ]
   }
 }

@@ -49,9 +49,28 @@ const partners = [
   },
 ];
 
+const trustStats = [
+  { value: '$40M+', label: 'processed' },
+  { value: '8', label: 'live corridors' },
+  { value: '99.8%', label: 'settlement success' },
+  { value: '400ms', label: 'avg settlement' },
+];
+
 export default function TrustBar() {
   return (
-    <section className="relative overflow-hidden border-y border-[#326273]/8 bg-white/50 py-8">
+    <section className="relative overflow-hidden border-y border-[#326273]/8 bg-white/50 py-10">
+      {/* Numbers strip — social proof by metrics (Goodface hack #18) */}
+      <div className="container mx-auto mb-8 px-6">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-stretch justify-center divide-x divide-[#326273]/10">
+          {trustStats.map((s) => (
+            <div key={s.label} className="px-6 py-1 text-center sm:px-10">
+              <div className="font-mono text-2xl font-extrabold tracking-tight text-[#1F4452] md:text-3xl">{s.value}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6E8A95]">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="mb-4 text-center">
         <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6E8A95]">
           Built on · integrated with

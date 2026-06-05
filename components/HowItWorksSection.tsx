@@ -123,15 +123,19 @@ export default function HowItWorksSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-10 overflow-hidden rounded-2xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED]"
+          className="mt-10 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#173742] to-[#0e2731] p-6 text-[#F6F0ED] shadow-2xl shadow-[#0e2731]/40 ring-1 ring-white/5"
         >
           <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr_0.95fr]">
-            {/* Code block */}
-            <div>
-              <div className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#E39774]">
-                Move code · payment_intent.move
+            {/* Code block — editor window */}
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0b2027] shadow-lg">
+              <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.04] px-3.5 py-2.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                <span className="ml-2 font-mono text-[11px] text-white/55">payment_intent.move</span>
+                <span className="ml-auto rounded-full bg-[#E39774]/15 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#E39774]">Move</span>
               </div>
-              <div className="rounded-xl bg-black/30 p-4 font-mono text-xs leading-5 text-green-300">
+              <div className="p-4 font-mono text-xs leading-5 text-green-300">
                 <span className="text-[#6E8A95]">{'/// HOT POTATO — no store, no drop, no key'}</span><br />
                 <span className="text-[#5C9EAD]">public struct</span> <span className="text-white">PaymentIntent</span>
                 <span className="text-[#6E8A95]">{'<phantom T>'}</span> {'{'}<br />

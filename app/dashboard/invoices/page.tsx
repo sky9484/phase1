@@ -648,7 +648,7 @@ export default function InvoicesPage() {
           </div>
 
           {/* Retention */}
-          <div className="rounded-xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-4">
+          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2">
               <Clock size={14} className="text-[#5C9EAD]" />
               <span className="text-sm font-bold text-[#1F4452]">7-Year Retention</span>

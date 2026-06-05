@@ -121,8 +121,8 @@ export default function ComparisonSection() {
         </motion.div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-6">
-            <h3 className="mb-3 text-lg font-bold text-[#326273]">Why 0.80% starting?</h3>
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-5 shadow-sm">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wider text-[#6E8A95]">Why 0.80% starting?</div>
             <div className="space-y-2 text-sm text-[#326273]/70">
               <p><strong className="text-[#326273]">Volume pricing:</strong> Larger batches share infrastructure costs — better rates at scale.</p>
               <p><strong className="text-[#326273]">Yield offset:</strong> Your idle USD earns 4.8% APY, effectively reducing your net cost of payment.</p>
@@ -142,7 +142,7 @@ export default function ComparisonSection() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#E39774]/20 bg-[#E39774]/5 p-5">
+          <div className="rounded-xl border border-[#326273]/10 bg-white p-5 shadow-sm">
             <div className="mb-3 text-xs font-bold uppercase tracking-wider text-[#6E8A95]">Sui differentiator</div>
             <div className="space-y-2 text-sm text-[#326273]/70">
               <p><strong className="text-[#326273]">Hot-potato:</strong> PaymentIntent with no store/drop/key — funds cannot get stuck. Only Sui.</p>

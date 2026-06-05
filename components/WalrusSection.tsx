@@ -94,29 +94,34 @@ export default function WalrusSection() {
             transition={{ duration: 0.6 }}
             className="space-y-4"
           >
-            <div className="rounded-3xl border border-[#326273]/10 bg-[#1F4452] p-6 text-[#F6F0ED] shadow-2xl">
-              <div className="mb-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#E39774]">
-                Walrus audit flow
+            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#173742] to-[#0e2731] p-6 text-[#F6F0ED] shadow-2xl shadow-[#0e2731]/30 ring-1 ring-white/5">
+              <div className="mb-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#5C9EAD]">
+                Walrus audit flow · daily batch
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5 text-xs">
                 {[
                   { step: '1', label: 'Collect events', detail: 'All audit logs for the day' },
                   { step: '2', label: 'Build Merkle tree', detail: 'Hash each event + compute root' },
                   { step: '3', label: 'Seal-encrypt batch', detail: 'OPS_KEY + AUDITOR_KEY' },
                   { step: '4', label: 'Store on Walrus', detail: '7-year retention · immutable' },
                   { step: '5', label: 'Anchor on Sui', detail: 'AuditAnchor object · frozen' },
-                ].map(({ step, label, detail }) => (
-                  <div key={step} className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 font-mono text-xs font-bold text-[#E39774]">
-                      {step}
+                ].map(({ step, label, detail }, idx, arr) => (
+                  <div key={step} className="relative flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5C9EAD]/20 font-mono text-[10px] font-bold text-[#5C9EAD]">
+                        {step}
+                      </span>
+                      {idx < arr.length - 1 && <span className="mt-1 h-4 w-px bg-[#5C9EAD]/25" />}
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-white">{label}</div>
-                      <div className="text-xs text-white/50">{detail}</div>
+                    <div className="flex flex-1 items-center justify-between gap-2 pb-1">
+                      <div>
+                        <div className="font-semibold text-white">{label}</div>
+                        <div className="text-[10px] text-white/55">{detail}</div>
+                      </div>
+                      {step === '4' && <WalrusLogo size={18} />}
+                      {step === '5' && <SuiLogo size={18} />}
                     </div>
-                    {step === '4' && <WalrusLogo size={20} />}
-                    {step === '5' && <SuiLogo size={20} />}
                   </div>
                 ))}
               </div>
@@ -169,13 +174,13 @@ export default function WalrusSection() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-[#0284C7]/20 bg-[#0284C7]/5 p-4 text-center">
+              <div className="rounded-2xl border border-[#326273]/10 bg-white p-4 text-center shadow-sm">
                 <div className="font-mono text-2xl font-bold text-[#0284C7]">7 yrs</div>
-                <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-[#6E8A95]">min retention</div>
+                <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[#326273]/65">min retention</div>
               </div>
-              <div className="rounded-2xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/5 p-4 text-center">
+              <div className="rounded-2xl border border-[#326273]/10 bg-white p-4 text-center shadow-sm">
                 <div className="font-mono text-2xl font-bold text-[#5C9EAD]">100%</div>
-                <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-[#6E8A95]">on-chain verifiable</div>
+                <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[#326273]/65">on-chain verifiable</div>
               </div>
             </div>
           </motion.div>

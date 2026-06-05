@@ -77,12 +77,17 @@ export default function RoadmapSection() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.5 }}
               className={`relative flex min-h-[430px] flex-col rounded-lg border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
-                highlight ? 'border-[#5C9EAD]/50 bg-[#1F4452] text-white shadow-[#5C9EAD]/10' : 'border-[#326273]/12 bg-white text-[#326273]'
+                highlight ? 'border-[#E39774]/45 bg-gradient-to-b from-[#E39774]/12 to-white text-[#326273] shadow-xl shadow-[#E39774]/10 ring-1 ring-[#E39774]/20' : 'border-[#326273]/12 bg-white text-[#326273]'
               }`}
             >
+              {highlight && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#E39774] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-[#E39774]/30">
+                  Sui Overflow build
+                </div>
+              )}
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-md border ${highlight ? 'border-[#5C9EAD]/30 bg-[#5C9EAD]/12' : 'border-[#326273]/10 bg-[#F6F0ED]'}`}
+                  className={`flex h-11 w-11 items-center justify-center rounded-md border ${highlight ? 'border-[#E39774]/30 bg-[#E39774]/12' : 'border-[#326273]/10 bg-[#F6F0ED]'}`}
                   style={{ color }}
                 >
                   <Icon className="h-5 w-5" />
@@ -92,7 +97,7 @@ export default function RoadmapSection() {
                     status === 'live'
                       ? 'bg-green-50 text-green-700'
                       : status === 'current'
-                      ? 'bg-[#5C9EAD]/14 text-[#A9D4DC]'
+                      ? 'bg-[#E39774]/15 text-[#C97A56]'
                       : 'border border-[#326273]/12 bg-[#F6F0ED] text-[#6E8A95]'
                   }`}
                 >
@@ -103,21 +108,21 @@ export default function RoadmapSection() {
               <div className="font-mono text-xs font-bold uppercase tracking-[0.16em]" style={{ color }}>
                 {phase}
               </div>
-              <h3 className={`mt-2 text-2xl font-black ${highlight ? 'text-white' : 'text-[#1F4452]'}`}>{title}</h3>
-              <p className={`mt-2 text-sm leading-6 ${highlight ? 'text-white/60' : 'text-[#326273]/70'}`}>{subtitle}</p>
+              <h3 className="mt-2 text-2xl font-black text-[#1F4452]">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#326273]/70">{subtitle}</p>
 
               <div className="my-6 h-px w-full bg-current opacity-10" />
 
               <ul className="space-y-2.5">
                 {proof.map((item) => (
-                  <li key={item} className={`flex items-start gap-2.5 text-sm ${highlight ? 'text-white/80' : 'text-[#326273]/80'}`}>
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-[#326273]/80">
                     <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" style={{ color }} />
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className={`mt-auto rounded-md border p-4 text-sm leading-6 ${highlight ? 'border-[#5C9EAD]/25 bg-[#5C9EAD]/10 text-[#DCEFF2]' : 'border-[#326273]/10 bg-[#F6F0ED] text-[#326273]/80'}`}>
+              <div className={`mt-auto rounded-md border p-4 text-sm leading-6 ${highlight ? 'border-[#E39774]/25 bg-[#E39774]/8 text-[#326273]/80' : 'border-[#326273]/10 bg-[#F6F0ED] text-[#326273]/80'}`}>
                 {outcome}
               </div>
             </motion.div>
@@ -129,7 +134,7 @@ export default function RoadmapSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3, duration: 0.55 }}
-          className="mt-8 grid gap-5 rounded-lg border border-[#1F4452]/10 bg-[#1F4452] p-6 text-white md:grid-cols-[1fr_auto]"
+          className="mt-8 grid gap-5 rounded-lg border border-white/10 bg-gradient-to-br from-[#173742] to-[#0e2731] p-6 text-white shadow-2xl shadow-[#0e2731]/30 ring-1 ring-white/5 md:grid-cols-[1fr_auto]"
         >
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#A9D4DC]">

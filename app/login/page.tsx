@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import LoginSeaBackground from "@/components/login/LoginSeaBackground";
+import LoginAuroraBackground from "@/components/login/LoginAuroraBackground";
 import FounderQuote from "@/components/login/FounderQuote";
 import SplashLoading from "@/components/SplashLoading";
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#326273] px-4 py-6 text-[#326273] sm:px-6 sm:py-8">
-      <LoginSeaBackground />
+      <LoginAuroraBackground />
 
       {/* ── Top-left home link ───────────────────────────────────────────── */}
       <Link
@@ -124,10 +124,11 @@ export default function LoginPage() {
         className="relative z-10 mt-14 grid w-full max-w-[1040px] overflow-hidden rounded-3xl border border-white/20 bg-white/95 shadow-2xl shadow-[#0c2632]/35 backdrop-blur-xl sm:mt-0 lg:grid-cols-[1.05fr_1fr]"
       >
         {/* ─── Left: brand panel ────────────────────────────────────────── */}
-        <aside className="relative overflow-hidden bg-[#1F4452] p-6 text-[#F6F0ED] sm:p-7 lg:p-8">
+        <aside className="relative overflow-hidden bg-gradient-to-br from-[#1a3a47] via-[#143039] to-[#0d2630] p-6 text-[#F6F0ED] ring-1 ring-white/5 sm:p-7 lg:p-8">
           {/* ambient blobs */}
-          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#5C9EAD]/30 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 left-8 h-56 w-56 rounded-full bg-[#E39774]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#5C9EAD]/35 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-8 h-56 w-56 rounded-full bg-[#E39774]/25 blur-3xl" />
+          <div className="pointer-events-none absolute right-10 bottom-24 h-40 w-40 rounded-full bg-[#6FB4A0]/20 blur-3xl" />
 
           <div className="relative flex min-h-[460px] flex-col justify-between gap-6">
             {/* Brand badge */}

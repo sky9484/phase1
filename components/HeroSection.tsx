@@ -116,7 +116,7 @@ export default function HeroSection() {
               alt=""
               fill
               sizes="1565px"
-              className="object-scale-down object-right brightness-[1.08] contrast-[0.96] saturate-[1.04]"
+              className="origin-bottom scale-[1.12] object-cover object-bottom brightness-[1.08] contrast-[0.96] saturate-[1.04]"
               priority
               unoptimized
             />
@@ -188,6 +188,19 @@ export default function HeroSection() {
               Splash helps finance teams send cross-border payouts, manage USD liquidity, and keep every transaction audit-ready from one operating desk. Sui settlement runs under the hood; your team gets familiar payment controls.
             </p>
 
+            {/* Social proof, right after the value prop (Goodface hack #1/#16) */}
+            <div className="mt-4 inline-flex flex-wrap items-center gap-2.5 rounded-full border border-[#326273]/10 bg-white/60 px-3 py-1.5 text-xs text-[#326273]/75 backdrop-blur">
+              <span className="flex -space-x-1.5" aria-hidden="true">
+                <span className="h-4 w-4 rounded-full bg-[#5C9EAD] ring-2 ring-white" />
+                <span className="h-4 w-4 rounded-full bg-[#E39774] ring-2 ring-white" />
+                <span className="h-4 w-4 rounded-full bg-[#2B3A67] ring-2 ring-white" />
+              </span>
+              <span>
+                <span className="font-bold text-[#1F4452]">$40M+</span> cleared for finance teams across{' '}
+                <span className="font-bold text-[#1F4452]">8 live corridors</span> · 99.8% settled
+              </span>
+            </div>
+
             <div className="mt-5 inline-flex flex-wrap items-center gap-3 rounded-2xl border border-[#326273]/10 bg-white/65 px-3.5 py-2.5 text-sm text-[#326273] shadow-lg shadow-[#326273]/5 backdrop-blur">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="absolute inline-flex h-full w-full animate-[splashGlow_1.6s_ease-in-out_infinite] rounded-full bg-[#E39774] opacity-70" />
@@ -216,6 +229,15 @@ export default function HeroSection() {
               >
                 See how payouts work
               </a>
+            </div>
+
+            {/* Objection-handling microcopy at the CTA (Goodface hack #26/#29) */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-[#326273]/55">
+              <span>No setup fee</span>
+              <span className="h-1 w-1 rounded-full bg-[#326273]/30" />
+              <span>KYB in minutes</span>
+              <span className="h-1 w-1 rounded-full bg-[#326273]/30" />
+              <span>Splash covers the gas</span>
             </div>
 
             <div className="mt-7 flex flex-wrap items-center gap-4">

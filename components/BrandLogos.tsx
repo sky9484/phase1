@@ -69,24 +69,27 @@ export function StripeLogo({ className, size = 32 }: LogoProps) {
 
 export function AirwallexLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Airwallex">
-      <rect width="100" height="100" rx="16" fill="#1D2D5B" />
-      <path d="M50 18 L20 75 L35 75 L50 45 L65 75 L80 75Z" fill="#0066FF" />
-      <path d="M50 18 L35 45 L50 45 L65 45 L50 18Z" fill="#4DA6FF" />
-      <path d="M22 75 L40 75 L31 58Z" fill="#0066FF" fillOpacity="0.6" />
-      <path d="M78 75 L60 75 L69 58Z" fill="#0066FF" fillOpacity="0.6" />
-    </svg>
+    <img
+      src="/airwallex-logo.png"
+      alt="Airwallex"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size, objectFit: 'contain' }}
+    />
   );
 }
 
 export function SumsubLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Sumsub">
-      <rect width="100" height="100" rx="16" fill="#0A2540" />
-      <circle cx="50" cy="38" r="16" fill="#1570EF" />
-      <ellipse cx="50" cy="72" rx="24" ry="14" fill="#1570EF" />
-      <path d="M38 38 L46 46 L62 30" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <img
+      src="/sumsub-logo.png"
+      alt="Sumsub"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size, objectFit: 'contain' }}
+    />
   );
 }
 
@@ -113,14 +116,14 @@ export function MemWalLogo({ className, size = 32 }: LogoProps) {
 
 export function PythLogo({ className, size = 32 }: LogoProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={className} aria-label="Pyth">
-      <rect width="100" height="100" rx="16" fill="#1A1A2E" />
-      <circle cx="50" cy="50" r="28" fill="#E6461E" fillOpacity="0.15" />
-      <circle cx="50" cy="50" r="18" fill="#E6461E" fillOpacity="0.3" />
-      <circle cx="50" cy="50" r="10" fill="#E6461E" />
-      <path d="M50 22 L50 30 M50 70 L50 78 M22 50 L30 50 M70 50 L78 50" stroke="#E6461E" strokeWidth="3" strokeLinecap="round" />
-      <path d="M32 32 L38 38 M62 62 L68 68 M32 68 L38 62 M62 38 L68 32" stroke="#E6461E" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+    <img
+      src="/pyth-logo.png"
+      alt="Pyth"
+      width={size}
+      height={size}
+      className={className}
+      style={{ width: size, height: size, objectFit: 'contain' }}
+    />
   );
 }
 

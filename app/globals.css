@@ -222,6 +222,27 @@
 [data-dash-theme="azure"] [class~="hover:bg-[#326273]"]:hover   { background-color: #1F7A8C !important; }
 [data-dash-theme="azure"] [class~="hover:text-[#E39774]"]:hover { color: #13589C !important; }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Container surfaces · +15% brightness (navbar + cards)
+   Lightens the dashboard side navbar and all container/surface
+   BACKGROUNDS by ~15% (mixed 15% toward white). Text, borders, and accent
+   fills (teal/orange) are intentionally left untouched. The most visible
+   lift is on the dark slate surfaces (#1F4452 navbar/panels); near-white
+   cream surfaces barely change. An explicit [data-dash-theme] still wins.
+   Reversible: delete this block.
+   ═══════════════════════════════════════════════════════════════════ */
+
+[class~="bg-[#1F4452]"] { background-color: color-mix(in srgb, #1F4452 85%, #ffffff) !important; }
+[class~="bg-[#326273]"] { background-color: color-mix(in srgb, #326273 85%, #ffffff) !important; }
+[class~="bg-[#264e5b]"] { background-color: color-mix(in srgb, #264e5b 85%, #ffffff) !important; }
+[class~="bg-[#1f4350]"] { background-color: color-mix(in srgb, #1f4350 85%, #ffffff) !important; }
+[class~="bg-[#F6F0ED]"] { background-color: color-mix(in srgb, #F6F0ED 85%, #ffffff) !important; }
+[class~="bg-[#EDE8E4]"] { background-color: color-mix(in srgb, #EDE8E4 85%, #ffffff) !important; }
+[class~="bg-[#ECE3DE]"] { background-color: color-mix(in srgb, #ECE3DE 85%, #ffffff) !important; }
+
+[class~="hover:bg-[#264e5b]"]:hover { background-color: color-mix(in srgb, #264e5b 85%, #ffffff) !important; }
+[class~="hover:bg-[#326273]"]:hover { background-color: color-mix(in srgb, #326273 85%, #ffffff) !important; }
+
 /* Darker default canvas only. Do not override all cream utility classes,
    because many of those are cards, inputs, badges, and table rows. */
 body {

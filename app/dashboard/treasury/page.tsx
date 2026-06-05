@@ -70,6 +70,10 @@ const DAILY_BARS_30D = Array.from({ length: 30 }, (_, i) => {
   return { day: `D${day}`, label: `Day ${day} · ${day} Apr 2026`, amount };
 });
 
+// Distinct colour per day so adjacent bars read as separate (brand palette,
+// cycled) — replaces the monochrome-green chart.
+const BAR_COLORS = ['#5C9EAD', '#6FB4A0', '#D9A441', '#E39774', '#C97A56', '#7E93B0', '#4A8895'];
+
 const RISK_ITEMS = [
   { label: 'Regulatory',      value: 'Labuan FSA MSB Application',       icon: Landmark,   },
   { label: 'Smart Contract',  value: 'Sui Move · audited by OtterSec',   icon: ShieldCheck },
@@ -211,8 +215,8 @@ export default function TreasuryPage() {
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           { label: 'Treasury Balance', val: `$${fmtUsd(balance)}`,          sub: 'USDsui staked',          icon: Wallet,    bg: 'bg-[#5C9EAD]/10', ac: 'text-[#5C9EAD]', subTone: 'muted' as const },
-          { label: 'APY',              val: '4.8%',                          sub: autoCompound ? 'Auto-compound on · 4.91% eff.' : 'Simple interest', icon: TrendingUp, bg: 'bg-emerald-100', ac: 'text-emerald-600', subTone: 'positive' as const },
-          { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-emerald-100', ac: 'text-emerald-600', subTone: 'positive' as const },
+          { label: 'APY',              val: '4.8%',                          sub: autoCompound ? 'Auto-compound on · 4.91% eff.' : 'Simple interest', icon: TrendingUp, bg: 'bg-[#D9A441]/15', ac: 'text-[#C99A2E]', subTone: 'positive' as const },
+          { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-[#6FB4A0]/18', ac: 'text-[#4F9C88]', subTone: 'positive' as const },
           { label: 'Days Active',      val: '31',                            sub: 'Since 27 Apr 2026',       icon: Clock,     bg: 'bg-[#326273]/10', ac: 'text-[#326273]', subTone: 'muted' as const },
         ].map(({ label, val, sub, icon: Icon, bg, ac, subTone }) => (
           <div key={label} className="dash-card dash-card-interactive p-4">
@@ -292,6 +296,7 @@ export default function TreasuryPage() {
                 const heightPct = 35 + ((d.amount - minBar) / range) * 65;
                 const isMax = d.amount === maxBar;
                 const isHover = hoveredBar === i;
+                const barColor = BAR_COLORS[i % BAR_COLORS.length];
                 return (
                   <div
                     key={d.day}
@@ -308,20 +313,17 @@ export default function TreasuryPage() {
                       </div>
                     )}
                     {chartRange === '7d' && (
-                      <span className={cn(
-                        'text-[10px] font-semibold transition-colors',
-                        isHover ? 'text-emerald-700' : isMax ? 'text-emerald-700' : 'text-emerald-600/75'
-                      )}>
+                      <span
+                        className="text-[10px] font-semibold transition-colors"
+                        style={{ color: barColor, opacity: isHover || isMax ? 1 : 0.85 }}
+                      >
                         ${d.amount.toFixed(2)}
                       </span>
                     )}
                     <div className="relative w-full overflow-hidden rounded-t-md bg-[#F6F0ED]" style={{ height: 64 }}>
                       <div
-                        className={cn(
-                          'absolute bottom-0 w-full rounded-t-md transition-all duration-200',
-                          isHover ? 'bg-emerald-600' : isMax ? 'bg-emerald-500' : 'bg-emerald-400/85 group-hover:bg-emerald-500'
-                        )}
-                        style={{ height: `${heightPct}%` }}
+                        className="absolute bottom-0 w-full rounded-t-md transition-all duration-200"
+                        style={{ height: `${heightPct}%`, backgroundColor: barColor, opacity: isHover ? 1 : isMax ? 0.95 : 0.72 }}
                       />
                     </div>
                     <span className={cn(

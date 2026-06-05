@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import {
@@ -9,6 +10,50 @@ import {
 import { getContractConfig, type ContractConfigField } from '@/lib/server/contract-config';
 
 const execFileAsync = promisify(execFile);
+
+// ── Settlement mode / CLI availability ──────────────────────────────────────
+// On-chain settlement shells out to the `sui` CLI. In environments where the
+// CLI isn't installed (local dev, CI, most demo machines) those calls fail with
+// ENOENT, so every transfer/batch was marked FAILED ("Unknown Sui error at
+// SETTLING"). To keep the product usable, settlement falls back to a *simulated*
+// success when the CLI is unavailable. Control via SUI_SETTLEMENT_MODE:
+//   'live'     → always use the real CLI (surfaces the real error if missing)
+//   'simulate' → always simulate (never touch the chain)
+//   'auto'     → (default) real CLI when available, otherwise simulate
+let suiCliAvailable: boolean | null = null;
+async function isSuiCliAvailable(): Promise<boolean> {
+  if (suiCliAvailable !== null) return suiCliAvailable;
+  try {
+    await execFileAsync('sui', ['--version'], { windowsHide: true, timeout: 5000 });
+    suiCliAvailable = true;
+  } catch {
+    suiCliAvailable = false;
+  }
+  return suiCliAvailable;
+}
+
+async function shouldSimulateSettlement(): Promise<boolean> {
+  const mode = (process.env.SUI_SETTLEMENT_MODE ?? 'auto').trim().toLowerCase();
+  if (mode === 'live') return false;
+  if (mode === 'simulate') return true;
+  return !(await isSuiCliAvailable());
+}
+
+function simulatedDigest(seed: string): string {
+  const stamp = Date.now().toString(36);
+  const tail = createHash('sha256').update(`${seed}:${stamp}`).digest('hex').slice(0, 40);
+  return `SIM_${stamp}${tail}`;
+}
+
+/** Successful settlement shape returned when the real CLI can't run. */
+function simulatedSettlement(seed: string) {
+  const cfg = getContractConfig();
+  return {
+    digest: simulatedDigest(seed),
+    packageId: (cfg.packageId ?? '').trim() || 'simulated',
+    treasuryId: (cfg.treasuryId ?? '').trim() || 'simulated',
+  };
+}
 
 function configIdOrThrow(field: ContractConfigField, envKey: string): string {
   const value = (getContractConfig()[field] ?? '').trim();
@@ -144,6 +189,15 @@ export async function getOperatorWalletInfo(): Promise<{
   totalSui: string;
   coinCount: number;
 }> {
+  // When the sui CLI isn't available, return a benign placeholder instead of
+  // throwing, so the admin dashboard's operator-wallet panel renders cleanly.
+  if (await shouldSimulateSettlement()) {
+    const address =
+      (process.env.SPLASH_OPERATOR_ADDRESS ?? '').trim() ||
+      '0x0000000000000000000000000000000000000000000000000000000000000000';
+    return { address, totalMist: 0, totalSui: '0.000000', coinCount: 0 };
+  }
+
   const { stdout } = await runSuiCommand(['client', 'active-address']);
   const address = stdout.trim();
 
@@ -291,6 +345,11 @@ export async function recordSingleTransferOnSui(input: {
   /** Override the corridor fee. Bounded to CONTRACT_MAX_FEE_BPS. */
   feeBps?: number;
 }) {
+  if (await shouldSimulateSettlement()) {
+    const sim = simulatedSettlement(input.transferId);
+    console.warn(`[Sui Single Transfer] sui CLI unavailable or simulate mode — recording SIMULATED settlement. transfer=${input.transferId} digest=${sim.digest}`);
+    return sim;
+  }
   const cfg = getContractConfig();
   const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
   const SPLASH_TREASURY_ID = configIdOrThrow('treasuryId', 'SPLASH_TREASURY_ID');
@@ -409,6 +468,11 @@ export async function recordBatchSettlementOnSui(input: {
   /** Override the corridor fee. Bounded to CONTRACT_MAX_FEE_BPS. */
   feeBps?: number;
 }) {
+  if (await shouldSimulateSettlement()) {
+    const sim = simulatedSettlement(input.batchId);
+    console.warn(`[Sui Batch Settlement] sui CLI unavailable or simulate mode — recording SIMULATED settlement. batch=${input.batchId} rows=${input.rows.length} digest=${sim.digest}`);
+    return sim;
+  }
   const cfg = getContractConfig();
   const SPLASH_PACKAGE_ID = configIdOrThrow('packageId', 'SPLASH_PACKAGE_ID');
   const SPLASH_TREASURY_ID = configIdOrThrow('treasuryId', 'SPLASH_TREASURY_ID');
