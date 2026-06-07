@@ -1,45 +1,53 @@
 <svg width="480" height="360" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="240" cy="300" rx="158" ry="30" fill="#0c3e48" opacity="0.12"/>
-  <!-- platform slab -->
-  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="#F2E7D7"/>
-  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="#DBC8AD"/>
-  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="#CDB695"/>
-  <!-- connectors from batch to recipients -->
-  <g stroke="#E7A24A" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.9">
-    <path d="M300 196 C338 182 350 168 372 162"/>
-    <path d="M306 206 C346 206 360 204 384 202"/>
-    <path d="M300 216 C340 232 352 244 374 248"/>
+  <defs>
+    <linearGradient id="bPlatTop" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#F7EEDF"/><stop offset="1" stop-color="#E9D7BD"/></linearGradient>
+    <linearGradient id="bPlatL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCC9AE"/><stop offset="1" stop-color="#CBB18F"/></linearGradient>
+    <linearGradient id="bPlatR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAB492"/><stop offset="1" stop-color="#B79F7B"/></linearGradient>
+    <linearGradient id="bCardTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9CCBD5"/><stop offset="1" stop-color="#69A7B5"/></linearGradient>
+    <linearGradient id="bCardL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3D7080"/><stop offset="1" stop-color="#2B5462"/></linearGradient>
+    <linearGradient id="bCardR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#28505E"/><stop offset="1" stop-color="#1C414E"/></linearGradient>
+    <linearGradient id="bGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C673"/><stop offset="1" stop-color="#E08C3C"/></linearGradient>
+    <radialGradient id="bGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#F1B45C" stop-opacity="0.55"/><stop offset="1" stop-color="#F1B45C" stop-opacity="0"/></radialGradient>
+    <marker id="bArrow" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#E0902F"/></marker>
+  </defs>
+  <ellipse cx="236" cy="300" rx="168" ry="32" fill="#0b3a44" opacity="0.13"/>
+  <!-- platform -->
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="url(#bPlatTop)"/>
+  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="url(#bPlatL)"/>
+  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="url(#bPlatR)"/>
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="1.4"/>
+  <!-- recipient nodes + connectors -->
+  <g fill="none" stroke="#E0902F" stroke-width="3.2" stroke-linecap="round" marker-end="url(#bArrow)">
+    <path d="M314 196 C352 178 366 162 380 152"/>
+    <path d="M320 206 C360 204 372 200 386 198"/>
+    <path d="M314 216 C354 234 366 246 380 252"/>
   </g>
-  <!-- recipient chips -->
   <g>
-    <rect x="370" y="148" width="40" height="26" rx="7" fill="#5C9EAD"/>
-    <rect x="382" y="190" width="40" height="26" rx="7" fill="#5C9EAD"/>
-    <rect x="372" y="236" width="40" height="26" rx="7" fill="#5C9EAD"/>
-    <circle cx="390" cy="161" r="5" fill="#F2E7D7"/>
-    <circle cx="402" cy="203" r="5" fill="#F2E7D7"/>
-    <circle cx="392" cy="249" r="5" fill="#F2E7D7"/>
+    <rect x="382" y="138" width="48" height="30" rx="8" fill="#5C9EAD"/><rect x="382" y="138" width="48" height="30" rx="8" fill="#fff" opacity="0.12"/>
+    <rect x="388" y="186" width="48" height="30" rx="8" fill="#5C9EAD"/><rect x="388" y="186" width="48" height="30" rx="8" fill="#fff" opacity="0.12"/>
+    <rect x="382" y="238" width="48" height="30" rx="8" fill="#5C9EAD"/><rect x="382" y="238" width="48" height="30" rx="8" fill="#fff" opacity="0.12"/>
+    <path d="M398 153 l4 4 l8 -9" stroke="#F4ECDC" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M404 201 l4 4 l8 -9" stroke="#F4ECDC" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M398 253 l4 4 l8 -9" stroke="#F4ECDC" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <!-- batch card stack -->
+  <!-- batch card deck -->
   <g>
-    <!-- card 1 -->
-    <rect width="96" height="16" transform="matrix(0.866 0.5 0 1 157 248)" fill="#2C5563"/>
-    <rect width="96" height="16" transform="matrix(-0.866 0.5 0 1 323 248)" fill="#1F4452"/>
-    <rect width="96" height="96" rx="8" transform="matrix(0.866 0.5 -0.866 0.5 240 200)" fill="#5C9EAD"/>
-    <!-- card 2 -->
-    <rect width="96" height="16" transform="matrix(0.866 0.5 0 1 157 226)" fill="#2C5563"/>
-    <rect width="96" height="16" transform="matrix(-0.866 0.5 0 1 323 226)" fill="#1F4452"/>
-    <rect width="96" height="96" rx="8" transform="matrix(0.866 0.5 -0.866 0.5 240 178)" fill="#6FAAB7"/>
-    <!-- card 3 (top) -->
-    <rect width="96" height="16" transform="matrix(0.866 0.5 0 1 157 204)" fill="#356B7B"/>
-    <rect width="96" height="16" transform="matrix(-0.866 0.5 0 1 323 204)" fill="#234B57"/>
-    <rect width="96" height="96" rx="8" transform="matrix(0.866 0.5 -0.866 0.5 240 156)" fill="#7FB8C4"/>
-    <!-- rows on top card -->
-    <rect width="58" height="9" rx="4" transform="matrix(0.866 0.5 -0.866 0.5 222 186)" fill="#1F4452" opacity="0.55"/>
-    <rect width="58" height="9" rx="4" transform="matrix(0.866 0.5 -0.866 0.5 240 196)" fill="#1F4452" opacity="0.4"/>
-    <rect width="58" height="9" rx="4" transform="matrix(0.866 0.5 -0.866 0.5 258 206)" fill="#1F4452" opacity="0.28"/>
+    <rect width="98" height="66" transform="matrix(0.866 0.5 0 1 145 205)" fill="url(#bCardL)"/>
+    <rect width="98" height="66" transform="matrix(-0.866 0.5 0 1 315 205)" fill="url(#bCardR)"/>
+    <!-- card separators on faces (implies a stack of payouts) -->
+    <g transform="matrix(0.866 0.5 0 1 145 205)"><rect x="7" y="15" width="84" height="2.4" fill="#fff" opacity="0.16"/><rect x="7" y="31" width="84" height="2.4" fill="#fff" opacity="0.16"/><rect x="7" y="47" width="84" height="2.4" fill="#fff" opacity="0.16"/></g>
+    <g transform="matrix(-0.866 0.5 0 1 315 205)"><rect x="7" y="15" width="84" height="2.4" fill="#0a2730" opacity="0.28"/><rect x="7" y="31" width="84" height="2.4" fill="#0a2730" opacity="0.28"/><rect x="7" y="47" width="84" height="2.4" fill="#0a2730" opacity="0.28"/></g>
+    <path d="M230 156 L315 205 L230 254 L145 205 Z" fill="url(#bCardTop)"/>
+    <g transform="matrix(0.866 0.5 -0.866 0.5 230 156)">
+      <rect x="14" y="20" width="70" height="11" rx="4" fill="#11414c" opacity="0.5"/>
+      <rect x="14" y="40" width="70" height="8" rx="3" fill="#11414c" opacity="0.3"/>
+      <rect x="14" y="56" width="46" height="8" rx="3" fill="#11414c" opacity="0.3"/>
+      <rect x="14" y="72" width="58" height="9" rx="4" fill="#E0902F"/>
+    </g>
   </g>
-  <!-- approve-once badge -->
-  <circle cx="240" cy="116" r="20" fill="#E7A24A"/>
-  <circle cx="240" cy="116" r="20" fill="none" stroke="#fff" stroke-width="2" opacity="0.6"/>
-  <path d="M231 116 l6 6 l12 -13" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- approve-once seal -->
+  <circle cx="230" cy="108" r="40" fill="url(#bGlow)"/>
+  <circle cx="230" cy="108" r="23" fill="url(#bGold)" stroke="#b96e23" stroke-width="2"/>
+  <circle cx="230" cy="108" r="23" fill="none" stroke="#fff" stroke-width="1.6" stroke-opacity="0.5" stroke-dasharray="2 4"/>
+  <path d="M220 108 l7 7 l13 -15" stroke="#fff" stroke-width="4.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

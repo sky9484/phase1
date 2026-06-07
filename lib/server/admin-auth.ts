@@ -1,4 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import { cookies } from 'next/headers';
 
 export type AdminSession = {
@@ -26,6 +28,8 @@ const isProduction = process.env.NODE_ENV === 'production';
  *     once per process (sessions reset on restart). It is never a shipped
  *     constant, so cookies cannot be forged from the public source.
  */
+const DEV_SECRET_FILE = join(process.cwd(), '.admin-session-secret.local');
+
 let cachedDevSecret: string | null = null;
 function resolveSecret(): string | null {
   const configured = process.env.ADMIN_SESSION_SECRET?.trim();
@@ -33,15 +37,52 @@ function resolveSecret(): string | null {
 
   if (isProduction) return null;
 
-  if (!cachedDevSecret) {
-    cachedDevSecret = randomBytes(32).toString('hex');
+  if (!cachedDevSecret) cachedDevSecret = loadOrCreateDevSecret();
+  return cachedDevSecret;
+}
+
+/**
+ * Stable per-machine dev secret, persisted to a gitignored local file.
+ *
+ * Why a file: Next bundles this module SEPARATELY for route handlers
+ * (/api/admin/login) and server components (the /admin layout), so a purely
+ * in-memory random secret differs between them and a cookie signed at login
+ * fails to verify in the layout — bouncing the operator back to login. A shared
+ * file makes every module instance (and process restart / HMR reload) converge
+ * on the same value. It is random per machine (never a shipped constant) and is
+ * never used in production, where an unset ADMIN_SESSION_SECRET fails closed.
+ */
+function loadOrCreateDevSecret(): string {
+  try {
+    if (existsSync(DEV_SECRET_FILE)) {
+      const existing = readFileSync(DEV_SECRET_FILE, 'utf8').trim();
+      if (existing.length >= 32) return existing;
+    }
+  } catch {
+    /* unreadable — fall through and (re)generate */
+  }
+
+  const secret = randomBytes(32).toString('hex');
+  try {
+    // Exclusive create avoids a write race between concurrent module instances.
+    writeFileSync(DEV_SECRET_FILE, secret, { flag: 'wx', mode: 0o600 });
     console.warn(
-      '[admin-auth] ADMIN_SESSION_SECRET is not set. Generated an ephemeral ' +
-        'local secret; admin sessions reset on restart. Set ' +
+      '[admin-auth] ADMIN_SESSION_SECRET is not set. Generated a local dev ' +
+        'secret at .admin-session-secret.local (gitignored). Set ' +
         'ADMIN_SESSION_SECRET before deploying.',
     );
+    return secret;
+  } catch {
+    // Another instance created it first (or fs is unavailable) — prefer the
+    // persisted value so every instance converges on the same secret.
+    try {
+      const existing = readFileSync(DEV_SECRET_FILE, 'utf8').trim();
+      if (existing.length >= 32) return existing;
+    } catch {
+      /* ignore — last resort: this instance's in-memory secret */
+    }
+    return secret;
   }
-  return cachedDevSecret;
 }
 
 function timingSafeStrEqual(a: string, b: string): boolean {

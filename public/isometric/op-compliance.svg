@@ -1,20 +1,36 @@
 <svg width="480" height="360" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="240" cy="300" rx="158" ry="30" fill="#0c3e48" opacity="0.12"/>
-  <!-- platform slab -->
-  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="#F2E7D7"/>
-  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="#DBC8AD"/>
-  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="#CDB695"/>
-  <!-- archive cube -->
-  <rect width="120" height="86" transform="matrix(-0.866 0.5 0 1 344 180)" fill="#234B57"/>
-  <g transform="matrix(0.866 0.5 0 1 136 180)">
-    <rect width="120" height="86" fill="#356B7B"/>
-    <rect x="12" y="12" width="96" height="28" rx="5" fill="#2A4E5B"/>
-    <rect x="46" y="22" width="28" height="7" rx="3.5" fill="#7FB8C4"/>
-    <rect x="12" y="48" width="96" height="28" rx="5" fill="#2A4E5B"/>
-    <rect x="46" y="58" width="28" height="7" rx="3.5" fill="#7FB8C4"/>
+  <defs>
+    <linearGradient id="cPlatTop" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#F7EEDF"/><stop offset="1" stop-color="#E9D7BD"/></linearGradient>
+    <linearGradient id="cPlatL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCC9AE"/><stop offset="1" stop-color="#CBB18F"/></linearGradient>
+    <linearGradient id="cPlatR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAB492"/><stop offset="1" stop-color="#B79F7B"/></linearGradient>
+    <linearGradient id="cCubeTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9CCBD5"/><stop offset="1" stop-color="#6CA9B6"/></linearGradient>
+    <linearGradient id="cCubeL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3D7080"/><stop offset="1" stop-color="#2B5462"/></linearGradient>
+    <linearGradient id="cCubeR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27505E"/><stop offset="1" stop-color="#1B404D"/></linearGradient>
+    <linearGradient id="cGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C673"/><stop offset="1" stop-color="#E08C3C"/></linearGradient>
+  </defs>
+  <ellipse cx="236" cy="300" rx="168" ry="32" fill="#0b3a44" opacity="0.13"/>
+  <!-- platform -->
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="url(#cPlatTop)"/>
+  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="url(#cPlatL)"/>
+  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="url(#cPlatR)"/>
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="1.4"/>
+  <!-- on-chain anchor block + chain -->
+  <rect width="40" height="34" transform="matrix(-0.866 0.5 0 1 432 196)" fill="#1B404D"/>
+  <rect width="40" height="34" transform="matrix(0.866 0.5 0 1 397 176)" fill="#2B5462"/>
+  <path d="M397 176 L432 196 L397 216 L362 196 Z" fill="url(#cCubeTop)"/>
+  <path d="M388 184 l5 7 l9 -11" stroke="#E0902F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <g stroke="#E0902F" stroke-width="4.5" fill="none" stroke-linecap="round"><path d="M338 182 l10 6"/><path d="M352 190 l10 6"/></g>
+  <!-- archive cabinet -->
+  <rect width="118" height="90" transform="matrix(-0.866 0.5 0 1 342 177)" fill="url(#cCubeR)"/>
+  <g transform="matrix(0.866 0.5 0 1 138 177)">
+    <rect width="118" height="90" fill="url(#cCubeL)"/>
+    <rect x="11" y="9" width="96" height="20" rx="4" fill="#234b58"/><rect x="46" y="16" width="26" height="6" rx="3" fill="#9CCBD5"/><circle cx="22" cy="19" r="4" fill="#5C9EAD"/>
+    <rect x="11" y="34" width="96" height="20" rx="4" fill="#234b58"/><rect x="46" y="41" width="26" height="6" rx="3" fill="#9CCBD5"/><circle cx="22" cy="44" r="4" fill="#E0902F"/>
+    <rect x="11" y="59" width="96" height="20" rx="4" fill="#234b58"/><rect x="46" y="66" width="26" height="6" rx="3" fill="#9CCBD5"/><circle cx="22" cy="69" r="4" fill="#7FD0B8"/>
   </g>
-  <rect width="120" height="120" rx="8" transform="matrix(0.866 0.5 -0.866 0.5 240 120)" fill="#7FB8C4"/>
-  <!-- compliance shield -->
-  <path d="M240 212 l36 13 v22 c0 27 -19 42 -36 50 c-17 -8 -36 -23 -36 -50 v-22 Z" fill="#E7A24A" stroke="#C97A56" stroke-width="3"/>
-  <path d="M225 250 l10 10 l21 -23" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M240 110 L358 169 L240 228 L122 169 Z" fill="url(#cCubeTop)"/>
+  <path d="M240 110 L358 169 L240 228 L122 169 Z" fill="none" stroke="#fff" stroke-opacity="0.25" stroke-width="1.2"/>
+  <!-- compliance shield seal -->
+  <path d="M210 214 l30 11 v20 c0 24 -17 37 -30 44 c-13 -7 -30 -20 -30 -44 v-20 Z" fill="url(#cGold)" stroke="#b96e23" stroke-width="2.5"/>
+  <path d="M197 248 l9 9 l18 -20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

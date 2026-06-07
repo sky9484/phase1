@@ -859,7 +859,7 @@ body {
 
 .iso-partner-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -4333,11 +4333,12 @@ body {
 .iso-back-to-top { order: 99; }
 
 .iso-stage-shadow {
-  transform: translateX(19.5%) rotate(-7deg);
+  transform: translateX(19.5%) translateY(70%) scale(1.3) rotate(-7deg);
 }
 
 .iso-hero-main-art {
-  transform: translateX(19.5%) scale(1.2);
+  /* Enlarged + shifted down 20%, then reduced 35% (2.4 -> 1.56). */
+  transform: translateX(19.5%) translateY(20%) scale(1.56);
 }
 
 .iso-floating-note {

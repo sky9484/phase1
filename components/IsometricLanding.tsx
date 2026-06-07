@@ -98,7 +98,6 @@ const partnerRail = [
   { src: '/pyth-logo.png', name: 'Pyth', role: 'FX and peg data' },
   { src: '/sumsub-logo.png', name: 'Sumsub', role: 'KYB and KYC' },
   { src: '/walrus-logo.svg', name: 'Walrus', role: 'permanent records' },
-  { src: '/wise-logo.svg', name: 'Wise', role: 'pricing benchmark' },
   { src: '/sui-logo-blue.svg', name: 'Sui', role: 'settlement network' },
 ];
 
