@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   AlertCircle,
   ArrowDownLeft,
@@ -197,9 +198,7 @@ export default function TreasuryPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
-            <TrendingUp size={11} /> Smart Treasury
-          </div>
+          <DashboardPageLogo src="/isometric/sui-logo-iso.svg" partner="Sui" label="Smart Treasury" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Smart Treasury</h1>
           <p className="mt-0.5 text-xs text-[#326273]/50">
             Idle USD earns 4.8% APY automatically · powered by USDsui on Sui

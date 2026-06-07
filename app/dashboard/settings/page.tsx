@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import KybSettings from '@/components/KybSettings';
 import AmlKytHealthPreview from '@/components/compliance/AmlKytHealthPreview';
 import { AlertTriangle, CheckCircle2, FileText, KeyRound, LockKeyhole, Radar, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 
 export default function DashboardSettingsPage() {
   const [limits, setLimits] = useState([43, 58, 31]);
@@ -31,7 +32,7 @@ export default function DashboardSettingsPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Settings</div>
+          <DashboardPageLogo src="/isometric/sumsub.svg" partner="Sumsub" label="Compliance" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Compliance, security &amp; controls</h1>
           <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
             Manage the controls that decide whether a transfer can be authorized, queued, reviewed, or blocked.

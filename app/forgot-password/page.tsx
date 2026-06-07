@@ -1,42 +1,79 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState, type FormEvent } from 'react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+
+import IsometricAuthShell from '@/components/auth/IsometricAuthShell';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    setSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    setSubmitting(false);
     setSent(true);
     toast.success('Reset link sent');
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center splash-page-bg p-6">
-      <div className="w-full max-w-md rounded-2xl border border-[#326273]/10 bg-white p-8 shadow-xl">
-        <div className="mb-1 text-2xl font-extrabold text-[#326273]">Reset password</div>
-        <p className="mb-6 text-sm text-[#326273]/60">We&apos;ll email you a reset link.</p>
-        {sent ? (
-          <div className="rounded-lg border border-[#5C9EAD]/30 bg-[#5C9EAD]/10 p-4 text-sm text-[#326273]">Check your inbox for the reset link.</div>
-        ) : (
-          <form onSubmit={onSubmit} className="space-y-4">
-            <input
-              type="email"
-              required
-              placeholder="you@company.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-lg border border-[#326273]/20 bg-[#F6F0ED] px-4 py-3 text-[#326273] focus:border-[#5C9EAD] focus:outline-none"
-            />
-            <button className="w-full rounded-lg bg-[#326273] py-3 font-bold text-white shadow-sm transition-colors hover:bg-[#264e5b]">Send reset link</button>
-          </form>
-        )}
-        <Link href="/login" className="mt-6 block text-sm text-[#5C9EAD] hover:underline">← Back to sign in</Link>
+    <IsometricAuthShell
+      eyebrow="Account recovery"
+      title={sent ? 'Check your inbox.' : 'Reset your password.'}
+      description={sent
+        ? `We sent password recovery instructions to ${email}.`
+        : 'Enter your business email and we will send a secure recovery link.'}
+      art="/isometric/treasury.svg"
+      artAlt="Isometric smart treasury"
+      visualTitle="Secure by default"
+      visualCopy="Recover access without compromising your treasury."
+    >
+      {sent ? (
+        <section className="iso-auth-success">
+          <CheckCircle2 aria-hidden="true" />
+          <h2>Recovery email sent</h2>
+          <p>The link expires in 30 minutes. Check spam or request another email if it does not arrive.</p>
+          <button type="button" onClick={() => setSent(false)}>
+            <ArrowLeft aria-hidden="true" /> Use another email
+          </button>
+        </section>
+      ) : (
+        <form onSubmit={onSubmit} className="iso-auth-form">
+          <label className="iso-auth-field" htmlFor="recovery-email">
+            <span>Business email</span>
+            <div>
+              <Mail aria-hidden="true" />
+              <input
+                id="recovery-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+          </label>
+          <button type="submit" disabled={!email.includes('@') || submitting} className="iso-auth-submit">
+            {submitting ? 'Sending reset link...' : 'Send secure reset link'}
+            {!submitting ? <ArrowRight aria-hidden="true" /> : null}
+          </button>
+        </form>
+      )}
+
+      <div className="iso-auth-help">
+        <strong>Still locked out?</strong>
+        <span>Contact support after verifying your business identity.</span>
       </div>
-    </main>
+
+      <p className="iso-auth-switch">
+        Remembered your password? <Link href="/login">Back to sign in</Link>
+      </p>
+    </IsometricAuthShell>
   );
 }

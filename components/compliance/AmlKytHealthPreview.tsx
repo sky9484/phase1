@@ -42,7 +42,7 @@ export default function AmlKytHealthPreview() {
   const checks = useMemo<Check[]>(() => {
     const numericAmount = Number.parseFloat(amount || '0');
     const numericRepeatCount = Number.parseInt(repeatCount || '0', 10);
-    const lowerName = beneficiary.toLowerCase();
+    const lowerName = String(beneficiary ?? '').toLowerCase();
 
     return [
       {

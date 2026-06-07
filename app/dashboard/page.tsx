@@ -5,22 +5,20 @@ import {
   AlertTriangle,
   ArrowUpRight,
   Bot,
-  CheckCircle2,
   FileText,
   Globe,
   Layers,
-  RefreshCw,
   Send,
   ShieldCheck,
   TrendingUp,
   Upload,
   Wallet,
-  XCircle,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 
 import HoverPopup from '@/components/HoverPopup';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import LiveExchangeTicker from '@/components/LiveExchangeTicker';
 import StatusBadge, { type Status } from '@/components/StatusBadge';
 import { cn } from '../../lib/utils';
@@ -136,7 +134,7 @@ export default function DashboardOverview() {
       {/* Page header */}
       <header className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#326273]/50">Business console</p>
+          <DashboardPageLogo src="/isometric/stripe.svg" partner="Stripe" label="Business console" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Overview</h1>
           <p className="mt-0.5 text-xs text-[#326273]/45">Acme Trading Sdn Bhd · Updated just now</p>
         </div>

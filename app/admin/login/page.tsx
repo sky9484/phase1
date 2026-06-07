@@ -1,9 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { Activity, Database, Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { adminConsolePath } from '@/lib/admin-routing';
@@ -12,8 +11,6 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('staff@splash.finance');
   const [password, setPassword] = useState('splash-admin-demo');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -31,8 +28,7 @@ export default function AdminLoginPage() {
       }
 
       toast.success('Staff session started');
-      router.replace(adminConsolePath('/', window.location.hostname));
-      router.refresh();
+      window.location.assign(adminConsolePath('/', window.location.hostname));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Admin login failed';
       toast.error(message);
@@ -42,63 +38,50 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen bg-[#1f4350] lg:grid-cols-[1fr_0.9fr]">
-      <section className="relative hidden overflow-hidden p-10 text-white lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(92,158,173,0.35),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(227,151,116,0.28),transparent_30%)]" />
-        <div className="relative z-10 flex h-full flex-col justify-between rounded-[2rem] border border-white/10 bg-white/10 p-10 shadow-2xl backdrop-blur">
-          <div className="flex items-center gap-3">
-            <Image src="/splash-logo.png" alt="Splash" width={42} height={42} className="h-10 w-10 brightness-0 invert" unoptimized />
-            <div>
-              <div className="text-2xl font-bold">Splash Staff</div>
-              <div className="text-xs uppercase tracking-[0.24em] text-white/60">admin.splash.xyz</div>
-            </div>
-          </div>
-          <div>
-            <div className="mb-4 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#A7D6DF]">Operations Console</div>
-            <h1 className="max-w-xl text-5xl font-black leading-tight tracking-[-0.04em]">Manual compliance and customer care workspace.</h1>
-            <p className="mt-5 max-w-lg text-sm leading-6 text-white/70">Review KYB cases, capture approval rationale, and respond to feedback or complaints without mixing staff tools into the customer dashboard.</p>
-          </div>
-          <div className="grid gap-3 text-sm md:grid-cols-3">
-            {['KYB review', 'Complaint triage', 'Audit trail'].map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/10 p-4 font-semibold text-white/80">
-                <ShieldCheck className="mb-3 h-5 w-5 text-[#A7D6DF]" />
-                {item}
-              </div>
-            ))}
-          </div>
+    <main className="admin-login-shell">
+      <section className="admin-login-story">
+        <div className="admin-login-brand">
+          <Image src="/splash-icon.svg" alt="" width={42} height={42} priority />
+          <span><strong>Splash Staff</strong><small>Global Settlement Engine</small></span>
+        </div>
+        <div className="admin-login-copy">
+          <span>Restricted operations</span>
+          <h1>Control money movement with proof attached.</h1>
+          <p>Review compliance, monitor settlement, and preserve every operational decision from one verifiable control room.</p>
+        </div>
+        <div className="admin-login-art">
+          <Image src="/isometric/secure.svg" alt="Isometric verified security shield" width={1448} height={1086} priority />
+          <div><i /><strong>Control room live</strong><small>Sui settled / Walrus verified</small></div>
+        </div>
+        <div className="admin-login-signals">
+          <span><ShieldCheck aria-hidden="true" /><strong>KYB review</strong><small>Evidence connected</small></span>
+          <span><Activity aria-hidden="true" /><strong>Live monitor</strong><small>Settlement traced</small></span>
+          <span><Database aria-hidden="true" /><strong>Audit archive</strong><small>Proof retained</small></span>
         </div>
       </section>
 
-      <section className="flex items-center justify-center p-6">
-        <form onSubmit={login} className="w-full max-w-md rounded-[2rem] border border-white/10 bg-[#F6F0ED] p-8 shadow-2xl">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-[0.24em] text-[#5C9EAD]">Staff only</div>
-              <h2 className="mt-2 text-3xl font-black text-[#326273]">Admin login</h2>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#326273] text-white">
-              <LockKeyhole className="h-6 w-6" />
-            </div>
+      <section className="admin-login-form-wrap">
+        <form onSubmit={login} className="admin-login-form">
+          <div className="admin-login-form-heading">
+            <div><span>Staff only</span><h2>Enter control room</h2></div>
+            <LockKeyhole aria-hidden="true" />
           </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-bold text-[#326273]">
-              Staff email
-              <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" className="mt-2 w-full rounded-xl border border-[#326273]/15 bg-white px-4 py-3 text-sm outline-none focus:border-[#5C9EAD]" required />
-            </label>
-            <label className="block text-sm font-bold text-[#326273]">
-              Password
-              <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" className="mt-2 w-full rounded-xl border border-[#326273]/15 bg-white px-4 py-3 text-sm outline-none focus:border-[#5C9EAD]" required />
-            </label>
-          </div>
-
-          <button disabled={loading} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#E39774] px-4 py-3 font-bold text-white transition hover:bg-[#cd825f] disabled:opacity-60">
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          <p>Use your restricted staff credentials to continue.</p>
+          <label>
+            Staff email
+            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
+          </label>
+          <label>
+            Password
+            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
+          </label>
+          <button disabled={loading}>
+            {loading && <Loader2 aria-hidden="true" />}
             Enter staff console
           </button>
-
-          <div className="mt-5 rounded-xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 p-4 text-xs leading-5 text-[#326273]/70">
-            Demo credentials are prefilled. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_SESSION_SECRET` before using this outside local testing.
+          <div className="admin-login-note">
+            <ShieldCheck aria-hidden="true" />
+            <span><strong>Local demo ready</strong><small>Production requires configured admin credentials and a session secret.</small></span>
           </div>
         </form>
       </section>

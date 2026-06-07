@@ -1,0 +1,24 @@
+<svg width="480" height="360" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="240" cy="300" rx="158" ry="30" fill="#0c3e48" opacity="0.12"/>
+  <!-- platform slab -->
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="#F2E7D7"/>
+  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="#DBC8AD"/>
+  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="#CDB695"/>
+  <!-- coin stack (bottom -> top) -->
+  <g>
+    <path d="M188 256 v16 a52 26 0 0 0 104 0 v-16 a52 26 0 0 1 -104 0 Z" fill="#B26A48"/>
+    <ellipse cx="240" cy="256" rx="52" ry="26" fill="#E7A24A"/>
+    <path d="M188 238 v16 a52 26 0 0 0 104 0 v-16 a52 26 0 0 1 -104 0 Z" fill="#B26A48"/>
+    <ellipse cx="240" cy="238" rx="52" ry="26" fill="#EEB45E"/>
+    <path d="M188 220 v16 a52 26 0 0 0 104 0 v-16 a52 26 0 0 1 -104 0 Z" fill="#C97A56"/>
+    <ellipse cx="240" cy="220" rx="52" ry="26" fill="#F0C46A"/>
+    <ellipse cx="240" cy="220" rx="30" ry="15" fill="none" stroke="#C97A56" stroke-width="3" opacity="0.7"/>
+    <path d="M240 209 v22 M233 214 h14 M233 226 h14" stroke="#9a5a36" stroke-width="3.2" stroke-linecap="round"/>
+  </g>
+  <!-- yield up arrow -->
+  <g stroke="#326273" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M322 214 L344 150"/>
+    <path d="M324 170 L346 144 L366 166"/>
+  </g>
+  <circle cx="356" cy="128" r="7" fill="#5C9EAD"/>
+</svg>

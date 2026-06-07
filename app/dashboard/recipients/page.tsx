@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CheckCircle2, Clock3, Plus, Search, XCircle, Trash2, Building2, Globe2, CreditCard, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -42,8 +43,8 @@ export default function RecipientsPage() {
   const [form, setForm] = useState({ name: '', country: 'PH', bank: '', swift: '', account: '' });
 
   const filtered = recipients.filter((r) =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.bank.toLowerCase().includes(searchQuery.toLowerCase())
+    String(r.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    String(r.bank ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   function addRecipient() {
@@ -74,7 +75,7 @@ export default function RecipientsPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Recipients</div>
+          <DashboardPageLogo src="/isometric/sumsub.svg" partner="Sumsub" label="Recipients" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Recipients &amp; Payments</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">Manage beneficiaries and view payment history.</p>
         </div>

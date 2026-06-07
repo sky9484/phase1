@@ -73,7 +73,7 @@ export default function AdminSupportConsole({ initialTickets }: Props) {
       setTickets((current) => current.map((ticket) => (ticket.id === updatedTicket.id ? updatedTicket : ticket)));
       setSelectedId(updatedTicket.id);
       setReplyMessage('');
-      toast.success(status ? `Ticket marked ${statusLabels[status].toLowerCase()}` : 'Reply saved');
+      toast.success(status ? `Ticket marked ${String(statusLabels[status] ?? status).toLowerCase()}` : 'Reply saved');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Ticket update failed';
       toast.error(message);

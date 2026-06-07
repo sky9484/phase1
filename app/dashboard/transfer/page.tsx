@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Check, ShieldCheck, Sparkles, Timer } from 'lucide-react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 
 import StepBeneficiary from '@/components/transfer/StepBeneficiary';
 import StepQuote from '@/components/transfer/StepQuote';
@@ -63,9 +64,7 @@ export default function TransferPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">
-            Transfer
-          </div>
+          <DashboardPageLogo src="/isometric/airwallex.svg" partner="Airwallex" label="Transfer" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Send a payout</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">
             Capture a beneficiary, lock the USD quote, confirm deposit, then download the on-chain receipt.

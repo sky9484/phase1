@@ -136,7 +136,7 @@ export default function KybSettings() {
 
     if (body.case) {
       applyCaseStatus(body.case);
-      if (showToast) toast.success(`KYB status: ${body.case.state.replace('_', ' ').toLowerCase()}`);
+      if (showToast) toast.success(`KYB status: ${String(body.case.state ?? 'unknown').replace('_', ' ').toLowerCase()}`);
     } else if (showToast) {
       toast.error('No KYB case found for this business yet');
     }
@@ -169,7 +169,7 @@ export default function KybSettings() {
       }
 
       applyCaseStatus(body.case);
-      toast.success(`KYB status: ${body.case.state.replace('_', ' ').toLowerCase()}`);
+      toast.success(`KYB status: ${String(body.case.state ?? 'unknown').replace('_', ' ').toLowerCase()}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'KYB case refresh failed';
       toast.error(message);
@@ -371,7 +371,7 @@ export default function KybSettings() {
         <div className="rounded-xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 p-4 text-sm text-[#326273]/75">
           <div className="flex gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-[#5C9EAD]" />
-            <span>Documents are stored server-side as encrypted records with SHA-256 tamper evidence. Sumsub handles business verification and reviewer workflow.</span>
+            <span>Each document is fingerprinted with SHA-256 for tamper evidence on submission. Sumsub handles business verification and reviewer workflow.</span>
           </div>
         </div>
         <div id="sumsub-websdk-container" className="min-h-0 overflow-hidden rounded-2xl border border-[#326273]/10 bg-[#F6F0ED]" />

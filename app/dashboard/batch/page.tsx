@@ -6,6 +6,7 @@ import Papa from "papaparse";
 import { toast } from "sonner";
 
 import HoverPopup from "@/components/HoverPopup";
+import DashboardPageLogo from "@/components/DashboardPageLogo";
 
 type ComplianceResult = "PASS" | "REVIEW" | "BLOCK";
 
@@ -108,7 +109,7 @@ function rowStatus(result: ComplianceResult): BatchRow["status"] {
 
 function evaluateRow(row: Omit<BatchRow, "status" | "checks">, duplicateCount: number): ComplianceCheck[] {
   const amount = Number.parseFloat(row.amount || "0");
-  const lowerName = row.name.toLowerCase();
+  const lowerName = String(row.name ?? '').toLowerCase();
   const checks: ComplianceCheck[] = [
     {
       label: "AML sanctions / PEP",
@@ -277,7 +278,7 @@ export default function BatchPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Batch payout</div>
+          <DashboardPageLogo src="/isometric/sui-logo-iso.svg" partner="Sui" label="Batch payout" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Upload, screen, authorize</h1>
           <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
             Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor &amp; purpose-code checks before TOTP authorization.

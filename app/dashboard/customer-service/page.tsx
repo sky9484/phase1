@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Headphones, Send, Bug, MessageSquareWarning, MessageSquare, Mail, Phone, Clock3, BookOpen } from 'lucide-react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import { toast } from 'sonner';
 
 type SupportTicket = {
@@ -144,7 +145,7 @@ export default function CustomerServicePage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">Support</div>
+          <DashboardPageLogo src="/isometric/sui-logo-iso.svg" partner="Sui" label="Support" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Customer Service</h1>
           <p className="mt-0.5 text-xs text-[#326273]/60">Submit issues, bugs, or complaints. We aim to respond within 24 hours.</p>
         </div>

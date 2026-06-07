@@ -16,31 +16,28 @@ const isProduction = process.env.NODE_ENV === 'production';
 /**
  * Resolve the signing secret used to mint and verify admin session tokens.
  *
- * Security note: the previous implementation fell back to a hard-coded
- * 'splash-admin-dev-secret' and derived a *static* cookie value from it
- * (`sha256('splash-admin:' + secret)`). That made the admin session cookie
- * publicly computable whenever ADMIN_SESSION_SECRET was unset — a full
- * authentication bypass for the KYB-approval, contract-config and transaction
- * admin routes, all of which gate on getAdminSession() alone.
- *
- * Now:
- *   • Production REQUIRES a real ADMIN_SESSION_SECRET. If it is missing every
- *     auth entry point fails closed (returns null / refuses to mint a cookie).
- *   • Development generates a random per-process secret, so the token is never
- *     the well-known constant and cannot be forged from outside the server.
+ * Security: trust is NEVER derived from the client-controlled Host header, and
+ * no signing secret is ever a constant shipped in source (that would let anyone
+ * forge an admin cookie offline).
+ *   • If ADMIN_SESSION_SECRET is set, it is always used — in every environment.
+ *   • In production without it we FAIL CLOSED (return null): no session can be
+ *     minted or verified, so every admin route stays locked.
+ *   • In local development without it, an ephemeral random secret is generated
+ *     once per process (sessions reset on restart). It is never a shipped
+ *     constant, so cookies cannot be forged from the public source.
  */
 let cachedDevSecret: string | null = null;
 function resolveSecret(): string | null {
   const configured = process.env.ADMIN_SESSION_SECRET?.trim();
   if (configured) return configured;
 
-  if (isProduction) return null; // fail closed — no usable secret in prod
+  if (isProduction) return null;
 
   if (!cachedDevSecret) {
     cachedDevSecret = randomBytes(32).toString('hex');
     console.warn(
       '[admin-auth] ADMIN_SESSION_SECRET is not set. Generated an ephemeral ' +
-        'development secret; admin sessions reset on restart. Set ' +
+        'local secret; admin sessions reset on restart. Set ' +
         'ADMIN_SESSION_SECRET before deploying.',
     );
   }
@@ -101,10 +98,10 @@ export function validateAdminCredentials(email: string, password: string) {
     }
   }
 
-  const expectedEmail = process.env.ADMIN_EMAIL || fallbackEmail;
-  const expectedPassword = process.env.ADMIN_PASSWORD || fallbackPassword;
+  const expectedEmail = String(process.env.ADMIN_EMAIL || fallbackEmail);
+  const expectedPassword = String(process.env.ADMIN_PASSWORD || fallbackPassword);
 
-  if (email.trim().toLowerCase() !== expectedEmail.toLowerCase()) {
+  if (String(email ?? '').trim().toLowerCase() !== expectedEmail.toLowerCase()) {
     return null;
   }
 
@@ -129,7 +126,7 @@ export async function getAdminSession() {
   return configuredSession();
 }
 
-export async function setAdminSessionCookie() {
+export async function setAdminSessionCookie(options: { secure?: boolean } = {}) {
   const secret = resolveSecret();
   if (!secret) {
     throw new Error('Cannot create admin session: ADMIN_SESSION_SECRET is not configured.');
@@ -142,7 +139,7 @@ export async function setAdminSessionCookie() {
     maxAge: 60 * 60 * 8,
     path: '/',
     sameSite: 'lax',
-    secure: isProduction,
+    secure: options.secure ?? isProduction,
   });
 }
 
