@@ -284,8 +284,8 @@ body {
 }
 
 @keyframes iso-note-float {
-  0%, 100% { transform: translateY(0) rotate(var(--note-rotate, -3deg)); }
-  50% { transform: translateY(-10px) rotate(var(--note-rotate, -3deg)); }
+  0%, 100% { transform: translateY(0) rotate(var(--note-rotate, -3deg)) scale(var(--note-scale, 1)); }
+  50% { transform: translateY(-10px) rotate(var(--note-rotate, -3deg)) scale(var(--note-scale, 1)); }
 }
 
 @keyframes iso-live-pulse {
@@ -722,6 +722,7 @@ body {
 .iso-floating-note {
   position: absolute;
   z-index: 5;
+  --note-scale: 0.5;
   top: 20%;
   left: 2%;
   display: grid;
@@ -737,24 +738,28 @@ body {
   animation: iso-note-float 4.8s ease-in-out infinite;
 }
 
+/* note-b (LIVE QUOTE) top-left, note-c (TREASURY) bottom-right, note-a (LIVE)
+   bottom-left — all kept clear of the right-side art. */
 .iso-floating-note-a {
-  top: 20%;
-  left: 2%;
-  --note-rotate: -5deg;
+  top: auto;
+  bottom: 3%;
+  left: 0;
+  right: auto;
+  --note-rotate: -4deg;
 }
 
 .iso-floating-note-b {
-  top: 42%;
-  right: -3%;
-  left: auto;
+  top: 5%;
+  left: 0;
+  right: auto;
   --note-rotate: 4deg;
   animation-delay: -1.6s;
 }
 
 .iso-floating-note-c {
   top: auto;
-  right: 1%;
-  bottom: 13%;
+  bottom: 2%;
+  right: 2%;
   left: auto;
   --note-rotate: -3deg;
   animation-delay: -3.1s;
@@ -2911,22 +2916,25 @@ body {
   }
 
   .iso-floating-note {
-    top: 12%;
+    top: auto;
+    bottom: 3%;
     left: 0;
-    min-width: 125px;
+    right: auto;
+    min-width: 118px;
     padding: 9px 10px;
   }
 
   .iso-floating-note-b {
-    top: 2%;
-    right: 0;
-    left: auto;
+    top: 5%;
+    bottom: auto;
+    left: 0;
+    right: auto;
   }
 
   .iso-floating-note-c {
     top: auto;
-    right: 8%;
-    bottom: 12%;
+    bottom: 2%;
+    right: 2%;
     left: auto;
   }
 
@@ -4622,12 +4630,12 @@ body {
 .iso-back-to-top { order: 99; }
 
 .iso-stage-shadow {
-  transform: translateX(19.5%) translateY(70%) scale(1.3) rotate(-7deg);
+  transform: translateX(16%) translateY(18%) scale(1.3) rotate(-7deg);
 }
 
 .iso-hero-main-art {
-  /* Enlarged + shifted down 20%, then reduced 35% (2.4 -> 1.56). */
-  transform: translateX(19.5%) translateY(20%) scale(1.56);
+  /* Art covers the right side of the stage at scale 1.25. */
+  transform: translateX(16%) translateY(4%) scale(1.25);
 }
 
 .iso-floating-note {
@@ -5544,11 +5552,11 @@ button.iso-product-row {
 
 @media (max-width: 640px) {
   .iso-stage-shadow {
-    transform: translateX(5%) rotate(-7deg);
+    transform: translateX(10%) translateY(12%) scale(1.18) rotate(-7deg);
   }
 
   .iso-hero-main-art {
-    transform: translateX(5%) scale(1.08);
+    transform: translateX(10%) scale(1.15);
   }
 
   .iso-tool-modal {
