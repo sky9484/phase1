@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bot, ChevronDown, Send, Sparkles, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { streamCopilot } from '../lib/copilot-client';
 
 // ─── Time-aware greeting ──────────────────────────────────────────────────────
 
@@ -165,22 +166,44 @@ export default function FloatingCopilot() {
     const now = formatChatTime();
     const userMsgId = ++msgIdRef.current;
 
+    const history = messages.map((m) => ({ role: m.role, content: m.text }));
+
     setMessages((prev) => [...prev, { id: userMsgId, role: 'user', text: trimmed, time: now }]);
     setInput('');
     setThinking(true);
 
-    setTimeout(() => {
-      const reply = matchCompactResponse(trimmed, fallbackRef);
-      setThinking(false);
-
+    void (async () => {
       const assistantMsgId = ++msgIdRef.current;
-      const replyTime = formatChatTime();
-      setMessages((prev) => [
-        ...prev,
-        { id: assistantMsgId, role: 'assistant', text: '', time: replyTime },
-      ]);
-      setStreaming(true);
+      let started = false;
+      const startAssistant = () => {
+        if (started) return;
+        started = true;
+        setThinking(false);
+        setStreaming(true);
+        setMessages((prev) => [
+          ...prev,
+          { id: assistantMsgId, role: 'assistant', text: '', time: formatChatTime() },
+        ]);
+      };
 
+      // Real streaming via /api/copilot/chat (MemWal recall + reply); local fallback.
+      const ok = await streamCopilot(trimmed, history, {
+        onDelta: (t) => {
+          startAssistant();
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantMsgId ? { ...m, text: m.text + t } : m))
+          );
+        },
+        onDone: () => setStreaming(false),
+      });
+
+      if (ok) {
+        setStreaming(false);
+        return;
+      }
+
+      const reply = matchCompactResponse(trimmed, fallbackRef);
+      startAssistant();
       let charIdx = 0;
       streamIntervalRef.current = setInterval(() => {
         charIdx += 4;
@@ -199,7 +222,7 @@ export default function FloatingCopilot() {
           );
         }
       }, 18);
-    }, 1200);
+    })();
   }
 
   return (
@@ -207,7 +230,7 @@ export default function FloatingCopilot() {
       {/* ── Chat panel (slides up above the button) ── */}
       <div
         className={cn(
-          'fixed bottom-[76px] right-4 z-50 flex w-[340px] flex-col overflow-hidden rounded-2xl border border-white/70 bg-white shadow-2xl transition-all duration-200 origin-bottom-right',
+          'fixed bottom-[76px] right-4 z-50 flex w-[360px] flex-col overflow-hidden rounded-2xl border border-[#0c3e48]/12 bg-[#fffdf9] shadow-[0_24px_60px_rgba(8,54,64,0.28)] transition-all duration-200 origin-bottom-right',
           open
             ? 'opacity-100 scale-100 pointer-events-auto'
             : 'opacity-0 scale-95 pointer-events-none'
@@ -215,13 +238,13 @@ export default function FloatingCopilot() {
         style={{ height: 480 }}
       >
         {/* Panel header */}
-        <div className="flex shrink-0 items-center justify-between bg-[#1F4452] px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between bg-gradient-to-r from-[#0c3e48] to-[#0d6370] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E39774]/20">
-              <Bot size={14} className="text-[#E39774]" />
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#efc46f]/25 ring-1 ring-[#efc46f]/40">
+              <Bot size={14} className="text-[#efc46f]" />
             </div>
             <div>
-              <div className="text-xs font-bold text-white">Splash AI Copilot</div>
+              <div className="text-xs font-bold text-white">0xWal</div>
               <div className="flex items-center gap-1.5 text-[10px] text-white/50">
                 <span
                   className={cn(
@@ -241,7 +264,7 @@ export default function FloatingCopilot() {
               type="button"
               onClick={() => setOpen(false)}
               className="text-white/50 transition-colors hover:text-white"
-              aria-label="Close AI copilot"
+              aria-label="Close 0xWal"
             >
               <X size={16} />
             </button>
@@ -271,8 +294,8 @@ export default function FloatingCopilot() {
                   className={cn(
                     'max-w-[82%] rounded-2xl px-3 py-2 text-[11px] leading-[1.45]',
                     msg.role === 'assistant'
-                      ? 'bg-[#F6F0ED] text-[#1F4452]'
-                      : 'bg-[#326273] text-white'
+                      ? 'border border-[#0c3e48]/8 bg-white text-[#0c3e48] shadow-sm'
+                      : 'bg-[#0c3e48] text-white'
                   )}
                 >
                   {isStreamingThis ? (
@@ -361,15 +384,15 @@ export default function FloatingCopilot() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={open ? 'Close AI Copilot' : `${greeting} — open AI Copilot`}
+        aria-label={open ? 'Close 0xWal' : `${greeting} — open 0xWal`}
         className={cn(
-          'fixed bottom-4 right-4 z-50 flex items-center gap-2.5 rounded-full py-3 text-white shadow-xl transition-all duration-200 hover:shadow-2xl',
-          open ? 'bg-[#326273] px-3.5' : 'bg-[#1F4452] px-4 hover:bg-[#264e5b]'
+          'fixed bottom-4 right-4 z-50 flex items-center gap-2.5 rounded-full py-3 text-white shadow-[0_12px_30px_rgba(8,54,64,0.3)] transition-all duration-200 hover:shadow-[0_16px_38px_rgba(8,54,64,0.36)]',
+          open ? 'bg-[#0c3e48] px-3.5' : 'bg-[#0c3e48] px-4 hover:brightness-110'
         )}
       >
         {/* Bot icon */}
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E39774]/20">
-          <Bot size={15} className="text-[#E39774]" />
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#efc46f]/25 ring-1 ring-[#efc46f]/40">
+          <Bot size={15} className="text-[#efc46f]" />
         </div>
 
         {/* Label (only when closed) */}
@@ -386,8 +409,8 @@ export default function FloatingCopilot() {
         {!open && (
           <span className="absolute -right-0.5 -top-0.5">
             <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E39774] opacity-60" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-[#E39774]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#efc46f] opacity-60" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-[#efc46f]" />
             </span>
           </span>
         )}

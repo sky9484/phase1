@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useState, type ReactNode } from 'react';
 import FloatingCopilot from '../../components/FloatingCopilot';
 import DashboardHeader from '../../components/DashboardHeader';
-import FintechContextBar from '@/components/FintechContextBar';
 import {
   Bot,
   FileText,
@@ -43,7 +42,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'Treasury',   href: '/dashboard/treasury', icon: TrendingUp, badge: '4.8%' },
       { label: 'Invoices',   href: '/dashboard/invoices', icon: FileText },
-      { label: 'AI Copilot', href: '/dashboard/copilot',  icon: Bot,        badge: 'New' },
+      { label: '0xWal', href: '/dashboard/copilot',  icon: Bot,        badge: 'AI' },
     ],
   },
   {
@@ -264,7 +263,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           collapsed ? 'md:ml-20' : 'md:ml-60'
         }`}
       >
-        <FintechContextBar />
         {children}
       </main>
 

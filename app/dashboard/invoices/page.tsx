@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   AlertCircle,
   Archive,
@@ -331,8 +330,8 @@ export default function InvoicesPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/walrus-logo.svg" partner="Walrus" label="Invoice Vault · Walrus" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Invoice Vault</h1>
+          <span className="dash-kicker">Invoice vault</span>
+          <h1 className="dash-title mt-2">Invoice Vault</h1>
           <p className="mt-0.5 text-xs text-[#326273]/50">
             All invoices Seal-encrypted and anchored on Walrus · 7-year minimum retention
           </p>
@@ -344,19 +343,19 @@ export default function InvoicesPage() {
       </header>
 
       {/* Stats row */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-4">
         {[
           { label: 'Total Invoices',   value: String(invoices.length),           sub: 'All time',           icon: FileText, accent: 'text-[#326273]',  bg: 'bg-[#326273]/10' },
           { label: 'Total Value',      value: totalUsd,                           sub: 'Across corridors',   icon: Archive,  accent: 'text-[#5C9EAD]',  bg: 'bg-[#5C9EAD]/10' },
           { label: 'Walrus Stored',    value: `${walrusCnt} / ${invoices.length}`,sub: 'Seal-encrypted',     icon: Database, accent: 'text-[#5C9EAD]',  bg: 'bg-[#5C9EAD]/10' },
           { label: 'On-chain Anchors', value: String(anchorCnt),                  sub: 'AuditAnchor on Sui', icon: Shield,   accent: 'text-emerald-600', bg: 'bg-emerald-100'  },
         ].map(({ label, value, sub, icon: Icon, accent, bg }) => (
-          <div key={label} className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div key={label} className="dash-block dash-block-interactive p-4">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</span>
               <div className={cn('rounded-lg p-1.5', bg)}><Icon size={14} className={accent} /></div>
             </div>
-            <div className="mt-2 text-xl font-extrabold text-[#1F4452]">{value}</div>
+            <div className="dash-num mt-2 text-xl font-extrabold text-[#0c3e48]">{value}</div>
             <div className="mt-0.5 text-[11px] font-medium text-[#5C9EAD]">{sub}</div>
           </div>
         ))}
@@ -410,7 +409,7 @@ export default function InvoicesPage() {
           </div>
 
           {/* Invoice table */}
-          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+          <div className="dash-surface overflow-hidden">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-[#326273]/8 bg-[#F6F0ED]/60">
@@ -488,7 +487,7 @@ export default function InvoicesPage() {
 
           {/* Detail panel */}
           {selected && (
-            <div className="rounded-xl border border-[#5C9EAD]/25 bg-white p-5 shadow-sm">
+            <div className="dash-surface p-5" style={{ borderColor: 'rgba(92,158,173,0.35)' }}>
 
               {/* Panel header */}
               <div className="flex items-start justify-between">
@@ -619,7 +618,7 @@ export default function InvoicesPage() {
         <aside className="space-y-4">
 
           {/* How Walrus works */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <Database size={15} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">How Walrus Protects You</h2>
@@ -647,7 +646,7 @@ export default function InvoicesPage() {
           </div>
 
           {/* Retention */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <Clock size={14} className="text-[#5C9EAD]" />
               <span className="text-sm font-bold text-[#1F4452]">7-Year Retention</span>
@@ -680,7 +679,7 @@ export default function InvoicesPage() {
           </div>
 
           {/* Audit export */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block p-4">
             <h2 className="text-sm font-bold text-[#1F4452]">Audit Export</h2>
             <p className="mt-1 text-[11px] text-[#326273]/50">
               Generate a regulator-ready report with all AuditAnchor object IDs and Merkle proofs.

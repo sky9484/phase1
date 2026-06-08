@@ -18,9 +18,9 @@ export default async function AdminTransactionsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <header className="rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm md:p-8">
-        <div className="mb-3 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">Transaction monitor</div>
-        <h1 className="text-4xl font-black tracking-[-0.04em] text-[#1f4350]">Live transfer feed</h1>
+      <header className="dash-surface p-6 md:p-8">
+        <span className="dash-kicker">Settlement monitor</span>
+        <h1 className="dash-title mt-2 text-4xl">Live transfer feed</h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-[#326273]/65">Monitor peg health, cross-border volume, fee capture, and Sui settlement transactions linked to the active package.</p>
       </header>
 
@@ -30,7 +30,7 @@ export default async function AdminTransactionsPage() {
         <MonitorCard icon={ReceiptText} label="Fees" value={`RM ${fees.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} detail="Estimated at 1.5% headline" />
       </section>
 
-      <div className="rounded-[2rem] border border-[#326273]/10 bg-white shadow-sm">
+      <div className="dash-surface">
         <div className="border-b border-[#326273]/10 p-5">
           <h2 className="text-lg font-bold text-[#1f4350]">Live Transfer Feed</h2>
         </div>
@@ -46,7 +46,7 @@ export default async function AdminTransactionsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#326273]/10 bg-white">
+      <div className="dash-surface">
         <div className="border-b border-[#326273]/10 p-5">
           <h2 className="text-lg font-bold text-[#326273]">Single transfers</h2>
         </div>
@@ -105,7 +105,7 @@ export default async function AdminTransactionsPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-[#326273]/10 bg-white">
+      <div className="dash-surface">
         <div className="border-b border-[#326273]/10 p-5">
           <h2 className="text-lg font-bold text-[#326273]">Batch payouts</h2>
         </div>
@@ -168,7 +168,7 @@ export default async function AdminTransactionsPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-[#326273]/10 bg-white">
+      <div className="dash-surface">
         <div className="border-b border-[#326273]/10 p-5">
           <h2 className="text-lg font-bold text-[#326273]">All transactions</h2>
         </div>
@@ -240,7 +240,7 @@ export default async function AdminTransactionsPage() {
 
 function MonitorCard({ icon: Icon, label, value, detail }: { icon: typeof Circle; label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm">
+    <div className="dash-block p-6">
       <Icon className="h-5 w-5 text-[#5C9EAD]" />
       <div className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[#326273]/55">{label}</div>
       <div className="mt-2 text-2xl font-black text-[#1f4350]">{value}</div>

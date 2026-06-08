@@ -2,12 +2,24 @@
 
 import { useCallback, useState } from 'react';
 import { Check, ShieldCheck, Sparkles, Timer } from 'lucide-react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
+import SettlementEngineFlow from '@/components/dashboard/SettlementEngineFlow';
 
 import StepBeneficiary from '@/components/transfer/StepBeneficiary';
 import StepQuote from '@/components/transfer/StepQuote';
 import StepReceipt from '@/components/transfer/StepReceipt';
 import StepStatus from '@/components/transfer/StepStatus';
+
+// Target-currency display metadata for the settlement-flow corridor node.
+const CURRENCY_META: Record<string, { flag: string; country: string }> = {
+  PHP: { flag: '🇵🇭', country: 'Philippines' },
+  MYR: { flag: '🇲🇾', country: 'Malaysia' },
+  IDR: { flag: '🇮🇩', country: 'Indonesia' },
+  SGD: { flag: '🇸🇬', country: 'Singapore' },
+  VND: { flag: '🇻🇳', country: 'Vietnam' },
+  THB: { flag: '🇹🇭', country: 'Thailand' },
+  EUR: { flag: '🇪🇺', country: 'Eurozone' },
+  GBP: { flag: '🇬🇧', country: 'United Kingdom' },
+};
 
 export type TransferState = {
   step: 1 | 2 | 3 | 4;
@@ -64,21 +76,33 @@ export default function TransferPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/airwallex.svg" partner="Airwallex" label="Transfer" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Send a payout</h1>
-          <p className="mt-0.5 text-xs text-[#326273]/60">
+          <span className="dash-kicker">Payment intent</span>
+          <h1 className="dash-title mt-2">Send a payout</h1>
+          <p className="mt-1 text-xs font-medium text-[#326273]/60">
             Capture a beneficiary, lock the USD quote, confirm deposit, then download the on-chain receipt.
           </p>
         </div>
-        <div className="rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-semibold text-[#326273] shadow-sm">
+        <div className="rounded-[11px] border border-[#326273]/15 bg-white/70 px-3 py-2 text-xs font-bold text-[#326273]">
           Step {state.step} of 4 · {stepLabels[state.step - 1]}
         </div>
       </header>
 
+      {/* Signature: this payout's settlement journey */}
+      <SettlementEngineFlow
+        variant="settlement"
+        className="dash-reveal"
+        corridors={[{
+          flag: CURRENCY_META[state.amount.targetCurrency]?.flag,
+          label: state.amount.targetCurrency,
+          sublabel: CURRENCY_META[state.amount.targetCurrency]?.country ?? state.recipient.country,
+        }]}
+        captions={['400ms Sui finality', 'Quote locked at signing', 'On-chain receipt']}
+      />
+
       <Stepper current={state.step} />
 
       <section className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6 md:p-8">
+        <div className="dash-surface p-6 md:p-8">
           {state.step === 1 && <StepBeneficiary state={state} set={set} next={() => go(2)} />}
           {state.step === 2 && <StepQuote state={state} set={set} prev={() => go(1)} next={() => go(3)} />}
           {state.step === 3 && <StepStatus state={state} set={set} next={() => go(4)} />}
@@ -86,7 +110,7 @@ export default function TransferPage() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-[#326273]/10 bg-[#326273] p-5 text-white">
+          <div className="rounded-2xl border border-[#0c3e48] bg-[#0c3e48] p-5 text-white shadow-[6px_7px_0_rgba(12,62,72,0.18)]">
             <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">Live transfer</div>
             <div className="mt-2 text-lg font-extrabold">
               {state.amount.value ? `$${state.amount.value}` : 'Awaiting amount'}
@@ -101,7 +125,7 @@ export default function TransferPage() {
           </div>
 
           {sidePanels.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl border border-[#326273]/10 bg-white p-4">
+            <div key={title} className="dash-block p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5C9EAD]/10 text-[#5C9EAD]">
                   <Icon className="h-4 w-4" />
@@ -130,7 +154,7 @@ function Pill({ label, value }: { label: string; value: string }) {
 
 function Stepper({ current }: { current: number }) {
   return (
-    <ol className="grid grid-cols-4 gap-0 overflow-hidden rounded-2xl border border-[#326273]/10 bg-white">
+    <ol className="dash-surface grid grid-cols-4 gap-0 overflow-hidden">
       {stepLabels.map((label, index) => {
         const step = index + 1;
         const active = step === current;
@@ -140,7 +164,7 @@ function Stepper({ current }: { current: number }) {
         return (
           <li
             key={label}
-            className={`relative flex flex-col items-center justify-center gap-1.5 px-1.5 py-3 text-center transition-colors sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-4 sm:text-left ${active ? 'bg-[#326273]/5' : 'bg-white'} ${last ? '' : 'border-r border-[#326273]/10'}`}
+            className={`relative flex flex-col items-center justify-center gap-1.5 px-1.5 py-3 text-center transition-colors sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-4 sm:text-left ${active ? 'bg-[#0c3e48]/[0.06]' : 'bg-transparent'} ${last ? '' : 'border-r border-[#326273]/10'}`}
           >
             <span
               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all sm:h-8 sm:w-8 sm:text-xs ${done

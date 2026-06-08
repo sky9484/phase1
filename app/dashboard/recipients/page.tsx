@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { CheckCircle2, Clock3, Plus, Search, XCircle, Trash2, Building2, Globe2, CreditCard, ShieldCheck, Sparkles, Users } from 'lucide-react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -75,9 +74,9 @@ export default function RecipientsPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/sumsub.svg" partner="Sumsub" label="Recipients" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Recipients &amp; Payments</h1>
-          <p className="mt-0.5 text-xs text-[#326273]/60">Manage beneficiaries and view payment history.</p>
+          <span className="dash-kicker">Global directory</span>
+          <h1 className="dash-title mt-2">Recipients &amp; Payments</h1>
+          <p className="mt-1 text-xs font-medium text-[#326273]/60">Manage beneficiaries and view payment history.</p>
         </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
@@ -88,7 +87,7 @@ export default function RecipientsPage() {
         </button>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 dash-reveal-stagger sm:grid-cols-3">
         {paymentSummary.map(({ label, count, amount, icon: Icon, tone }) => (
           <div key={label} className={`rounded-xl border p-3 ${tone}`}>
             <div className="flex items-center justify-between">
@@ -96,7 +95,7 @@ export default function RecipientsPage() {
               <Icon className="h-4 w-4" />
             </div>
             <div className="mt-2 flex items-end justify-between gap-2">
-              <div className="text-2xl font-extrabold">{count}</div>
+              <div className="dash-num text-2xl font-extrabold">{count}</div>
               <div className="text-right text-xs font-bold">{amount}</div>
             </div>
           </div>
@@ -166,7 +165,7 @@ export default function RecipientsPage() {
 
       <section className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#326273]/10 bg-white p-2">
+          <div className="dash-surface flex flex-wrap items-center gap-2 p-2">
             <button
               onClick={() => setActiveTab('recipients')}
               className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:px-4 ${activeTab === 'recipients' ? 'bg-[#326273] text-white' : 'text-[#326273] hover:bg-[#F6F0ED]'}`}
@@ -193,10 +192,10 @@ export default function RecipientsPage() {
           {activeTab === 'recipients' ? (
             <div className="space-y-3">
               {filtered.length === 0 ? (
-                <div className="rounded-xl border border-[#326273]/10 bg-white p-6 text-center text-sm text-[#326273]/60">No recipients found.</div>
+                <div className="dash-surface p-6 text-center text-sm text-[#326273]/60">No recipients found.</div>
               ) : (
                 filtered.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#326273]/10 bg-white p-3 transition-all hover:shadow-md sm:p-4">
+                  <div key={r.id} className="dash-block dash-block-interactive flex items-center justify-between gap-3 p-3 sm:p-4">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5C9EAD]/10 text-[#5C9EAD]">
                         <Building2 className="h-5 w-5" />
@@ -220,10 +219,10 @@ export default function RecipientsPage() {
           ) : (
             <div className="space-y-3">
               {payments.length === 0 ? (
-                <div className="rounded-xl border border-[#326273]/10 bg-white p-6 text-center text-sm text-[#326273]/60">No payments found.</div>
+                <div className="dash-surface p-6 text-center text-sm text-[#326273]/60">No payments found.</div>
               ) : (
                 payments.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#326273]/10 bg-white p-3 transition-all hover:shadow-md sm:p-4">
+                  <div key={p.id} className="dash-block dash-block-interactive flex items-center justify-between gap-3 p-3 sm:p-4">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${p.status === 'success' ? 'bg-[#5C9EAD]/10 text-[#5C9EAD]' : p.status === 'pending' ? 'bg-[#E39774]/10 text-[#E39774]' : 'bg-red-500/10 text-red-600'}`}>
                         {p.status === 'success' ? <CheckCircle2 className="h-5 w-5" /> : p.status === 'pending' ? <Clock3 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
@@ -245,7 +244,7 @@ export default function RecipientsPage() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+          <div className="dash-block p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold text-[#326273]">Corridor mix</h2>
@@ -283,7 +282,7 @@ export default function RecipientsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+          <div className="dash-block p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold text-[#326273]">Quick actions</h2>
@@ -303,7 +302,7 @@ export default function RecipientsPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#326273]/10 bg-white p-4">
+          <div className="dash-block p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold text-[#326273]">Beneficiary stats</h2>

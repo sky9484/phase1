@@ -21,11 +21,12 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <header className="rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm md:p-8">
+      <header className="dash-surface p-6 md:p-8">
         <div className="mb-3 inline-flex rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">admin.splash.xyz</div>
         <div className="grid gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
           <div>
-            <h1 className="text-4xl font-black tracking-[-0.04em] text-[#1f4350]">Staff operations console</h1>
+            <span className="dash-kicker">Control room</span>
+            <h1 className="dash-title mt-2 text-4xl">Staff operations console</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-[#326273]/65">Separate internal workspace for compliance approvals, manual customer operations, complaint handling, and regulator-facing review evidence.</p>
           </div>
           <div className="grid grid-cols-3 gap-2 rounded-2xl bg-[#F6F0ED] p-2 text-center">
@@ -37,7 +38,7 @@ export default async function AdminOverviewPage() {
       </header>
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <Link href={adminConsolePath('/kyb', hostname)} className="group rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[#5C9EAD]/50 hover:shadow-md">
+        <Link href={adminConsolePath('/kyb', hostname)} className="dash-block dash-block-interactive group p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5C9EAD]/10 text-[#5C9EAD]"><ClipboardCheck className="h-6 w-6" /></div>
@@ -57,7 +58,7 @@ export default async function AdminOverviewPage() {
           </div>
         </Link>
 
-        <Link href={adminConsolePath('/support', hostname)} className="group rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[#E39774]/50 hover:shadow-md">
+        <Link href={adminConsolePath('/support', hostname)} className="dash-block dash-block-interactive group p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E39774]/10 text-[#E39774]"><Headphones className="h-6 w-6" /></div>
@@ -79,7 +80,7 @@ export default async function AdminOverviewPage() {
       </section>
 
       {wallet && (
-        <section className="rounded-[2rem] border border-[#326273]/10 bg-white p-6 shadow-sm">
+        <section className="dash-surface p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5C9EAD]/10 text-[#5C9EAD]">
               <Wallet className="h-5 w-5" />
@@ -131,7 +132,7 @@ export default async function AdminOverviewPage() {
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl bg-white px-5 py-3">
-      <div className="text-2xl font-black text-[#1f4350]">{value}</div>
+      <div className="dash-num text-2xl font-black text-[#1f4350]">{value}</div>
       <div className="text-[11px] font-bold uppercase tracking-wide text-[#326273]/55">{label}</div>
     </div>
   );
@@ -139,7 +140,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function Control({ icon: Icon, title, detail }: { icon: typeof ShieldCheck; title: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-[#326273]/10 bg-white p-5 shadow-sm">
+    <div className="dash-block p-5">
       <Icon className="h-5 w-5 text-[#5C9EAD]" />
       <div className="mt-4 font-bold text-[#1f4350]">{title}</div>
       <p className="mt-2 text-sm leading-6 text-[#326273]/60">{detail}</p>

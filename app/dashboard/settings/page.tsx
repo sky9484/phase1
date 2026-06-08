@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import KybSettings from '@/components/KybSettings';
 import AmlKytHealthPreview from '@/components/compliance/AmlKytHealthPreview';
 import { AlertTriangle, CheckCircle2, FileText, KeyRound, LockKeyhole, Radar, ShieldCheck, SlidersHorizontal } from 'lucide-react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 
 export default function DashboardSettingsPage() {
   const [limits, setLimits] = useState([43, 58, 31]);
@@ -32,8 +31,8 @@ export default function DashboardSettingsPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/sumsub.svg" partner="Sumsub" label="Compliance" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Compliance, security &amp; controls</h1>
+          <span className="dash-kicker">Controls</span>
+          <h1 className="dash-title mt-2">Compliance, security &amp; controls</h1>
           <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
             Manage the controls that decide whether a transfer can be authorized, queued, reviewed, or blocked.
           </p>
@@ -44,7 +43,7 @@ export default function DashboardSettingsPage() {
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 dash-reveal-stagger md:grid-cols-4">
         <StatusCard icon={ShieldCheck} label="KYB" value="Approved" tone="text-[#5C9EAD]" />
         <StatusCard icon={Radar} label="AML / PEP" value="Active" tone="text-[#5C9EAD]" />
         <StatusCard icon={AlertTriangle} label="KYT rules" value={`${security.roles ? 6 : 4} enabled`} tone="text-[#E39774]" />
@@ -81,7 +80,7 @@ export default function DashboardSettingsPage() {
       <AmlKytHealthPreview />
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
+        <div className="dash-surface p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-[#326273]">Tier limits</h2>
@@ -96,7 +95,7 @@ export default function DashboardSettingsPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
+        <div className="dash-surface p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-[#326273]">Security controls</h2>
@@ -143,19 +142,19 @@ export default function DashboardSettingsPage() {
 
 function StatusCard({ icon: Icon, label, value, tone }: { icon: typeof ShieldCheck; label: string; value: string; tone: string }) {
   return (
-    <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
+    <div className="dash-block dash-block-interactive p-5">
       <div className="flex items-center justify-between">
-        <div className="text-xs uppercase tracking-wide text-[#326273]/60">{label}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</div>
         <Icon className={tone} size={18} />
       </div>
-      <div className="mt-3 text-2xl font-extrabold text-[#326273]">{value}</div>
+      <div className="dash-num mt-3 text-2xl font-extrabold text-[#0c3e48]">{value}</div>
     </div>
   );
 }
 
 function Panel({ icon: Icon, title, description, items }: { icon: typeof ShieldCheck; title: string; description: string; items: [string, string][] }) {
   return (
-    <div className="rounded-2xl border border-[#326273]/10 bg-white p-6">
+    <div className="dash-surface p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[#326273]">{title}</h2>

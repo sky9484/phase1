@@ -18,8 +18,8 @@ import {
 import Link from 'next/link';
 
 import HoverPopup from '@/components/HoverPopup';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 import LiveExchangeTicker from '@/components/LiveExchangeTicker';
+import SettlementEngineFlow from '@/components/dashboard/SettlementEngineFlow';
 import StatusBadge, { type Status } from '@/components/StatusBadge';
 import { cn } from '../../lib/utils';
 import { getCorridorFeeBps } from '@/lib/fx/corridors';
@@ -132,24 +132,24 @@ export default function DashboardOverview() {
       <LiveExchangeTicker />
 
       {/* Page header */}
-      <header className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <header className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/stripe.svg" partner="Stripe" label="Business console" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Overview</h1>
-          <p className="mt-0.5 text-xs text-[#326273]/45">Acme Trading Sdn Bhd · Updated just now</p>
+          <span className="dash-kicker">Operating desk</span>
+          <h1 className="dash-title mt-2">Overview</h1>
+          <p className="mt-1 text-xs font-medium text-[#326273]/55">Acme Trading Sdn Bhd · Updated just now</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status="verified" />
           <Link
             href="/dashboard/transfer"
-            className="flex items-center gap-2 rounded-lg bg-[#326273] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#264e5b]"
+            className="flex items-center gap-2 rounded-lg bg-[#0d6370] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0b5560]"
           >
             <Send size={14} />
             New Transfer
           </Link>
           <Link
             href="/dashboard/batch"
-            className="flex items-center gap-2 rounded-lg border border-[#326273]/20 bg-white px-4 py-2 text-sm font-semibold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]"
+            className="flex items-center gap-2 rounded-[11px] border border-[#326273]/20 bg-white/70 px-4 py-2.5 text-sm font-bold text-[#326273] transition-colors hover:border-[#5C9EAD] hover:bg-white"
           >
             <Layers size={14} />
             Batch Payout
@@ -157,8 +157,11 @@ export default function DashboardOverview() {
         </div>
       </header>
 
+      {/* Signature: animated settlement-engine flow */}
+      <SettlementEngineFlow variant="settlement" className="dash-reveal" />
+
       {/* Top stats row */}
-      <section className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-3 xl:grid-cols-5">
         {TOP_STATS.map(({ label, value, icon: Icon, accent, bg, id }) => {
           const displayValue =
             id === 'balance' ? `$${fmt(balance)}` :
@@ -171,14 +174,14 @@ export default function DashboardOverview() {
           const deltaGreen = id === 'yield' || id === 'corridors' || id === 'sla' || id === 'balance' || id === 'volume';
 
           return (
-            <div key={label} className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+            <div key={label} className="dash-block dash-block-interactive p-4">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</span>
                 <div className={cn('rounded-lg p-1.5', bg)}>
                   <Icon size={14} className={accent} />
                 </div>
               </div>
-              <div className="mt-2 text-xl font-extrabold text-[#1F4452]">{displayValue}</div>
+              <div className="dash-num mt-2 text-xl font-extrabold text-[#0c3e48]">{displayValue}</div>
               <div className={cn('mt-0.5 text-[11px] font-semibold', deltaGreen ? 'text-emerald-600' : 'text-[#E39774]')}>
                 {delta}
               </div>
@@ -195,7 +198,7 @@ export default function DashboardOverview() {
 
           {/* AI Copilot suggestion panel */}
           {!copilotDismissed && (
-            <div className="rounded-xl border border-[#E39774]/25 border-l-4 border-l-[#E39774] bg-white p-4 shadow-sm">
+            <div className="dash-surface p-4" style={{ borderLeft: '4px solid #E39774' }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 rounded-lg bg-[#E39774]/15 p-2">
@@ -203,7 +206,7 @@ export default function DashboardOverview() {
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-bold text-[#1F4452]">AI Copilot</span>
+                      <span className="text-sm font-bold text-[#1F4452]">0xWal</span>
                       <span className="rounded-full bg-[#E39774]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#C97A56]">
                         MemWal · Claude
                       </span>
@@ -254,7 +257,7 @@ export default function DashboardOverview() {
           )}
 
           {/* Settlement pipeline */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-surface p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-[#1F4452]">Settlement Pipeline</h2>
               <span className="rounded-full bg-[#326273]/8 px-2.5 py-1 text-[11px] font-semibold text-[#326273]/60">
@@ -276,7 +279,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Live corridors table */}
-          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+          <div className="dash-surface overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#326273]/8 px-4 py-3">
               <h2 className="text-sm font-bold text-[#1F4452]">Live Corridors</h2>
               <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#326273]/50">
@@ -345,7 +348,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Recent transactions table */}
-          <div className="overflow-hidden rounded-xl border border-white/70 bg-white shadow-sm">
+          <div className="dash-surface overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
               <h2 className="text-sm font-bold text-[#1F4452]">Recent Transactions</h2>
               <Link
@@ -399,7 +402,7 @@ export default function DashboardOverview() {
         <aside className="space-y-4">
 
           {/* Smart Treasury */}
-          <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+          <div className="dash-block dash-block-accent dash-block-interactive p-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-lg bg-emerald-100 p-2">
@@ -459,7 +462,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Compliance posture */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <ShieldCheck size={16} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">Compliance</h2>
@@ -480,7 +483,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Pending actions */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-[#E39774]" />
               <h2 className="text-sm font-bold text-[#1F4452]">Pending Actions</h2>
@@ -514,7 +517,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Invoice upload (Walrus) */}
-          <div className="rounded-xl border border-white/70 bg-white p-4 shadow-sm">
+          <div className="dash-block dash-block-interactive p-4">
             <div className="flex items-center gap-2">
               <FileText size={16} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">Upload Invoice</h2>

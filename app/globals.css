@@ -3973,10 +3973,13 @@ body {
 /* Dashboard and admin operating system */
 .fintech-dashboard-shell,
 .fintech-admin-shell {
-  --fintech-ink: #123f49;
+  --fintech-ink: #0c3e48;
+  --fintech-ink-deep: #083640;
   --fintech-teal: #2b6f7c;
   --fintech-mint: #9fcfc7;
+  --fintech-gold: #efc46f;
   --fintech-paper: #fffaf2;
+  --fintech-line: rgba(12, 62, 72, .16);
   position: relative;
   isolation: isolate;
 }
@@ -4058,6 +4061,292 @@ body {
 .fintech-dashboard-main table,
 .fintech-admin-main table {
   font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Calibrated dashboard card system (landing-aligned)
+   Mirrors the .iso-* landing language: warm paper surfaces, hairline
+   borders, hard-offset "block" shadows on feature/stat cards, and softer
+   elevation on dense data panels so tables/forms stay scannable. Pilot
+   pages opt in via these classes instead of raw `bg-white`.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Data panels / tables / forms — calm, readable. */
+.dash-surface {
+  position: relative;
+  border: 1px solid var(--fintech-line);
+  border-radius: 16px;
+  background-color: rgba(255, 253, 249, .93);
+  box-shadow: 0 15px 42px rgba(9, 45, 54, .055);
+  backdrop-filter: blur(14px);
+}
+
+/* Feature / hero / stat cards — confident block shadow + hover lift. */
+.dash-block {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--fintech-line);
+  border-radius: 16px;
+  background-color: rgba(255, 253, 249, .93);
+  box-shadow:
+    6px 7px 0 rgba(12, 62, 72, .10),
+    0 22px 44px rgba(8, 54, 64, .07);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.dash-block-interactive:hover {
+  transform: translateY(-4px);
+  border-color: rgba(13, 99, 112, .45);
+  box-shadow:
+    9px 11px 0 rgba(12, 62, 72, .12),
+    0 30px 56px rgba(8, 54, 64, .10);
+}
+
+/* Highlighted variant — gold/mint inner sheen like .iso-layer-card::before. */
+.dash-block-accent::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(159, 207, 199, .2), transparent 46%);
+}
+.dash-block-accent > * { position: relative; z-index: 1; }
+
+/* Micro-label: mono uppercase with gold left-accent (mirrors .iso-kicker). */
+.dash-kicker {
+  display: inline-flex;
+  align-items: center;
+  border-left: 3px solid var(--fintech-gold);
+  padding-left: 9px;
+  color: var(--fintech-teal);
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* Section / page heading — bold, tight tracking (mirrors .iso-section-title). */
+.dash-title {
+  color: var(--fintech-ink);
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 950;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+}
+
+/* Tabular numerals for stat values. */
+.dash-num { font-variant-numeric: tabular-nums; }
+
+/* Entrance motion (Melio/Mercury). Transform-only so content is NEVER left
+   invisible — even when the dashboard's loading.tsx mounts it inside a
+   display:none wrapper (which would freeze an opacity-based reveal at 0). */
+@keyframes dash-rise {
+  from { transform: translateY(14px); }
+  to   { transform: translateY(0); }
+}
+.dash-reveal { animation: dash-rise .5s ease both; }
+.dash-reveal-stagger > * { animation: dash-rise .5s ease both; }
+.dash-reveal-stagger > *:nth-child(1) { animation-delay: .04s; }
+.dash-reveal-stagger > *:nth-child(2) { animation-delay: .10s; }
+.dash-reveal-stagger > *:nth-child(3) { animation-delay: .16s; }
+.dash-reveal-stagger > *:nth-child(4) { animation-delay: .22s; }
+.dash-reveal-stagger > *:nth-child(5) { animation-delay: .28s; }
+.dash-reveal-stagger > *:nth-child(6) { animation-delay: .34s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-reveal,
+  .dash-reveal-stagger > *,
+  .dash-block-interactive { animation: none; transition: none; }
+}
+
+/* ─── Settlement-engine flow diagram (SettlementEngineFlow.tsx) ─────────── */
+.dash-flow { padding: 20px 22px 24px; }
+
+.dash-flow-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dash-flow-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--fintech-teal);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dash-flow-caption i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #35a66f;
+  box-shadow: 0 0 0 3px rgba(53, 166, 111, .16);
+}
+
+.dash-flow-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(44px, .7fr) auto minmax(44px, .7fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 4px;
+  min-height: 220px;
+}
+
+.dash-flow-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dash-flow-col-label {
+  text-align: center;
+  color: rgba(12, 62, 72, .45);
+  font-family: var(--font-mono), monospace;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.dash-flow-stack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.dash-flow-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--fintech-line);
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 3px 3px 0 rgba(12, 62, 72, .07);
+}
+
+.dash-flow-col-dests .dash-flow-node {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.dash-flow-node-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--fintech-line);
+  border-radius: 9px;
+  background: var(--fintech-paper);
+}
+
+.dash-flow-node-logo { max-width: 30px; max-height: 22px; object-fit: contain; }
+.dash-flow-node-flag { font-size: 18px; line-height: 1; }
+.dash-flow-node-initial { color: var(--fintech-teal); font-weight: 900; }
+
+.dash-flow-node-copy { display: grid; gap: 1px; min-width: 0; }
+.dash-flow-node-copy strong {
+  color: var(--fintech-ink);
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+.dash-flow-node-copy small { color: rgba(12, 62, 72, .55); font-size: 10px; }
+
+.dash-flow-wires { width: 100%; height: 100%; min-height: 180px; }
+.dash-flow-wire-base { fill: none; stroke: rgba(12, 62, 72, .14); stroke-width: 1.5; }
+.dash-flow-wire-flow {
+  fill: none;
+  stroke: var(--fintech-teal);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 5 13;
+  animation: dash-flow-move 1.1s linear infinite;
+}
+
+@keyframes dash-flow-move { to { stroke-dashoffset: -18; } }
+
+.dash-flow-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding-inline: 6px;
+  text-align: center;
+}
+
+.dash-flow-core-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 101px;
+  height: 101px;
+  border-radius: 50%;
+  border: 1px solid var(--fintech-line);
+  background: radial-gradient(circle at 50% 38%, rgba(159, 207, 199, .4), rgba(255, 250, 242, .95) 70%);
+  box-shadow: 5px 6px 0 rgba(12, 62, 72, .12), 0 16px 30px rgba(8, 54, 64, .12);
+}
+
+.dash-flow-core-orb img {
+  max-width: 54px;
+  max-height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 5px rgba(8, 54, 64, .18));
+}
+
+.dash-flow-core-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(13, 99, 112, .4);
+  animation: dash-flow-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dash-flow-pulse {
+  0%, 100% { opacity: .5; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+.dash-flow-core strong {
+  color: var(--fintech-ink);
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: -.02em;
+}
+
+.dash-flow-core small {
+  max-width: 130px;
+  color: var(--fintech-teal);
+  font-family: var(--font-mono), monospace;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .dash-flow-stage { grid-template-columns: 1fr; gap: 12px; }
+  .dash-flow-wires { display: none; }
+  .dash-flow-col-dests .dash-flow-node { flex-direction: row; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-flow-wire-flow { animation: none; stroke-dasharray: none; opacity: .6; }
+  .dash-flow-core-ring { animation: none; }
 }
 
 .fintech-context-bar {
@@ -4238,28 +4527,28 @@ body {
   transform: scale(1.35);
 }
 
-.fintech-dashboard-main button:is([class*="px-"], [class*="py-"], [class*="w-full"], [class*="flex-1"]):not([class*="rounded-full"]),
-.fintech-dashboard-header button:is([class*="px-"], [class*="py-"]):not([class*="rounded-full"]) {
-  border: 1px solid rgba(255, 250, 241, .22) !important;
-  border-radius: 11px !important;
-  color: #fffaf1 !important;
-  background: #083640 !important;
-  box-shadow: 4px 5px 0 rgba(92, 158, 173, .4) !important;
-  font-weight: 850 !important;
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+/* Modern, flat button default — applies ONLY to action buttons that don't set
+   their own background/border. Buttons with explicit Tailwind colors (teal,
+   emerald, orange, slate, outline) keep them. No black, no extruded shadow. */
+.fintech-dashboard-main button:is([class*="px-"], [class*="py-"], [class*="w-full"], [class*="flex-1"]):not([class*="rounded-full"]):not([class*="bg-"]):not([class*="border"]),
+.fintech-dashboard-header button:is([class*="px-"], [class*="py-"]):not([class*="rounded-full"]):not([class*="bg-"]):not([class*="border"]) {
+  border-radius: 10px;
+  color: #fffaf1;
+  background: #0d6370;
+  box-shadow: 0 1px 2px rgba(8, 54, 64, .12), 0 10px 20px -12px rgba(8, 54, 64, .5);
+  font-weight: 700;
+  transition: filter .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
-.fintech-dashboard-main button:is([class*="px-"], [class*="py-"], [class*="w-full"], [class*="flex-1"]):not([class*="rounded-full"]):hover,
-.fintech-dashboard-header button:is([class*="px-"], [class*="py-"]):not([class*="rounded-full"]):hover {
-  filter: brightness(1.1);
-  box-shadow: 2px 3px 0 rgba(92, 158, 173, .42) !important;
-  transform: translateY(2px);
+.fintech-dashboard-main button:is([class*="px-"], [class*="py-"], [class*="w-full"], [class*="flex-1"]):not([class*="rounded-full"]):not([class*="bg-"]):not([class*="border"]):hover,
+.fintech-dashboard-header button:is([class*="px-"], [class*="py-"]):not([class*="rounded-full"]):not([class*="bg-"]):not([class*="border"]):hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
 }
 
 .fintech-dashboard-main button:disabled,
 .fintech-dashboard-header button:disabled {
-  filter: grayscale(.25);
-  opacity: .52;
+  opacity: .5;
 }
 
 @media (max-width: 900px) {

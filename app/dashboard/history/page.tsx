@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -122,7 +121,7 @@ function TransferCard({ record }: { record: TransferIntentRecord }) {
     : null;
 
   return (
-    <div className="rounded-2xl border border-[#326273]/10 bg-white p-5 transition-all hover:border-[#5C9EAD]/30 hover:shadow-lg hover:shadow-[#5C9EAD]/10">
+    <div className="dash-block dash-block-interactive p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 shrink-0">
@@ -251,8 +250,8 @@ export default function HistoryPage() {
       {/* Header */}
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/walrus-logo.svg" partner="Walrus" label="Transfer History" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">History</h1>
+          <span className="dash-kicker">Settlement history</span>
+          <h1 className="dash-title mt-2">History</h1>
           <p className="mt-0.5 max-w-xl text-xs text-[#326273]/60">
             All your single transfers — live status, on-chain proofs, and failure reasons.
           </p>
@@ -278,22 +277,22 @@ export default function HistoryPage() {
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Total</div>
-          <div className="mt-2 text-2xl font-extrabold text-[#326273]">{data?.total ?? 0}</div>
+      <div className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-4">
+        <div className="dash-block dash-block-interactive p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">Total</div>
+          <div className="dash-num mt-2 text-2xl font-extrabold text-[#326273]">{data?.total ?? 0}</div>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Pending</div>
-          <div className="mt-2 text-2xl font-extrabold text-[#E39774]">{counts.pending}</div>
+        <div className="dash-block dash-block-interactive p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">Pending</div>
+          <div className="dash-num mt-2 text-2xl font-extrabold text-[#E39774]">{counts.pending}</div>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Settled</div>
-          <div className="mt-2 text-2xl font-extrabold text-[#5C9EAD]">{counts.successful}</div>
+        <div className="dash-block dash-block-interactive p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">Settled</div>
+          <div className="dash-num mt-2 text-2xl font-extrabold text-[#5C9EAD]">{counts.successful}</div>
         </div>
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-[#326273]/50">Failed</div>
-          <div className="mt-2 text-2xl font-extrabold text-red-500">{counts.failed}</div>
+        <div className="dash-block dash-block-interactive p-4">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">Failed</div>
+          <div className="dash-num mt-2 text-2xl font-extrabold text-red-500">{counts.failed}</div>
         </div>
       </div>
 
@@ -330,7 +329,7 @@ export default function HistoryPage() {
           <Loader2 className="animate-spin text-[#5C9EAD]" size={28} />
         </div>
       ) : !data?.items.length ? (
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-16 text-center">
+        <div className="dash-surface p-16 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5C9EAD]/10 text-[#5C9EAD]">
             <History size={24} />
           </div>

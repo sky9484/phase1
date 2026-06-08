@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   ArrowRight,
   Bot,
@@ -21,6 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '../../../lib/utils';
+import { streamCopilot } from '@/lib/copilot-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: 1,
     role: 'assistant',
-    text: "Good morning! I'm your Splash AI Copilot, powered by Claude and grounded in your MemWal behavioral memory.\n\nI've analysed your last 8 weeks of payment activity. You have a Friday morning PHP payroll batch pattern that I can pre-stage for you — current PHP rate (56.42) is within 0.3% of your 30-day best. Splash fee: 0.80%.\n\nWant me to draft the Friday batch?",
+    text: "Good morning! I'm 0xWal, your Splash copilot — powered by Claude and grounded in your MemWal behavioral memory.\n\nI've analysed your last 8 weeks of payment activity. You have a Friday morning PHP payroll batch pattern that I can pre-stage for you — current PHP rate (56.42) is within 0.3% of your 30-day best. Splash fee: 0.80%.\n\nWant me to draft the Friday batch?",
     time: '09:01',
   },
   {
@@ -378,6 +378,7 @@ export default function CopilotPage() {
   const [notifyOn,     setNotifyOn]     = useState(true);
   const [retention,    setRetention]    = useState('8 weeks');
   const [syncing,      setSyncing]      = useState(false);
+  const [memStatus,    setMemStatus]    = useState<string | null>(null);
 
   const scrollRef        = useRef<HTMLDivElement>(null);
   const inputRef         = useRef<HTMLInputElement>(null);
@@ -415,28 +416,55 @@ export default function CopilotPage() {
     setInput('');
     setThinking(true);
 
-    const delay = 1500;
+    const history = messages.map((m) => ({ role: m.role, content: m.text }));
 
-    setTimeout(() => {
-      const reply = matchResponse(trimmed, fallbackIdxRef);
-      setThinking(false);
-
+    void (async () => {
       const assistantMsgId = ++msgIdRef.current;
-      const replyTime = formatChatTime();
+      let started = false;
+      const startAssistant = () => {
+        if (started) return;
+        started = true;
+        setThinking(false);
+        setStreaming(true);
+        setMessages((prev) => [
+          ...prev,
+          { id: assistantMsgId, role: 'assistant', text: '', time: formatChatTime() },
+        ]);
+      };
 
-      setMessages((prev) => [
-        ...prev,
-        { id: assistantMsgId, role: 'assistant', text: '', time: replyTime },
-      ]);
-      setStreaming(true);
+      // Real streaming: MemWal recall + (Claude or grounded) reply via SSE.
+      const ok = await streamCopilot(trimmed, history, {
+        onMeta: (meta) =>
+          setMemStatus(
+            !meta.memwalEnabled
+              ? null
+              : meta.memoryCount > 0
+              ? `MemWal · ${meta.memoryCount} ${meta.memoryCount === 1 ? 'memory' : 'memories'} recalled`
+              : 'MemWal · synced',
+          ),
+        onDelta: (t) => {
+          startAssistant();
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantMsgId ? { ...m, text: m.text + t } : m)),
+          );
+        },
+        onDone: () => setStreaming(false),
+      });
 
+      if (ok) {
+        setStreaming(false);
+        return;
+      }
+
+      // Local fallback (network/route unavailable) — char-stream a canned reply.
+      const reply = matchResponse(trimmed, fallbackIdxRef);
+      startAssistant();
       let charIdx = 0;
       streamIntervalRef.current = setInterval(() => {
         charIdx += 4;
         if (charIdx >= reply.length) {
-          // Finalize
           setMessages((prev) =>
-            prev.map((m) => (m.id === assistantMsgId ? { ...m, text: reply } : m))
+            prev.map((m) => (m.id === assistantMsgId ? { ...m, text: reply } : m)),
           );
           if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
           streamIntervalRef.current = null;
@@ -444,12 +472,12 @@ export default function CopilotPage() {
         } else {
           setMessages((prev) =>
             prev.map((m) =>
-              m.id === assistantMsgId ? { ...m, text: reply.slice(0, charIdx) } : m
-            )
+              m.id === assistantMsgId ? { ...m, text: reply.slice(0, charIdx) } : m,
+            ),
           );
         }
       }, 18);
-    }, delay);
+    })();
   }
 
   function handleFormSubmit(e: React.FormEvent) {
@@ -473,8 +501,8 @@ export default function CopilotPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/pyth.svg" partner="Pyth" label="AI Copilot · MemWal + Claude" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">AI Copilot</h1>
+          <span className="dash-kicker">AI copilot · MemWal</span>
+          <h1 className="dash-title mt-2">0xWal</h1>
           <p className="mt-0.5 text-xs text-[#326273]/50">
             Powered by Claude · grounded in your behavioral memory via MemWal
           </p>
@@ -492,14 +520,20 @@ export default function CopilotPage() {
 
           {/* Active suggestions */}
           {visibleSuggestions.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-[#326273]/40">
-                {visibleSuggestions.length} active recommendation{visibleSuggestions.length !== 1 ? 's' : ''}
-              </p>
-              {visibleSuggestions.map((s) => (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[#326273]/40">
+                  {visibleSuggestions.length} active recommendation{visibleSuggestions.length !== 1 ? 's' : ''}
+                </p>
+                {visibleSuggestions.length > 1 && (
+                  <span className="text-[10px] font-semibold text-[#326273]/35">swipe to browse →</span>
+                )}
+              </div>
+              <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none]">
+                {visibleSuggestions.map((s) => (
                 <div
                   key={s.id}
-                  className={cn('rounded-xl border border-l-4 p-3 shadow-sm', URGENCY_STYLES[s.urgency])}
+                  className={cn('w-[88%] shrink-0 snap-center rounded-xl border border-l-4 p-3.5 shadow-sm sm:w-[400px]', URGENCY_STYLES[s.urgency])}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
@@ -538,27 +572,28 @@ export default function CopilotPage() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           )}
 
           {/* Chat panel */}
-          <div className="dash-card-raised flex flex-col overflow-hidden" style={{ minHeight: 500 }}>
+          <div className="dash-surface flex flex-col overflow-hidden" style={{ minHeight: 500 }}>
 
             {/* Chat header */}
-            <div className="flex items-center justify-between border-b border-[#326273]/8 bg-gradient-to-r from-[#F6F0ED]/80 via-white to-white px-4 py-3">
+            <div className="flex items-center justify-between border-b border-[#0c3e48]/15 bg-gradient-to-r from-[#0c3e48] to-[#0d6370] px-4 py-3 text-white">
               <div className="flex items-center gap-2.5">
-                <div className="rounded-lg bg-[#E39774]/15 p-1.5">
-                  <Bot size={15} className="text-[#C97A56]" />
+                <div className="rounded-lg bg-[#efc46f]/25 p-1.5 ring-1 ring-[#efc46f]/40">
+                  <Bot size={15} className="text-[#efc46f]" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-[#1F4452]">Splash AI Copilot</div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-[#326273]/45">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                    {streaming ? 'Typing…' : thinking ? 'Thinking…' : 'Active · MemWal synced'}
+                  <div className="text-xs font-bold text-white">0xWal</div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/55">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    {streaming ? 'Typing…' : thinking ? 'Recalling memory…' : (memStatus ?? 'Active · MemWal synced')}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-[#326273]/40">
+              <div className="flex items-center gap-1.5 text-[10px] text-white/45">
                 <Sparkles size={11} /> Claude · MemWal v2
               </div>
             </div>
@@ -584,8 +619,8 @@ export default function CopilotPage() {
                       className={cn(
                         'max-w-[82%] rounded-2xl px-3.5 py-2.5 text-xs leading-5',
                         msg.role === 'assistant'
-                          ? 'border border-[#326273]/8 bg-white text-[#1F4452] shadow-sm'
-                          : 'bg-gradient-to-br from-[#326273] to-[#3C7388] text-white shadow-sm'
+                          ? 'border border-[#0c3e48]/8 bg-white text-[#1F4452] shadow-sm'
+                          : 'bg-gradient-to-br from-[#0c3e48] to-[#0d6370] text-white shadow-sm'
                       )}
                     >
                       {msg.role === 'assistant' ? (
@@ -671,7 +706,7 @@ export default function CopilotPage() {
         <aside className="space-y-4">
 
           {/* MemWal memory */}
-          <div className="dash-card p-4">
+          <div className="dash-block p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Brain size={15} className="text-[#5C9EAD]" />
@@ -714,7 +749,7 @@ export default function CopilotPage() {
           </div>
 
           {/* Settings */}
-          <div className="dash-card p-4">
+          <div className="dash-block p-4">
             <h2 className="text-sm font-bold text-[#1F4452]">Copilot Settings</h2>
             <div className="mt-3 space-y-3">
               {[
@@ -774,7 +809,7 @@ export default function CopilotPage() {
           </div>
 
           {/* What MemWal stores */}
-          <div className="dash-card p-4">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <Lock size={14} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">What MemWal Stores</h2>

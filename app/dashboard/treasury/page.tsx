@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import DashboardPageLogo from '@/components/DashboardPageLogo';
+import SettlementEngineFlow from '@/components/dashboard/SettlementEngineFlow';
 import {
   AlertCircle,
   ArrowDownLeft,
@@ -198,9 +198,9 @@ export default function TreasuryPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/sui-logo-iso.svg" partner="Sui" label="Smart Treasury" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Smart Treasury</h1>
-          <p className="mt-0.5 text-xs text-[#326273]/50">
+          <span className="dash-kicker">Smart treasury</span>
+          <h1 className="dash-title mt-2">Smart Treasury</h1>
+          <p className="mt-1 text-xs font-medium text-[#326273]/55">
             Idle USD earns 4.8% APY automatically · powered by USDsui on Sui
           </p>
         </div>
@@ -210,20 +210,23 @@ export default function TreasuryPage() {
         </div>
       </header>
 
+      {/* Signature: treasury flow */}
+      <SettlementEngineFlow variant="treasury" className="dash-reveal" />
+
       {/* Stat cards */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-4">
         {[
           { label: 'Treasury Balance', val: `$${fmtUsd(balance)}`,          sub: 'USDsui staked',          icon: Wallet,    bg: 'bg-[#5C9EAD]/10', ac: 'text-[#5C9EAD]', subTone: 'muted' as const },
           { label: 'APY',              val: '4.8%',                          sub: autoCompound ? 'Auto-compound on · 4.91% eff.' : 'Simple interest', icon: TrendingUp, bg: 'bg-[#D9A441]/15', ac: 'text-[#C99A2E]', subTone: 'positive' as const },
           { label: 'Yield Earned (30d)',val: `$${yield30d.toFixed(2)}`,      sub: 'Credited daily at 00:01', icon: Sparkles,  bg: 'bg-[#6FB4A0]/18', ac: 'text-[#4F9C88]', subTone: 'positive' as const },
           { label: 'Days Active',      val: '31',                            sub: 'Since 27 Apr 2026',       icon: Clock,     bg: 'bg-[#326273]/10', ac: 'text-[#326273]', subTone: 'muted' as const },
         ].map(({ label, val, sub, icon: Icon, bg, ac, subTone }) => (
-          <div key={label} className="dash-card dash-card-interactive p-4">
+          <div key={label} className="dash-block dash-block-interactive p-4">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-[#326273]/50">{label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</span>
               <div className={cn('rounded-lg p-1.5', bg)}><Icon size={14} className={ac} /></div>
             </div>
-            <div className="mt-2 text-xl font-extrabold text-[#1F4452]">{val}</div>
+            <div className="dash-num mt-2 text-xl font-extrabold text-[#0c3e48]">{val}</div>
             <div className={cn('mt-0.5 text-[11px] font-medium', subTone === 'positive' ? 'text-emerald-600' : 'text-[#326273]/55')}>{sub}</div>
           </div>
         ))}
@@ -236,7 +239,7 @@ export default function TreasuryPage() {
         <div className="space-y-5">
 
           {/* Yield chart — interactive */}
-          <div className="dash-card-raised p-5">
+          <div className="dash-surface p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -378,7 +381,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Transaction history */}
-          <div className="dash-card overflow-hidden">
+          <div className="dash-surface overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
               <h2 className="text-sm font-bold text-[#1F4452]">Treasury Activity</h2>
               <button
@@ -423,7 +426,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* How Smart Treasury Works */}
-          <div className="dash-card overflow-hidden">
+          <div className="dash-surface overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-5 py-3">
               <div className="flex items-center gap-2">
                 <Sprout size={14} className="text-emerald-600" />
@@ -494,7 +497,7 @@ export default function TreasuryPage() {
         <aside className="space-y-4">
 
           {/* Deposit / Withdraw form */}
-          <div className="dash-card p-4">
+          <div className="dash-surface p-4">
             <div className="flex rounded-lg bg-[#F6F0ED] p-1">
               {(['deposit', 'withdraw'] as const).map((t) => (
                 <button
@@ -576,7 +579,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Auto-compound toggle */}
-          <div className="dash-card p-4">
+          <div className="dash-block p-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold text-[#1F4452]">Auto-compound</div>
@@ -613,7 +616,7 @@ export default function TreasuryPage() {
           </div>
 
           {/* Risk & compliance */}
-          <div className="dash-card p-4">
+          <div className="dash-block p-4">
             <div className="flex items-center gap-2">
               <ShieldCheck size={15} className="text-[#5C9EAD]" />
               <h2 className="text-sm font-bold text-[#1F4452]">Risk & Compliance</h2>
@@ -642,8 +645,8 @@ export default function TreasuryPage() {
           <div className="space-y-2">
             {[
               { label: 'View on Sui Explorer',   icon: Info,       href: 'https://suiscan.xyz/testnet' },
-              { label: 'Labuan FSA application', icon: Landmark,   href: '#' },
-              { label: 'OtterSec smart contract audit', icon: ShieldCheck, href: '#' },
+              { label: 'Labuan FSA application', icon: Landmark,   href: 'https://www.labuanfsa.gov.my' },
+              { label: 'OtterSec smart contract audit', icon: ShieldCheck, href: 'https://osec.io' },
             ].map(({ label, icon: Icon, href }) => (
               <a
                 key={label}

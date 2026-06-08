@@ -6,7 +6,7 @@ import Papa from "papaparse";
 import { toast } from "sonner";
 
 import HoverPopup from "@/components/HoverPopup";
-import DashboardPageLogo from "@/components/DashboardPageLogo";
+import SettlementEngineFlow from "@/components/dashboard/SettlementEngineFlow";
 
 type ComplianceResult = "PASS" | "REVIEW" | "BLOCK";
 
@@ -278,8 +278,8 @@ export default function BatchPage() {
     <div className="mx-auto w-full max-w-6xl space-y-5">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <DashboardPageLogo src="/isometric/sui-logo-iso.svg" partner="Sui" label="Batch payout" />
-          <h1 className="text-2xl font-extrabold text-[#1F4452]">Upload, screen, authorize</h1>
+          <span className="dash-kicker">Batch operations</span>
+          <h1 className="dash-title mt-2">Upload, screen, authorize</h1>
           <p className="mt-0.5 max-w-2xl text-xs text-[#326273]/60">
             Upload a CSV with columns <code className="font-mono">name,address,amount,country,purpose</code>. Splash preflights AML, KYT, limits, corridor &amp; purpose-code checks before TOTP authorization.
           </p>
@@ -289,7 +289,9 @@ export default function BatchPage() {
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <SettlementEngineFlow variant="batch" className="dash-reveal" />
+
+      <section className="grid gap-4 dash-reveal-stagger md:grid-cols-4">
         <HoverPopup title="Rows cleared" content="Beneficiaries that passed all AML, KYT, corridor, and purpose-code checks. These rows will be included in the batch authorization.">
           <SummaryCard icon={ShieldCheck} label="Rows cleared" value={String(acceptedRows.length)} tone="text-[#5C9EAD]" />
         </HoverPopup>
@@ -304,7 +306,7 @@ export default function BatchPage() {
         </HoverPopup>
       </section>
 
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#5C9EAD]/40 bg-white p-8 text-center hover:border-[#5C9EAD] md:p-10">
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#5C9EAD]/40 bg-white/50 p-8 text-center transition-colors hover:border-[#5C9EAD] hover:bg-[#5C9EAD]/5 md:p-10">
         <Upload className="text-[#5C9EAD]" />
         <span className="font-semibold text-[#326273]">{rows.length ? `${rows.length} rows loaded — upload another CSV to replace` : "Click to upload CSV"}</span>
         <span className="text-xs text-[#326273]/50">Supported corridors: MY, PH, ID, SG, VN, TH, EU, GB · Amounts in USD</span>
@@ -312,7 +314,7 @@ export default function BatchPage() {
       </label>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="overflow-hidden rounded-2xl border border-[#326273]/10 bg-white">
+        <div className="dash-surface overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-[#326273]/10 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-bold text-[#326273]">CSV format example</h2>
@@ -360,7 +362,7 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
+        <div className="dash-surface p-5">
           <div className="mb-4">
             <h2 className="text-lg font-bold text-[#326273]">Why batch payout wins</h2>
             <p className="mt-1 text-xs text-[#326273]/60">Concrete reasons treasury teams move payroll and vendor runs through Splash batches.</p>
@@ -384,7 +386,7 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
       {rows.length > 0 && (
         <>
           <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="overflow-hidden rounded-2xl border border-[#326273]/10 bg-white">
+            <div className="dash-surface overflow-hidden">
               <div className="border-b border-[#326273]/10 p-5">
                 <h2 className="text-xl font-bold text-[#326273]">Preflight results</h2>
                 <p className="mt-1 text-sm text-[#326273]/60">Only rows marked cleared are included in this authorization request.</p>
@@ -425,7 +427,7 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
+              <div className="dash-surface p-5">
                 <h2 className="text-xl font-bold text-[#326273]">Authorization summary</h2>
                 <div className="mt-4 space-y-3 text-sm">
                   <Row label="Uploaded total" value={`$${total.toFixed(2)}`} />
@@ -455,7 +457,7 @@ ${sampleCsvRows.map((row) => `${row.name},${row.address},${row.country},${row.pu
                 {batchStatus && <BatchStatusPanel status={batchStatus} />}
               </div>
 
-              <div className="rounded-2xl border border-[#326273]/10 bg-white p-5">
+              <div className="dash-surface p-5">
                 <h2 className="text-xl font-bold text-[#326273]">AML / KYT controls</h2>
                 <div className="mt-4 space-y-3">
                   <Control label="Sanctions / PEP" detail="Screens every beneficiary before authorization." />
@@ -565,12 +567,12 @@ function BatchStatusPanel({ status }: { status: BatchStatus }) {
 
 function SummaryCard({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: string; value: string; tone: string }) {
   return (
-    <div className="cursor-pointer rounded-2xl border border-[#326273]/10 bg-white p-5 transition-all hover:shadow-lg hover:shadow-[#5C9EAD]/10 hover:border-[#5C9EAD]/30">
+    <div className="dash-block dash-block-interactive cursor-pointer p-5">
       <div className="flex items-center justify-between">
-        <div className="text-xs uppercase tracking-wide text-[#326273]/60">{label}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</div>
         <Icon className={tone} size={18} />
       </div>
-      <div className="mt-3 text-2xl font-extrabold text-[#326273]">{value}</div>
+      <div className="dash-num mt-3 text-2xl font-extrabold text-[#0c3e48]">{value}</div>
     </div>
   );
 }
