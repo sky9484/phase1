@@ -85,7 +85,7 @@ function matchCompactResponse(
   input: string,
   fallbackRef: React.MutableRefObject<number>
 ): string {
-  const q = input.toLowerCase();
+  const q = String(input ?? '').toLowerCase();
   for (const { keywords, reply } of COMPACT_RESPONSES) {
     if (keywords.some((k) => q.includes(k))) return reply;
   }

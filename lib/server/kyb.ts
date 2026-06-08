@@ -136,7 +136,7 @@ export function findLatestKybCase(input: { businessName?: string; registrationNu
 
   return listKybCases().find((record) => {
     const matchesRegistration = registrationNumber ? record.registrationNumber === registrationNumber : false;
-    const matchesBusinessName = businessName ? record.businessName.toLowerCase() === businessName : false;
+    const matchesBusinessName = businessName ? String(record.businessName ?? '').toLowerCase() === businessName : false;
 
     return matchesRegistration || matchesBusinessName;
   }) ?? null;
@@ -208,7 +208,7 @@ export function reviewKybCase(caseId: string, input: { state: KybReviewState; ac
   record.decisionReason = input.state === 'APPROVED' ? null : note ?? record.decisionReason;
   record.riskTier = input.state === 'APPROVED' ? 'TIER_1' : input.state === 'REJECTED' ? 'RESTRICTED' : record.riskTier;
   record.corridorAccess = input.state === 'APPROVED' ? 'FULL' : input.state === 'REJECTED' ? 'LOCKED' : record.corridorAccess;
-  record.auditTrail = [...record.auditTrail, event(input.actor, `kyb.${input.state.toLowerCase()}`, note)];
+  record.auditTrail = [...record.auditTrail, event(input.actor, `kyb.${String(input.state ?? 'unknown').toLowerCase()}`, note)];
   kybStore.cases.set(record.id, record);
 
   return record;

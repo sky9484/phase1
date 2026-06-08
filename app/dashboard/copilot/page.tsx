@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   ArrowRight,
   Bot,
@@ -265,7 +266,7 @@ const FALLBACK_REPLIES: string[] = [
 // ─── Context matching ─────────────────────────────────────────────────────────
 
 function matchResponse(input: string, fallbackIdxRef: React.MutableRefObject<number>): string {
-  const q = input.toLowerCase();
+  const q = String(input ?? '').toLowerCase();
   for (const { keywords, reply } of CONTEXT_RESPONSES) {
     if (keywords.some((k) => q.includes(k))) return reply;
   }
@@ -472,9 +473,7 @@ export default function CopilotPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-[#E39774]/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#C97A56]">
-            <Bot size={11} /> AI Copilot · MemWal + Claude
-          </div>
+          <DashboardPageLogo src="/isometric/pyth.svg" partner="Pyth" label="AI Copilot · MemWal + Claude" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">AI Copilot</h1>
           <p className="mt-0.5 text-xs text-[#326273]/50">
             Powered by Claude · grounded in your behavioral memory via MemWal

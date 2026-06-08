@@ -1,104 +1,146 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Building2, CheckCircle2, Lock, Mail } from "lucide-react";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
+import { ArrowRight, Building2, Eye, EyeOff, Globe2, Lock, Mail } from 'lucide-react';
+import { toast } from 'sonner';
 
-const benefits = [
-  "Instant Global Settlements",
-  "0.8%+ Starting Fees",
-  "Built-in KYB Compliance",
-  "Zero Gas Fee Infrastructure",
-];
+import IsometricAuthShell from '@/components/auth/IsometricAuthShell';
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [region, setRegion] = useState('Singapore');
+  const [password, setPassword] = useState('');
+  const [accepted, setAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const strength = [password.length >= 8, /[A-Z]/.test(password), /\d/.test(password)].filter(Boolean).length;
+  const canSubmit = company.trim().length > 1 && email.includes('@') && strength === 3 && accepted && !submitting;
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canSubmit) return;
+    setSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    toast.success('Business profile created');
+    router.push('/settings/kyb');
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center splash-page-bg p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="grid w-full max-w-4xl overflow-hidden rounded-3xl border border-[#326273]/10 bg-white shadow-xl shadow-[#326273]/5 md:grid-cols-2"
-      >
-        <div className="relative flex flex-col justify-between overflow-hidden bg-[#326273] p-10 text-white">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#5C9EAD] opacity-20 blur-3xl" />
-          <div className="relative z-10">
-            <h2 className="mb-6 text-3xl font-bold">
-              Build your business on <span className="text-[#5C9EAD]">Splash</span>.
-            </h2>
-            <div className="space-y-6">
-              {benefits.map((item) => (
-                <div key={item} className="flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-[#E39774]" />
-                  <span className="font-medium text-white/80">{item}</span>
-                </div>
-              ))}
+    <IsometricAuthShell
+      eyebrow="Open a business account"
+      title="Build your payment desk."
+      description="Create your workspace, then complete KYB to activate global settlement."
+      art="/isometric/splash-finance.svg"
+      artAlt="Splash Finance isometric typography"
+      visualTitle="One operating layer"
+      visualCopy="Move USD, settle globally, and retain every proof."
+    >
+      <form onSubmit={onSubmit} className="iso-auth-form">
+        <div className="iso-auth-field-grid">
+          <label className="iso-auth-field" htmlFor="signup-company">
+            <span>Company name</span>
+            <div>
+              <Building2 aria-hidden="true" />
+              <input
+                id="signup-company"
+                required
+                autoComplete="organization"
+                placeholder="Acme Logistics"
+                value={company}
+                onChange={(event) => setCompany(event.target.value)}
+              />
             </div>
-          </div>
-          <div className="relative z-10 mt-10 font-mono text-xs text-white/40">SPLASH FINANCE // VERSION 1.0.4</div>
+          </label>
+
+          <label className="iso-auth-field" htmlFor="signup-region">
+            <span>Primary market</span>
+            <div>
+              <Globe2 aria-hidden="true" />
+              <select id="signup-region" value={region} onChange={(event) => setRegion(event.target.value)}>
+                <option>Singapore</option>
+                <option>Malaysia</option>
+                <option>Indonesia</option>
+                <option>Philippines</option>
+                <option>Thailand</option>
+                <option>Vietnam</option>
+                <option>United Kingdom</option>
+                <option>European Union</option>
+              </select>
+            </div>
+          </label>
         </div>
 
-        <div className="p-10">
-          <h3 className="mb-2 text-2xl font-bold text-[#326273]">Create Account</h3>
-          <p className="mb-8 text-sm text-[#326273]/60">Establish your business settlement profile.</p>
+        <label className="iso-auth-field" htmlFor="signup-email">
+          <span>Business email</span>
+          <div>
+            <Mail aria-hidden="true" />
+            <input
+              id="signup-email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="finance@company.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
+        </label>
 
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#326273]/50">Company Name</label>
-              <div className="relative mt-1">
-                <Building2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C9EAD]" />
-                <input
-                  type="text"
-                  placeholder="Acme Logistics Sdn Bhd"
-                  autoComplete="organization"
-                  className="w-full rounded-xl border border-[#326273]/10 bg-[#F6F0ED]/50 py-3 pl-11 pr-4 outline-none transition-all focus:ring-2 focus:ring-[#5C9EAD]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#326273]/50">Business Email</label>
-              <div className="relative mt-1">
-                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C9EAD]" />
-                <input
-                  type="email"
-                  placeholder="ceo@acme.com"
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-[#326273]/10 bg-[#F6F0ED]/50 py-3 pl-11 pr-4 outline-none transition-all focus:ring-2 focus:ring-[#5C9EAD]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#326273]/50">Password</label>
-              <div className="relative mt-1">
-                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C9EAD]" />
-                <input
-                  type="password"
-                  placeholder="Create a strong password"
-                  autoComplete="new-password"
-                  className="w-full rounded-xl border border-[#326273]/10 bg-[#F6F0ED]/50 py-3 pl-11 pr-4 outline-none transition-all focus:ring-2 focus:ring-[#5C9EAD]"
-                />
-              </div>
-            </div>
-
-            <Link
-              href="/settings/kyb"
-              className="group mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#E39774] py-4 font-bold text-white shadow-lg shadow-[#E39774]/20 transition-all hover:bg-[#d48563]"
+        <label className="iso-auth-field" htmlFor="signup-password">
+          <span>Create password</span>
+          <div>
+            <Lock aria-hidden="true" />
+            <input
+              id="signup-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="new-password"
+              placeholder="8+ characters, uppercase, and a number"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              type="button"
+              className="iso-auth-reveal"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              Register Business
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-
-            <p className="mt-4 text-center text-sm text-[#326273]/60">
-              Already have an account?{" "}
-              <Link href="/login" className="font-bold text-[#5C9EAD] hover:underline">
-                Log in
-              </Link>
-            </p>
+              {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </button>
           </div>
+        </label>
+
+        <div className="iso-password-strength" aria-label={`Password strength ${strength} of 3`}>
+          {[1, 2, 3].map((level) => <span className={strength >= level ? 'is-active' : ''} key={level} />)}
+          <small>{strength === 3 ? 'Strong password' : 'Use 8+ characters, uppercase, and a number'}</small>
         </div>
-      </motion.div>
-    </div>
+
+        <label className="iso-auth-consent">
+          <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
+          <span>I agree to the Splash terms and confirm I am authorized to register this business.</span>
+        </label>
+
+        <button type="submit" disabled={!canSubmit} className="iso-auth-submit">
+          {submitting ? 'Creating workspace...' : 'Create business workspace'}
+          {!submitting ? <ArrowRight aria-hidden="true" /> : null}
+        </button>
+      </form>
+
+      <div className="iso-auth-next">
+        <strong>What happens next?</strong>
+        <span>1. Create workspace</span>
+        <span>2. Complete KYB</span>
+        <span>3. Activate corridors</span>
+      </div>
+
+      <p className="iso-auth-switch">
+        Already have an account? <Link href="/login">Sign in</Link>
+      </p>
+    </IsometricAuthShell>
   );
 }

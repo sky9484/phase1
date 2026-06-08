@@ -3,42 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Camera,
-  Check,
   ChevronDown,
   LogOut,
-  Palette,
   Search,
   Settings,
 } from 'lucide-react';
 
-import { THEMES, type DashTheme } from '@/components/dash-theme';
-
-export type Theme = DashTheme;
-
 interface DashboardHeaderProps {
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
   collapsed: boolean;
 }
 
-export default function DashboardHeader({
-  theme,
-  onThemeChange,
-  collapsed,
-}: DashboardHeaderProps) {
+export default function DashboardHeader({ collapsed }: DashboardHeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [themeOpen,   setThemeOpen]   = useState(false);
   const [avatar,      setAvatar]      = useState<string | null>(null);
 
   const profileRef   = useRef<HTMLDivElement>(null);
-  const themeRef     = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* Close both dropdowns on outside click */
+  /* Close profile dropdown on outside click */
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
-      if (themeRef.current   && !themeRef.current.contains(e.target as Node))   setThemeOpen(false);
     }
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
@@ -51,11 +36,9 @@ export default function DashboardHeader({
     setProfileOpen(false);
   }
 
-  const active = THEMES.find((t) => t.id === theme)!;
-
   return (
     <header
-      className={`fixed top-0 right-0 z-20 hidden h-[60px] items-center justify-between border-b border-[#326273]/10 bg-[#F6F0ED] px-5 shadow-sm md:flex transition-[left] duration-300 ${
+      className={`fintech-dashboard-header fixed top-0 right-0 z-20 hidden h-[60px] items-center justify-between border-b border-[#326273]/10 bg-[#F6F0ED] px-5 shadow-sm md:flex transition-[left] duration-300 ${
         collapsed ? 'left-20' : 'left-60'
       }`}
     >
@@ -72,71 +55,11 @@ export default function DashboardHeader({
       {/* ── Right controls ─────────────────────────────────── */}
       <div className="flex items-center gap-2.5">
 
-        {/* Theme picker */}
-        <div ref={themeRef} className="relative">
-          <button
-            type="button"
-            onClick={() => { setThemeOpen((v) => !v); setProfileOpen(false); }}
-            className="flex items-center gap-2 rounded-xl border border-[#326273]/10 bg-white px-3 py-2 text-xs font-medium text-[#326273]/65 shadow-sm transition-colors hover:bg-[#F6F0ED] hover:text-[#326273]"
-          >
-            <Palette size={14} className="text-[#326273]/45" />
-            <span className="hidden sm:inline">Theme</span>
-            {/* current-theme swatch */}
-            <span className="flex gap-0.5">
-              {active.colors.map((c, i) => (
-                <span
-                  key={i}
-                  className="h-3 w-3 rounded-full border border-black/10"
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </span>
-          </button>
-
-          {themeOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-52 overflow-hidden rounded-2xl border border-[#326273]/10 bg-white shadow-xl">
-              <div className="border-b border-[#326273]/8 px-4 py-2.5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#326273]/40">
-                  Dashboard Theme
-                </p>
-              </div>
-              <div className="space-y-0.5 p-2">
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => { onThemeChange(t.id); setThemeOpen(false); }}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-colors ${
-                      theme === t.id
-                        ? 'bg-[#F6F0ED] font-semibold text-[#326273]'
-                        : 'text-[#326273]/60 hover:bg-[#F6F0ED]/60 hover:text-[#326273]'
-                    }`}
-                  >
-                    <span className="flex gap-1">
-                      {t.colors.map((c, i) => (
-                        <span
-                          key={i}
-                          className="h-4 w-4 rounded-full border border-black/10 shadow-sm"
-                          style={{ backgroundColor: c }}
-                        />
-                      ))}
-                    </span>
-                    <span className="flex-1 text-left">{t.label}</span>
-                    {theme === t.id && (
-                      <Check size={12} className="text-[#5C9EAD] shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Profile + dropdown */}
         <div ref={profileRef} className="relative">
           <button
             type="button"
-            onClick={() => { setProfileOpen((v) => !v); setThemeOpen(false); }}
+            onClick={() => setProfileOpen((v) => !v)}
             className="flex items-center gap-2 rounded-xl border border-[#326273]/10 bg-white py-1.5 pl-1.5 pr-2.5 shadow-sm transition-colors hover:bg-[#F6F0ED]"
           >
             {/* Avatar */}

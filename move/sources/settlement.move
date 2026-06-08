@@ -1,6 +1,6 @@
 module splash_protocol::settlement;
 
-use splash_protocol::business_account::{Self, BusinessAccount};
+use splash_protocol::business_account::{Self, BusinessAccount, AdminCap};
 use splash_protocol::peg_monitor::{Self, PegState};
 use sui::clock::Clock;
 use sui::balance::{Self, Balance};
@@ -95,7 +95,9 @@ public fun settle_payment<T>(
 
     let gross = coin::value(&payment);
     assert!(gross > 0, E_INVALID_AMOUNT);
-    let fee = gross * fee_bps / BPS_DENOMINATOR;
+    // u128 intermediate: gross * fee_bps can exceed u64::MAX for large amounts
+    // (Move aborts on overflow), which would DoS legitimate large settlements.
+    let fee = (((gross as u128) * (fee_bps as u128)) / (BPS_DENOMINATOR as u128)) as u64;
     let net = gross - fee;
 
     assert!(net > 0, E_INSUFFICIENT_FUNDS);
@@ -116,11 +118,19 @@ public fun settle_payment<T>(
     });
 }
 
-/// Settle a batch of payments funded from `pool.balance`. A single `fee_bps`
-/// applies to every payment in the batch — batches are constructed per
-/// corridor by the off-chain layer, so one fee per call is sufficient and
+/// Settle a batch of payments funded from the SHARED `pool.balance`. A single
+/// `fee_bps` applies to every payment in the batch — batches are constructed
+/// per corridor by the off-chain layer, so one fee per call is sufficient and
 /// keeps the bounded-fee invariant simple to audit.
+///
+/// SECURITY: this draws payouts from the shared pool to caller-supplied
+/// recipients, so it MUST be gated by the operator's `AdminCap`. Requiring the
+/// cap means only the off-chain settlement operator (which computes legitimate
+/// payouts) can move pool liquidity — `is_verified(business_account)` alone is
+/// NOT sufficient, since any one KYB-approved tenant could otherwise drain the
+/// pooled liquidity of every other business to an address they control.
 public fun settle_batch<T>(
+    _admin: &AdminCap,
     pool: &mut SettlementPool<T>,
     business_account: &BusinessAccount,
     peg_state: &PegState,
@@ -142,7 +152,7 @@ public fun settle_batch<T>(
         assert!(payment.recipient != @0x0, E_INVALID_RECIPIENT);
         assert!(payment.amount > 0, E_INVALID_AMOUNT);
 
-        let fee = payment.amount * fee_bps / BPS_DENOMINATOR;
+        let fee = (((payment.amount as u128) * (fee_bps as u128)) / (BPS_DENOMINATOR as u128)) as u64;
         let net = payment.amount - fee;
 
         // Same invariant as single settle — net must be positive after fee.
@@ -166,6 +176,7 @@ public fun settle_batch<T>(
 }
 
 public fun settle_sui_batch(
+    admin: &AdminCap,
     pool: &mut SettlementPool<SUI>,
     business_account: &BusinessAccount,
     peg_state: &PegState,
@@ -174,7 +185,7 @@ public fun settle_sui_batch(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    settle_batch<SUI>(pool, business_account, peg_state, payments, fee_bps, clock, ctx);
+    settle_batch<SUI>(admin, pool, business_account, peg_state, payments, fee_bps, clock, ctx);
 }
 
 public fun pool_balance<T>(pool: &SettlementPool<T>): u64 {

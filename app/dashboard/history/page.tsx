@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -250,9 +251,7 @@ export default function HistoryPage() {
       {/* Header */}
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-[#5C9EAD]/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#5C9EAD]">
-            <History size={11} /> Transfer History
-          </div>
+          <DashboardPageLogo src="/isometric/walrus-logo.svg" partner="Walrus" label="Transfer History" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">History</h1>
           <p className="mt-0.5 max-w-xl text-xs text-[#326273]/60">
             All your single transfers — live status, on-chain proofs, and failure reasons.

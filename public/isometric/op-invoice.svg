@@ -1,0 +1,47 @@
+<svg width="480" height="360" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iPlatTop" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#F7EEDF"/><stop offset="1" stop-color="#E9D7BD"/></linearGradient>
+    <linearGradient id="iPlatL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCC9AE"/><stop offset="1" stop-color="#CBB18F"/></linearGradient>
+    <linearGradient id="iPlatR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CAB492"/><stop offset="1" stop-color="#B79F7B"/></linearGradient>
+    <linearGradient id="iPaper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFBF1"/><stop offset="1" stop-color="#F1E6D2"/></linearGradient>
+    <linearGradient id="iCardTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9CCBD5"/><stop offset="1" stop-color="#69A7B5"/></linearGradient>
+    <linearGradient id="iGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C673"/><stop offset="1" stop-color="#E08C3C"/></linearGradient>
+    <marker id="iArrow" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#E0902F"/></marker>
+  </defs>
+  <ellipse cx="236" cy="300" rx="168" ry="32" fill="#0b3a44" opacity="0.13"/>
+  <!-- platform -->
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="url(#iPlatTop)"/>
+  <rect width="150" height="26" transform="matrix(0.866 0.5 0 1 110 225)" fill="url(#iPlatL)"/>
+  <rect width="150" height="26" transform="matrix(-0.866 0.5 0 1 370 225)" fill="url(#iPlatR)"/>
+  <path d="M240 150 L370 225 L240 300 L110 225 Z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="1.4"/>
+  <!-- source invoice sheet (encrypted) -->
+  <rect width="88" height="9" transform="matrix(0.866 0.5 0 1 145.8 209)" fill="#D9CCB6"/>
+  <rect width="118" height="9" transform="matrix(-0.866 0.5 0 1 324.2 194)" fill="#C9BBA2"/>
+  <g transform="matrix(0.866 0.5 -0.866 0.5 248 150)">
+    <rect width="88" height="118" rx="6" fill="url(#iPaper)"/>
+    <rect x="13" y="15" width="62" height="10" rx="4" fill="#1F4452" opacity="0.5"/>
+    <rect x="13" y="34" width="62" height="6" rx="3" fill="#1F4452" opacity="0.22"/>
+    <rect x="13" y="46" width="44" height="6" rx="3" fill="#1F4452" opacity="0.22"/>
+    <rect x="13" y="64" width="62" height="6" rx="3" fill="#1F4452" opacity="0.22"/>
+    <rect x="13" y="76" width="38" height="6" rx="3" fill="#1F4452" opacity="0.22"/>
+    <rect x="13" y="96" width="50" height="13" rx="4" fill="#5C9EAD"/>
+  </g>
+  <!-- padlock = original file kept encrypted -->
+  <path d="M286 232 a14 14 0 0 1 28 0 v9" stroke="#b96e23" stroke-width="6" fill="none"/>
+  <rect x="277" y="238" width="46" height="34" rx="8" fill="url(#iGold)" stroke="#b96e23" stroke-width="1.5"/>
+  <circle cx="300" cy="253" r="5" fill="#5a3414"/>
+  <rect x="297" y="255" width="6" height="11" rx="3" fill="#5a3414"/>
+  <!-- extraction arrow -->
+  <path d="M312 162 C340 150 356 138 372 132" fill="none" stroke="#E0902F" stroke-width="3.4" stroke-linecap="round" marker-end="url(#iArrow)"/>
+  <!-- structured instruction chip -->
+  <rect width="58" height="10" transform="matrix(0.866 0.5 0 1 348.2 122)" fill="#1C414E"/>
+  <rect width="44" height="10" transform="matrix(-0.866 0.5 0 1 398.4 116)" fill="#11333d"/>
+  <g transform="matrix(0.866 0.5 -0.866 0.5 386 92)">
+    <rect width="58" height="44" rx="5" fill="url(#iCardTop)"/>
+    <rect x="8" y="9" width="34" height="5" rx="2.5" fill="#0d2f38" opacity="0.5"/>
+    <rect x="8" y="19" width="42" height="5" rx="2.5" fill="#0d2f38" opacity="0.3"/>
+    <rect x="8" y="29" width="26" height="6" rx="3" fill="#E0902F"/>
+  </g>
+  <circle cx="408" cy="96" r="11" fill="url(#iGold)"/>
+  <path d="M402 96 l4 4 l7 -8" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import DashboardPageLogo from '@/components/DashboardPageLogo';
 import {
   AlertCircle,
   Archive,
@@ -296,8 +297,8 @@ export default function InvoicesPage() {
     const q = search.toLowerCase();
     const matchSearch =
       !q ||
-      inv.vendor.toLowerCase().includes(q) ||
-      inv.id.toLowerCase().includes(q);
+      String(inv.vendor ?? '').toLowerCase().includes(q) ||
+      String(inv.id ?? '').toLowerCase().includes(q);
     return matchFilter && matchSearch;
   });
 
@@ -330,9 +331,7 @@ export default function InvoicesPage() {
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-[#5C9EAD]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#5C9EAD]">
-            <Database size={11} /> Invoice Vault · Walrus
-          </div>
+          <DashboardPageLogo src="/isometric/walrus-logo.svg" partner="Walrus" label="Invoice Vault · Walrus" />
           <h1 className="text-2xl font-extrabold text-[#1F4452]">Invoice Vault</h1>
           <p className="mt-0.5 text-xs text-[#326273]/50">
             All invoices Seal-encrypted and anchored on Walrus · 7-year minimum retention

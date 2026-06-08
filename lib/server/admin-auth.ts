@@ -1,4 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import { cookies } from 'next/headers';
 
 export type AdminSession = {
@@ -16,35 +18,71 @@ const isProduction = process.env.NODE_ENV === 'production';
 /**
  * Resolve the signing secret used to mint and verify admin session tokens.
  *
- * Security note: the previous implementation fell back to a hard-coded
- * 'splash-admin-dev-secret' and derived a *static* cookie value from it
- * (`sha256('splash-admin:' + secret)`). That made the admin session cookie
- * publicly computable whenever ADMIN_SESSION_SECRET was unset — a full
- * authentication bypass for the KYB-approval, contract-config and transaction
- * admin routes, all of which gate on getAdminSession() alone.
- *
- * Now:
- *   • Production REQUIRES a real ADMIN_SESSION_SECRET. If it is missing every
- *     auth entry point fails closed (returns null / refuses to mint a cookie).
- *   • Development generates a random per-process secret, so the token is never
- *     the well-known constant and cannot be forged from outside the server.
+ * Security: trust is NEVER derived from the client-controlled Host header, and
+ * no signing secret is ever a constant shipped in source (that would let anyone
+ * forge an admin cookie offline).
+ *   • If ADMIN_SESSION_SECRET is set, it is always used — in every environment.
+ *   • In production without it we FAIL CLOSED (return null): no session can be
+ *     minted or verified, so every admin route stays locked.
+ *   • In local development without it, an ephemeral random secret is generated
+ *     once per process (sessions reset on restart). It is never a shipped
+ *     constant, so cookies cannot be forged from the public source.
  */
+const DEV_SECRET_FILE = join(process.cwd(), '.admin-session-secret.local');
+
 let cachedDevSecret: string | null = null;
 function resolveSecret(): string | null {
   const configured = process.env.ADMIN_SESSION_SECRET?.trim();
   if (configured) return configured;
 
-  if (isProduction) return null; // fail closed — no usable secret in prod
+  if (isProduction) return null;
 
-  if (!cachedDevSecret) {
-    cachedDevSecret = randomBytes(32).toString('hex');
+  if (!cachedDevSecret) cachedDevSecret = loadOrCreateDevSecret();
+  return cachedDevSecret;
+}
+
+/**
+ * Stable per-machine dev secret, persisted to a gitignored local file.
+ *
+ * Why a file: Next bundles this module SEPARATELY for route handlers
+ * (/api/admin/login) and server components (the /admin layout), so a purely
+ * in-memory random secret differs between them and a cookie signed at login
+ * fails to verify in the layout — bouncing the operator back to login. A shared
+ * file makes every module instance (and process restart / HMR reload) converge
+ * on the same value. It is random per machine (never a shipped constant) and is
+ * never used in production, where an unset ADMIN_SESSION_SECRET fails closed.
+ */
+function loadOrCreateDevSecret(): string {
+  try {
+    if (existsSync(DEV_SECRET_FILE)) {
+      const existing = readFileSync(DEV_SECRET_FILE, 'utf8').trim();
+      if (existing.length >= 32) return existing;
+    }
+  } catch {
+    /* unreadable — fall through and (re)generate */
+  }
+
+  const secret = randomBytes(32).toString('hex');
+  try {
+    // Exclusive create avoids a write race between concurrent module instances.
+    writeFileSync(DEV_SECRET_FILE, secret, { flag: 'wx', mode: 0o600 });
     console.warn(
-      '[admin-auth] ADMIN_SESSION_SECRET is not set. Generated an ephemeral ' +
-        'development secret; admin sessions reset on restart. Set ' +
+      '[admin-auth] ADMIN_SESSION_SECRET is not set. Generated a local dev ' +
+        'secret at .admin-session-secret.local (gitignored). Set ' +
         'ADMIN_SESSION_SECRET before deploying.',
     );
+    return secret;
+  } catch {
+    // Another instance created it first (or fs is unavailable) — prefer the
+    // persisted value so every instance converges on the same secret.
+    try {
+      const existing = readFileSync(DEV_SECRET_FILE, 'utf8').trim();
+      if (existing.length >= 32) return existing;
+    } catch {
+      /* ignore — last resort: this instance's in-memory secret */
+    }
+    return secret;
   }
-  return cachedDevSecret;
 }
 
 function timingSafeStrEqual(a: string, b: string): boolean {
@@ -101,10 +139,10 @@ export function validateAdminCredentials(email: string, password: string) {
     }
   }
 
-  const expectedEmail = process.env.ADMIN_EMAIL || fallbackEmail;
-  const expectedPassword = process.env.ADMIN_PASSWORD || fallbackPassword;
+  const expectedEmail = String(process.env.ADMIN_EMAIL || fallbackEmail);
+  const expectedPassword = String(process.env.ADMIN_PASSWORD || fallbackPassword);
 
-  if (email.trim().toLowerCase() !== expectedEmail.toLowerCase()) {
+  if (String(email ?? '').trim().toLowerCase() !== expectedEmail.toLowerCase()) {
     return null;
   }
 
@@ -129,7 +167,7 @@ export async function getAdminSession() {
   return configuredSession();
 }
 
-export async function setAdminSessionCookie() {
+export async function setAdminSessionCookie(options: { secure?: boolean } = {}) {
   const secret = resolveSecret();
   if (!secret) {
     throw new Error('Cannot create admin session: ADMIN_SESSION_SECRET is not configured.');
@@ -142,7 +180,7 @@ export async function setAdminSessionCookie() {
     maxAge: 60 * 60 * 8,
     path: '/',
     sameSite: 'lax',
-    secure: isProduction,
+    secure: options.secure ?? isProduction,
   });
 }
 

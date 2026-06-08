@@ -527,6 +527,9 @@ export async function recordBatchSettlementOnSui(input: {
     '--move-call',
     `${SPLASH_PACKAGE_ID}::settlement::settle_batch`,
     `<${USDC_TYPE}>`,
+    // settle_batch is AdminCap-gated: only the operator that holds the cap can
+    // draw payouts from the shared settlement pool (see settlement.move).
+    `@${SPLASH_ADMIN_CAP_ID}`,
     `@${SPLASH_TREASURY_ID}`,
     `@${SPLASH_BUSINESS_ACCOUNT_ID}`,
     `@${SPLASH_PEG_STATE_ID}`,

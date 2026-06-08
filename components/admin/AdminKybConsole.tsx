@@ -74,7 +74,7 @@ export default function AdminKybConsole({ initialCases }: Props) {
       setCases((current) => current.map((item) => (item.id === body.case?.id ? body.case : item)));
       setSelectedId(body.case.id);
       setNote('');
-      toast.success(`KYB case marked ${stateLabels[state].toLowerCase()}`);
+      toast.success(`KYB case marked ${String(stateLabels[state] ?? state).toLowerCase()}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'KYB review update failed';
       toast.error(message);
