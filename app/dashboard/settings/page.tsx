@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import KybSettings from '@/components/KybSettings';
 import AmlKytHealthPreview from '@/components/compliance/AmlKytHealthPreview';
-import { AlertTriangle, CheckCircle2, FileText, KeyRound, LockKeyhole, Radar, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CreditCard, FileText, KeyRound, LockKeyhole, Radar, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 
 export default function DashboardSettingsPage() {
   const [limits, setLimits] = useState([43, 58, 31]);
@@ -78,6 +78,31 @@ export default function DashboardSettingsPage() {
       </section>
 
       <AmlKytHealthPreview />
+
+      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <Panel
+          icon={CreditCard}
+          title="Funding rails"
+          description="How money enters your Splash balance — bank rails only to protect transfer pricing."
+          items={[
+            ['Bank rails (primary)', 'ACH · wire · FPX (Airwallex / Stripe ACH)'],
+            ['Card / Apple Pay funding', 'Disabled by default'],
+            ['If card is enabled', 'Surcharged to pass processor cost through'],
+            ['Stored credentials', 'None — no bank login held'],
+          ]}
+        />
+        <Panel
+          icon={SlidersHorizontal}
+          title="Transaction limits"
+          description="No monthly currency cap — Splash is USD-first, not an MSB. Limits are rail + KYB + AML driven."
+          items={[
+            ['Rail max / transfer', 'Bank ~$1,000,000 · FPX ~$250,000'],
+            ['KYB-tier cap', 'Tier 1 $50k → Tier 2 $250k → Tier 3 $1M'],
+            ['AML review threshold', 'Flagged above $10,000 (still processed)'],
+            ['Monthly MYR cap', 'None — large B2B payments supported'],
+          ]}
+        />
+      </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="dash-surface p-6">

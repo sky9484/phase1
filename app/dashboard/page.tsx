@@ -169,7 +169,7 @@ export default function DashboardOverview() {
             value ?? '—';
           const delta =
             id === 'balance' ? 'Reconciled' :
-            id === 'yield'   ? '4.8% APY' :
+            id === 'yield'   ? 'USDY · variable' :
             (TOP_STATS.find((s) => s.id === id) as { delta?: string })?.delta ?? '';
           const deltaGreen = id === 'yield' || id === 'corridors' || id === 'sla' || id === 'balance' || id === 'volume';
 
@@ -410,11 +410,11 @@ export default function DashboardOverview() {
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-[#1F4452]">Smart Treasury</h2>
-                  <p className="text-[11px] text-[#326273]/50">USDsui · Labuan FSA</p>
+                  <p className="text-[11px] text-[#326273]/50">Ondo USDY · T-bill</p>
                 </div>
               </div>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                4.8% APY
+              <span className="rounded-full bg-[#D9A441]/15 px-2 py-0.5 text-[10px] font-bold text-[#9a6f15]">
+                USDY · variable
               </span>
             </div>
 
@@ -441,7 +441,7 @@ export default function DashboardOverview() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#326273]/55">Protocol</span>
-                <span className="font-semibold text-[#326273]">Sui DeFi · USDsui</span>
+                <span className="font-semibold text-[#326273]">Ondo USDY · T-bill</span>
               </div>
             </div>
 

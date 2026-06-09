@@ -7,6 +7,7 @@ import {
   getUsdCorridorByCurrency,
 } from '@/lib/fx/corridors';
 import { getCachedJson, setCachedJson } from '@/lib/server/redis-cache';
+import { evaluateTransferLimits, type LimitResult } from '@/lib/server/limits';
 
 /**
  * Default platform fee — used as a floor only when corridor-specific fee
@@ -48,6 +49,8 @@ export type QuoteData = {
   recipientId?: string;
   targetCurrency: string;
   source: 'corridor' | 'fallback';
+  /** Rail + KYB-tier + AML evaluation (no MYR monthly cap). */
+  limit: LimitResult;
 };
 
 export async function getLiveUsdToTargetRate(targetCurrency = 'PHP'): Promise<{ rate: number; source: 'corridor' | 'fallback' }> {
@@ -91,6 +94,9 @@ export async function calculateQuote(fromAmountCents: number, recipientId?: stri
   const toAmount = Math.floor((netCents / 100) * rate * 100) / 100;
   const expiresAt = new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString();
 
+  // Limits: rail max + KYB-tier cap + AML review threshold. No MYR monthly cap.
+  const limit = evaluateTransferLimits({ amountUsd: fromAmountCents / 100 });
+
   return {
     quoteId: randomUUID(),
     fromAmount: fromAmountCents,
@@ -105,5 +111,6 @@ export async function calculateQuote(fromAmountCents: number, recipientId?: stri
     recipientId,
     targetCurrency: targetCurrency.toUpperCase(),
     source,
+    limit,
   };
 }

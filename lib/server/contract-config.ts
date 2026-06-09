@@ -14,7 +14,10 @@ export type ContractConfigField =
   | 'treasuryAddress'
   | 'usdcType'
   | 'usdtType'
-  | 'usdtBufferId';
+  | 'usdtBufferId'
+  | 'usdyType'
+  | 'usdcTreasuryId'
+  | 'usdyTreasuryId';
 
 export type ContractConfig = Record<ContractConfigField, string>;
 
@@ -32,6 +35,9 @@ const FIELD_TO_ENV: Record<ContractConfigField, string> = {
   usdcType: 'USDC_TYPE',
   usdtType: 'USDT_TYPE',
   usdtBufferId: 'USDT_BUFFER_ID',
+  usdyType: 'USDY_TYPE',
+  usdcTreasuryId: 'SPLASH_USDC_TREASURY_ID',
+  usdyTreasuryId: 'SPLASH_USDY_TREASURY_ID',
 };
 
 export const CONTRACT_CONFIG_FIELDS = Object.keys(FIELD_TO_ENV) as ContractConfigField[];
@@ -118,6 +124,8 @@ const ID_FIELDS: ContractConfigField[] = [
   'businessAccountId',
   'transferCoinId',
   'settlementRegistryId',
+  'usdcTreasuryId',
+  'usdyTreasuryId',
 ];
 
 const ADDRESS_FIELDS: ContractConfigField[] = [
@@ -126,7 +134,7 @@ const ADDRESS_FIELDS: ContractConfigField[] = [
   'treasuryAddress',
 ];
 
-const MOVE_TYPE_FIELDS: ContractConfigField[] = ['usdcType', 'usdtType'];
+const MOVE_TYPE_FIELDS: ContractConfigField[] = ['usdcType', 'usdtType', 'usdyType'];
 
 export function validateContractConfig(input: Partial<ContractConfig>): { ok: true } | { ok: false; errors: Record<string, string> } {
   const errors: Record<string, string> = {};

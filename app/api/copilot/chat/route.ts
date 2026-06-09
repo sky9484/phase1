@@ -18,6 +18,9 @@
  */
 
 import { recallMemories, rememberFact, memwalConfigured, type RecalledMemory } from '@/lib/server/memwal';
+import { getTreasuryRate } from '@/lib/server/usdy';
+import { getLedger } from '@/lib/server/treasury';
+import { suggestTreasuryAction } from '@/lib/server/copilot';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,8 +37,6 @@ const DOMAIN_RESPONSES: { keywords: string[]; reply: string }[] = [
     reply: 'USD→MYR: 4.71 · fee 0.85%. Bank Negara policy meeting Thursday — MYR historically moves ±0.8% around announcements.\nRecommendation: lock before Wednesday close to avoid ~$42 extra cost on a $5,000 transfer.' },
   { keywords: ['idr', 'indonesia', 'rupiah', 'jakarta'],
     reply: 'USD→IDR: 16,284 · fee 0.90% · fastest corridor at ~3.0 min.\nYour IDR volume is up 18% over 6 weeks — a weekly Wednesday batch would save ~$32/month. Want me to set that up?' },
-  { keywords: ['treasury', 'yield', 'apy', 'earn', 'deposit', 'compound', 'interest'],
-    reply: 'Smart Treasury: $24,500 at 4.8% APY (4.91% effective, auto-compound on) → $3.22/day.\nMoving an extra $5,000 from operating adds $0.66/day (~$241/year). Shall I prepare a deposit?' },
   { keywords: ['cheapest', 'corridor', 'rate', 'compare', 'best'],
     reply: 'This week by Splash fee:\n• PHP 0.80% · MYR/SGD 0.85% · IDR 0.90%\n• VND/THB 0.95% · EUR/GBP 1.10%\nPHP is your lowest-cost corridor. Batching beats single-payment spreads on every corridor.' },
   { keywords: ['compliance', 'kyb', 'aml', 'limit', 'flag', 'risk'],
@@ -51,15 +52,29 @@ const DOMAIN_RESPONSES: { keywords: string[]; reply: string }[] = [
 const FALLBACKS = [
   "I'm 0xWal — monitoring all 8 corridors, everything looks healthy today. What would you like to focus on?",
   'Your blended fee this month is 0.89%, saving ~41% vs. traditional wires. Anything to optimise?',
-  'Treasury is compounding at 4.91% effective APY. Want to top it up or check a corridor?',
+  'Smart Treasury earns variable Ondo USDY (T-bill) yield; your Available balance stays instant at 0%. Want to move idle USDC in?',
   'All clear — no AML flags, no compliance issues. What can I help with?',
 ];
 
-function groundedReply(message: string, memories: RecalledMemory[]): string {
+const TREASURY_KEYWORDS = ['treasury', 'yield', 'apy', 'earn', 'deposit', 'compound', 'interest'];
+
+async function groundedReply(message: string, memories: RecalledMemory[]): Promise<string> {
   const q = message.toLowerCase();
   let base = '';
-  for (const { keywords, reply } of DOMAIN_RESPONSES) {
-    if (keywords.some((k) => q.includes(k))) { base = reply; break; }
+  if (TREASURY_KEYWORDS.some((k) => q.includes(k))) {
+    // Floating USDY rate + a data-grounded treasury suggestion from the live ledger.
+    const rate = getTreasuryRate();
+    const ledger = getLedger();
+    const suggestion = await suggestTreasuryAction(ledger.availableMicro / 1_000_000, 0);
+    base =
+      `Smart Treasury earns from Ondo USDY (T-bill backed): ${rate.label}` +
+      `${rate.introductory ? ' — introductory promo rate' : ''}.\n` +
+      'Your Available balance (USDC) stays 0% but instant; withdrawals back to Available take 1–3 business days.\n\n' +
+      `${suggestion.title}. ${suggestion.description}`;
+  } else {
+    for (const { keywords, reply } of DOMAIN_RESPONSES) {
+      if (keywords.some((k) => q.includes(k))) { base = reply; break; }
+    }
   }
   if (!base) {
     const idx = Math.abs([...q].reduce((a, c) => a + c.charCodeAt(0), 0)) % FALLBACKS.length;
@@ -73,6 +88,7 @@ function groundedReply(message: string, memories: RecalledMemory[]): string {
 }
 
 function buildSystemPrompt(memories: RecalledMemory[]): string {
+  const rate = getTreasuryRate();
   const memoryBlock = memories.length
     ? `\n\nRelevant memories about this user (from MemWal, treat as ground truth):\n${memories.map((m) => `- ${m.text}`).join('\n')}`
     : '';
@@ -80,7 +96,11 @@ function buildSystemPrompt(memories: RecalledMemory[]): string {
     'You are 0xWal, the Splash AI copilot for a USD→Southeast Asia settlement platform. ' +
     'Introduce yourself as 0xWal if asked your name. ' +
     'You help with corridors (PHP, MYR, IDR, SGD, VND, THB, EUR, GBP), FX timing, batch payouts, ' +
-    'Smart Treasury yield (4.8% APY / 4.91% effective), and compliance (KYB/AML/KYT). ' +
+    'Smart Treasury, and compliance (KYB/AML/KYT). ' +
+    `Smart Treasury earns yield from Ondo USDY (T-bill backed) at ${rate.label} — this rate is VARIABLE, never fixed` +
+    `${rate.introductory ? ', currently an introductory promo' : ''}. ` +
+    'The Available balance is USDC at 0% but instant; withdrawals from Smart Treasury take T+1–T+3 business days. ' +
+    'Never describe the yield as fixed, and never call DeFi-lending yield "Treasury yield" (it is genuine T-bill yield via USDY). ' +
     'Be concise, concrete, and action-oriented. You only suggest — the user must authorize any execution. ' +
     'Never invent account numbers or PII.' + memoryBlock
   );
@@ -142,10 +162,10 @@ export async function POST(request: Request) {
               send({ type: 'delta', text: event.delta.text });
             }
           }
-          if (!any) send({ type: 'delta', text: groundedReply(message, memories) });
+          if (!any) send({ type: 'delta', text: await groundedReply(message, memories) });
         } else {
           // Grounded — stream word-by-word so the chat feels alive.
-          const reply = groundedReply(message, memories);
+          const reply = await groundedReply(message, memories);
           const tokens = reply.match(/\S+\s*|\n/g) ?? [reply];
           for (const tok of tokens) {
             send({ type: 'delta', text: tok });
@@ -154,7 +174,7 @@ export async function POST(request: Request) {
         }
       } catch (error) {
         console.warn('[copilot] generation failed:', (error as Error)?.message ?? String(error));
-        send({ type: 'delta', text: groundedReply(message, memories) });
+        send({ type: 'delta', text: await groundedReply(message, memories) });
       }
 
       send({ type: 'done' });

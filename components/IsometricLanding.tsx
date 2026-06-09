@@ -32,7 +32,7 @@ const operatingLayers = [
     copy: 'Route idle capital across stablecoin liquidity while your payout inventory stays ready.',
     image: '/isometric/liquidity-pools.svg',
     imageAlt: 'Isometric stablecoin liquidity pools',
-    meta: 'USDC · USDT · USDsui',
+    meta: 'USDC · USDT · USDY',
   },
   {
     number: '02',
@@ -87,7 +87,7 @@ const flowSteps = [
 const marqueeItems = [
   ['8 corridors', 'one operating layer'],
   ['400ms', 'Sui settlement finality'],
-  ['4-5%', 'USDsui base yield'],
+  ['3-5%', 'USDY T-bill yield'],
   ['4 layers', 'AI treasury copilot'],
   ['7 years', 'verifiable audit proof'],
 ];
@@ -478,7 +478,7 @@ export default function IsometricLanding() {
             </div>
             <div className="iso-floating-note iso-floating-note-c">
               <span>TREASURY</span>
-              <strong>USDsui</strong>
+              <strong>USDY</strong>
               <small>+{yieldBenchmarks.splash.toFixed(2)}% APY</small>
             </div>
           </div>

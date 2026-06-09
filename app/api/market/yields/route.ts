@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { getTreasuryRate } from '@/lib/server/usdy';
+
 const sources = {
   bank: 'https://www.fdic.gov/national-rates-and-rate-caps',
   broker: 'https://www.interactivebrokers.com/en/accounts/fees/pricing-interest-rates.php?menu=A',
@@ -49,11 +51,18 @@ export async function GET() {
   const brokerText = brokerResult.status === 'fulfilled' ? brokerResult.value : '';
   const wiseText = wiseResult.status === 'fulfilled' ? wiseResult.value : '';
 
+  // Splash yield is the live, floating Ondo USDY net rate — never a fixed constant.
+  const treasury = getTreasuryRate();
+
   return NextResponse.json({
     bank: firstRate(bankText, [/Savings\s+([0-9.]+)/i], fallback.bank),
     broker: firstRate(brokerText, [/USD\s+>\s*10,?000\s+([0-9.]+)%/i, /up to USD\s+([0-9.]+)%/i], fallback.broker),
     wise: firstRate(wiseText, [/([0-9.]+)% APY on USD/i, /USD\s+([0-9.]+)%/i], fallback.wise),
-    splash: Number(process.env.SPLASH_TREASURY_APY ?? 4.8),
+    splash: treasury.netApyPct,
+    splashVariable: true,
+    splashIntroductory: treasury.introductory,
+    splashLabel: treasury.label,
+    instrument: 'Ondo USDY (T-bill backed)',
     asOf: new Date().toISOString(),
     sources,
   });

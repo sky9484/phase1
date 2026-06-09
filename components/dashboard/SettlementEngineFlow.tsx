@@ -30,7 +30,7 @@ type CoreCopy = { kicker: string; title: string; sub: string };
 
 const CORE: Record<Variant, CoreCopy> = {
   settlement: { kicker: 'Settlement engine', title: 'Splash · Sui', sub: 'Atomic settle-or-revert' },
-  treasury:   { kicker: 'Smart treasury',    title: 'USDsui vault', sub: 'Yield on idle USD' },
+  treasury:   { kicker: 'Smart treasury',    title: 'USDY vault', sub: 'T-bill yield on idle USD' },
   batch:      { kicker: 'Batch engine',      title: 'Payout run',   sub: 'Screen · authorize · settle' },
 };
 
@@ -40,7 +40,7 @@ const DEFAULT_SOURCES: Record<Variant, FlowNode[]> = {
     { label: 'Airwallex', sublabel: 'Bank rails', src: '/airwallex-logo.png' },
   ],
   treasury: [
-    { label: 'Idle USD', sublabel: 'Operating balance' },
+    { label: 'Idle USDC', sublabel: 'Available balance' },
   ],
   batch: [
     { label: 'CSV upload', sublabel: 'Recipients' },
@@ -56,8 +56,8 @@ const DEFAULT_DESTS: Record<Variant, FlowNode[]> = {
     { label: 'SGD', sublabel: 'Singapore', flag: '🇸🇬' },
   ],
   treasury: [
-    { label: 'Auto-compound', sublabel: '4.91% effective' },
-    { label: 'T+0 withdraw', sublabel: 'Instant liquidity' },
+    { label: 'USDY yield', sublabel: 'variable · T-bill' },
+    { label: 'Withdraw', sublabel: 'T+1–T+3 to Available' },
   ],
   batch: [
     { label: 'PHP', sublabel: 'Cleared', flag: '🇵🇭' },
@@ -68,7 +68,7 @@ const DEFAULT_DESTS: Record<Variant, FlowNode[]> = {
 
 const DEFAULT_CAPTIONS: Record<Variant, string[]> = {
   settlement: ['400ms Sui finality', 'Pyth-verified FX', 'Walrus audit proof'],
-  treasury:   ['Non-custodial', 'Labuan FSA', 'Withdraw any time'],
+  treasury:   ['Ondo USDY · T-bill', 'Variable rate', 'T+1–T+3 withdrawal'],
   batch:      ['One authorization', 'Every row screened', 'Receipts anchored'],
 };
 

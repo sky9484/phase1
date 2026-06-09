@@ -1,20 +1,29 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Building2, CheckCircle2, Info, Loader2, ShieldCheck, TrendingUp } from 'lucide-react';
+import { Building2, CheckCircle2, CreditCard, Info, Loader2, ShieldCheck, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 import HoverPopup from '@/components/HoverPopup';
 import type { TransferState } from '@/app/dashboard/transfer/page';
 
 const BASE_RATES: Record<TransferState['amount']['targetCurrency'], number> = { MYR: 4.71, PHP: 56.42, IDR: 16284, SGD: 1.345, VND: 25385, THB: 35.82, EUR: 0.924, GBP: 0.789 };
-const depositMethods = ['Stripe Checkout', 'Stripe ACH', 'Airwallex Wire', 'Airwallex FPX (MY users)'];
+
+// Funding is bank-rails only — card (Stripe Checkout) is disabled to protect
+// pricing (paying ~2.9% to collect funds we move for ~1.3% destroys the margin).
+type DepositMethod = { id: string; label: string; type: 'bank' | 'card'; note: string };
+const depositMethods: DepositMethod[] = [
+  { id: 'Airwallex Wire',          label: 'Airwallex Wire',  type: 'bank', note: 'Bank wire · recommended' },
+  { id: 'Stripe ACH',              label: 'Stripe ACH',      type: 'bank', note: 'US bank debit · recommended' },
+  { id: 'Airwallex FPX (MY users)', label: 'Airwallex FPX',  type: 'bank', note: 'Malaysia online banking' },
+  { id: 'Stripe Checkout',         label: 'Stripe Checkout', type: 'card', note: 'Card funding disabled — use a bank rail' },
+];
 
 export default function StepQuote({ state, set, prev, next }: { state: TransferState; set: (patch: Partial<TransferState>) => void; prev: () => void; next: () => void }) {
   const [loading, setLoading] = useState(true);
   const [agree, setAgree] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
-  const [selectedDepositMethod, setSelectedDepositMethod] = useState(depositMethods[0]);
+  const [selectedDepositMethod, setSelectedDepositMethod] = useState(depositMethods[0].id);
   const [isSending, setIsSending] = useState(false);
   const [progress, setProgress] = useState(18);
   const [liveRate, setLiveRate] = useState(BASE_RATES[state.amount.targetCurrency]);
@@ -196,7 +205,7 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
       <div className="rounded-xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 p-4 text-sm text-[#326273]/75">
         <div className="flex gap-3">
           <ShieldCheck className="mt-0.5 h-5 w-5 text-[#5C9EAD]" />
-          <span>No stored bank credentials. Stripe handles card/ACH deposits and Airwallex supports wire or FPX for Malaysia users.</span>
+          <span>Funding is bank-rails only — ACH, wire, or FPX (Airwallex / Stripe ACH). Card funding is disabled to protect transfer pricing. No bank credentials are stored.</span>
         </div>
       </div>
       <label className="flex items-start gap-3 text-sm text-[#326273]/80">
@@ -229,21 +238,25 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
               </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {depositMethods.map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  disabled={isSending}
-                  onClick={() => setSelectedDepositMethod(method)}
-                  className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed ${selectedDepositMethod === method ? 'border-[#5C9EAD] bg-[#5C9EAD]/10 shadow-lg shadow-[#5C9EAD]/10' : 'border-[#326273]/10 bg-white'}`}
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F6F0ED] text-[#326273]">
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                  <p className="font-semibold">{method}</p>
-                  <p className="mt-1 text-xs text-[#326273]/60">{method.startsWith('Stripe') ? 'Card or ACH deposit' : 'Wire deposit rail'}</p>
-                </button>
-              ))}
+              {depositMethods.map((m) => {
+                const disabled = isSending || m.type === 'card';
+                const selected = selectedDepositMethod === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setSelectedDepositMethod(m.id)}
+                    className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:shadow-none ${selected ? 'border-[#5C9EAD] bg-[#5C9EAD]/10 shadow-lg shadow-[#5C9EAD]/10' : 'border-[#326273]/10 bg-white'}`}
+                  >
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F6F0ED] text-[#326273]">
+                      {m.type === 'card' ? <CreditCard className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
+                    </div>
+                    <p className="font-semibold">{m.label}{m.type === 'bank' && <span className="ml-1 text-[10px] font-bold uppercase tracking-wide text-[#5C9EAD]">bank</span>}</p>
+                    <p className={`mt-1 text-xs ${m.type === 'card' ? 'font-semibold text-[#E39774]' : 'text-[#326273]/60'}`}>{m.note}</p>
+                  </button>
+                );
+              })}
             </div>
             {isSending && (
               <div className="mt-5 space-y-3">

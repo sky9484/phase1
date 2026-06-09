@@ -51,7 +51,7 @@ const COMPACT_RESPONSES: { keywords: string[]; reply: string }[] = [
   {
     keywords: ['treasury', 'yield', 'apy', 'earn', 'deposit', 'compound'],
     reply:
-      'Smart Treasury: $24,500 · 4.8% APY · $3.22/day\n\nAuto-compound is ON — effective 4.91% daily. Moving an extra $5,000 from operating adds $0.66/day ($241/year).\n\nShall I prepare a deposit?',
+      'Smart Treasury earns Ondo USDY (T-bill) yield — ≈3.5% APY, variable.\n\nYour Available balance (USDC) stays 0% but instant. Withdrawals from Smart Treasury take 1–3 business days. Want me to prepare a move?',
   },
   {
     keywords: ['cheapest', 'corridor', 'rate', 'compare', 'best'],
@@ -78,7 +78,7 @@ const COMPACT_RESPONSES: { keywords: string[]; reply: string }[] = [
 const FALLBACK_REPLIES = [
   "I'm monitoring all 8 corridors — everything looks healthy today. What would you like to focus on?",
   'Your blended fee this month is 0.89%, saving you 41% vs. traditional wires. Anything to optimise?',
-  'Treasury is compounding nicely at 4.91% effective APY. Want to top it up or check a corridor?',
+  'Smart Treasury earns variable Ondo USDY (T-bill) yield; Available stays instant at 0%. Want to move idle USDC in?',
   'All systems clear — no AML flags, no compliance issues. What can I help with?',
 ];
 
