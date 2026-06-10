@@ -481,9 +481,9 @@ body {
   min-height: 820px;
   padding-top: 76px;
   background:
-    radial-gradient(circle at 70% 23%, rgba(159, 207, 199, .55), transparent 24%),
-    radial-gradient(circle at 18% 20%, rgba(239, 196, 111, .25), transparent 20%),
-    linear-gradient(180deg, #fffaf2 0%, var(--iso-paper) 100%);
+    radial-gradient(circle at 70% 23%, rgba(159, 207, 199, .28), transparent 24%),
+    radial-gradient(circle at 18% 20%, rgba(239, 196, 111, .18), transparent 20%),
+    linear-gradient(180deg, #ede5dc 0%, var(--splash-page-bg-deep) 100%);
 }
 
 .iso-grid-plane {
