@@ -327,6 +327,17 @@ const INITIAL_SUGGESTIONS: SuggestionCard[] = [
   },
 ];
 
+type ApiSuggestion = { suggestionId: string; type: string; title: string; description: string; confidence: number };
+
+function mapSuggestion(s: ApiSuggestion): SuggestionCard {
+  const conf = Math.round((s.confidence ?? 0.6) * 100);
+  const urgency: SuggestionCard['urgency'] = conf >= 80 ? 'high' : conf >= 65 ? 'medium' : 'low';
+  const href = s.type === 'treasury' ? '/dashboard/treasury' : s.type === 'batch' ? '/dashboard/batch' : s.type === 'invoice' ? '/dashboard/invoices' : '/dashboard';
+  const action = s.type === 'treasury' ? 'Open Treasury' : s.type === 'batch' ? 'Draft batch' : s.type === 'invoice' ? 'Open invoices' : 'View';
+  const corridor = s.type === 'timing' ? 'FX timing' : s.type.charAt(0).toUpperCase() + s.type.slice(1);
+  return { id: s.suggestionId, title: s.title, body: s.description, corridor, action, href, confidence: conf, urgency };
+}
+
 const URGENCY_STYLES: Record<SuggestionCard['urgency'], string> = {
   high:   'border-[#E39774]/30 border-l-[#E39774] bg-orange-50',
   medium: 'border-[#5C9EAD]/25 border-l-[#5C9EAD] bg-[#F6F0ED]',
@@ -379,6 +390,7 @@ export default function CopilotPage() {
   const [retention,    setRetention]    = useState('8 weeks');
   const [syncing,      setSyncing]      = useState(false);
   const [memStatus,    setMemStatus]    = useState<string | null>(null);
+  const [suggestions,  setSuggestions]  = useState<SuggestionCard[]>(INITIAL_SUGGESTIONS);
 
   const scrollRef        = useRef<HTMLDivElement>(null);
   const inputRef         = useRef<HTMLInputElement>(null);
@@ -401,6 +413,19 @@ export default function CopilotPage() {
     return () => {
       if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
     };
+  }, []);
+
+  // Real personalized suggestions (MemWal-grounded) for the swipe carousel.
+  useEffect(() => {
+    let active = true;
+    fetch('/api/copilot/suggest')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d?.suggestions?.length) return;
+        setSuggestions((d.suggestions as ApiSuggestion[]).map(mapSuggestion));
+      })
+      .catch(() => {});
+    return () => { active = false; };
   }, []);
 
   // ── send ───────────────────────────────────────────────────────────────────
@@ -490,7 +515,7 @@ export default function CopilotPage() {
     setTimeout(() => setSyncing(false), 1800);
   }
 
-  const visibleSuggestions = INITIAL_SUGGESTIONS.filter((s) => !dismissed.includes(s.id));
+  const visibleSuggestions = suggestions.filter((s) => !dismissed.includes(s.id));
   const busy = thinking || streaming;
 
   // ── render ─────────────────────────────────────────────────────────────────

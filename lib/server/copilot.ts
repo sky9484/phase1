@@ -11,6 +11,7 @@
 import { getCorridorFeeBps, getUsdCorridorByCurrency } from '@/lib/fx/corridors';
 import { recallMemories, analyzeAndRemember } from '@/lib/server/memwal';
 import { getTreasuryRate } from '@/lib/server/usdy';
+import { pythAdapter } from '@/lib/server/pyth';
 
 export interface CopilotSuggestion {
   suggestionId: string;
@@ -35,7 +36,7 @@ export async function parseInvoice(
       const { default: Anthropic } = await import('@anthropic-ai/sdk');
       const client = new Anthropic({ apiKey });
       const resp = await client.messages.create({
-        model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-5-20250929',
+        model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
         max_tokens: 300,
         system:
           'Extract the payable amount, ISO-4217 currency, and recipient/vendor name from this invoice. ' +
@@ -72,12 +73,29 @@ export async function forecastFxRate(
 ): Promise<{ predictedRate: number; confidence: number; currentRate: number; note: string }> {
   const currency = corridor.replace(/^USD[\/→-]?/i, '').toUpperCase().slice(0, 3);
   const current = getUsdCorridorByCurrency(currency)?.rate ?? 1;
+
+  // Every corridor settles via USDC, so USDC peg health (Pyth) is a real
+  // confidence signal: a tight peg = more reliable quotes; a stressed peg = less.
+  let pegFactor = 1;
+  let pegNote = '';
+  try {
+    const peg = await pythAdapter.getPegStatus();
+    const usdcDevBps = Math.abs(peg.usdcUsd.price - 1) * 10_000;
+    pegFactor = peg.pegged ? Math.max(0.85, 1 - usdcDevBps / 100) : 0.7;
+    pegNote = peg.pegged
+      ? `USDC peg healthy (${usdcDevBps.toFixed(1)} bps, Pyth)`
+      : 'USDC peg under stress (Pyth) — settle cautiously';
+  } catch {
+    // Pyth unavailable — fall back to horizon-only confidence.
+  }
+
   // Confidence decays with horizon; we don't pretend to predict direction.
-  const confidence = Math.max(0.4, 0.95 - Math.min(horizonHours, 168) / 168 * 0.45);
+  const horizonDecay = Math.max(0.4, 0.95 - (Math.min(horizonHours, 168) / 168) * 0.45);
+  const confidence = Number((horizonDecay * pegFactor).toFixed(2));
   const note = SUPPORTED.includes(currency)
-    ? `USD→${currency} is ${current}. Over ${horizonHours}h, expect normal drift; lock during pre-open liquidity for the tightest spread.`
+    ? `USD→${currency} is ${current}.${pegNote ? ` ${pegNote}.` : ''} Over ${horizonHours}h expect normal drift; lock during pre-open liquidity for the tightest spread.`
     : `USD→${currency} is not an active corridor.`;
-  return { predictedRate: current, confidence: Number(confidence.toFixed(2)), currentRate: current, note };
+  return { predictedRate: current, confidence, currentRate: current, note };
 }
 
 // ─── Batch optimizer (group same-corridor rows; real fee math) ──────────────────

@@ -147,7 +147,7 @@ export async function POST(request: Request) {
           const { default: Anthropic } = await import('@anthropic-ai/sdk');
           const client = new Anthropic({ apiKey });
           const mstream = client.messages.stream({
-            model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-5-20250929',
+            model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
             max_tokens: 800,
             system: buildSystemPrompt(memories),
             messages: [

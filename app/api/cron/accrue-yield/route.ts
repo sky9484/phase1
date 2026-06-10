@@ -8,9 +8,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { timingSafeEqual } from 'crypto';
+import { timingSafeEqual, createHash } from 'crypto';
 
 import { accrueDailyYield } from '@/lib/server/treasury';
+import { anchorAuditHash } from '@/lib/server/walrus';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -32,8 +33,15 @@ async function handleAccrual(request: Request) {
   }
   try {
     const snapshot = await accrueDailyYield();
-    // TODO: anchor `snapshot` to Walrus via audit_anchor (daily Merkle batch).
-    return NextResponse.json({ success: true, snapshot });
+    // Anchor the day's yield snapshot: hash it and write an immutable audit
+    // anchor (Walrus blob → audit_anchor.move daily Merkle batch).
+    const hash = createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+    const anchor = await anchorAuditHash(hash).catch(() => null);
+    return NextResponse.json({
+      success: true,
+      snapshot,
+      audit: { hash, anchorId: anchor?.anchorId ?? null, confirmed: Boolean(anchor?.confirmed) },
+    });
   } catch (error) {
     console.error('[cron/accrue-yield] accrual failed:', error);
     return NextResponse.json({ success: false, error: 'yield accrual failed' }, { status: 500 });

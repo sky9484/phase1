@@ -40,8 +40,15 @@ type HistoryEntry = {
 type WithdrawalNotice = {
   id: string;
   amount: number;
-  requestedAt: string;
   availableAt: string;
+};
+
+type TreasurySnapshot = {
+  available: number;
+  treasuryPrincipal: number;
+  treasuryYield: number;
+  rate: { apy: number; label: string; introductory: boolean };
+  notices: Array<{ id: string; amount: number; availableAt: string }>;
 };
 
 type TreasuryRateView = { apy: number; label: string; introductory: boolean };
@@ -92,18 +99,6 @@ function nowLabel() {
   return new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-/** Add N business days (skip weekends) — the T+1–T+3 settlement window. */
-function addBusinessDays(days: number) {
-  const d = new Date();
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) added += 1;
-  }
-  return d;
-}
-
 function HistIcon({ type }: { type: TxType }) {
   if (type === 'deposit')  return <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D9A441]/15"><ArrowUpRight size={14} className="text-[#C99A2E]" /></div>;
   if (type === 'withdraw') return <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5C9EAD]/10"><ArrowDownLeft size={14} className="text-[#5C9EAD]" /></div>;
@@ -127,24 +122,23 @@ export default function TreasuryPage() {
   const [hoveredBar, setHoveredBar]   = useState<number | null>(null);
   const counterRef                    = useRef(9);
 
-  // Live floating rate — single source of truth from /api/market/yields (USDY).
+  // Server-backed ledger: real two-bucket balances, floating rate, and notices.
+  function applySnapshot(d: TreasurySnapshot) {
+    setAvailable(d.available);
+    setBalance(d.treasuryPrincipal);
+    setYield30d(d.treasuryYield);
+    if (d.rate?.apy) setRate({ apy: d.rate.apy, label: d.rate.label, introductory: d.rate.introductory });
+    setNotices((d.notices ?? []).map((n) => ({ id: n.id, amount: n.amount, availableAt: n.availableAt })));
+  }
+
   useEffect(() => {
     let active = true;
-    fetch('/api/market/yields')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!active || !d) return;
-        const apy = Number(d.splash);
-        if (Number.isFinite(apy) && apy > 0) {
-          setRate({
-            apy,
-            label: typeof d.splashLabel === 'string' ? d.splashLabel : `≈${apy.toFixed(2)}% APY · variable`,
-            introductory: Boolean(d.splashIntroductory),
-          });
-        }
-      })
+    fetch('/api/treasury')
+      .then((r) => (r.ok ? (r.json() as Promise<TreasurySnapshot>) : null))
+      .then((d) => { if (active && d) applySnapshot(d); })
       .catch(() => {});
     return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Gentle live tick on accrued yield (cosmetic).
@@ -184,25 +178,28 @@ export default function TreasuryPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const id = `tx_t${String(counterRef.current++).padStart(3, '0')}`;
-      if (tab === 'toTreasury') {
-        // Instant move Available (USDC) → Smart Treasury (USDY swap).
-        setAvailable((v) => Math.max(0, v - parsedAmount));
-        setBalance((v) => v + parsedAmount);
-        setHistory((prev) => [{ id, type: 'deposit', desc: 'Available → Smart Treasury', amount: `+$${fmtUsd(parsedAmount)}`, amountNum: parsedAmount, date: nowLabel(), status: 'confirmed' }, ...prev]);
-        showToast(`$${fmtUsd(parsedAmount)} moved to Smart Treasury · now earning`);
-      } else {
-        // Withdrawal NOTICE: reserve from treasury now, lands in Available T+1–T+3.
-        const availableAt = addBusinessDays(2);
-        setBalance((v) => Math.max(0, v - parsedAmount));
-        setNotices((prev) => [{ id, amount: parsedAmount, requestedAt: new Date().toISOString(), availableAt: availableAt.toISOString() }, ...prev]);
-        setHistory((prev) => [{ id, type: 'withdraw', desc: 'Smart Treasury → Available (notice)', amount: `-$${fmtUsd(parsedAmount)}`, amountNum: -parsedAmount, date: nowLabel(), status: 'pending' }, ...prev]);
-        showToast(`Withdrawal requested · funds in Available in 1–3 business days`);
-      }
-      setAmount('');
-      setLoading(false);
-    }, 900);
+    const action = tab === 'toTreasury' ? 'move' : 'withdraw';
+    const id = `tx_t${String(counterRef.current++).padStart(3, '0')}`;
+    fetch('/api/treasury', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, amountUsd: parsedAmount }),
+    })
+      .then(async (r) => {
+        const d = (await r.json()) as TreasurySnapshot & { error?: string };
+        if (!r.ok) throw new Error(d.error || 'Move failed');
+        applySnapshot(d);
+        if (action === 'move') {
+          setHistory((prev) => [{ id, type: 'deposit', desc: 'Available → Smart Treasury', amount: `+$${fmtUsd(parsedAmount)}`, amountNum: parsedAmount, date: nowLabel(), status: 'confirmed' }, ...prev]);
+          showToast(`$${fmtUsd(parsedAmount)} moved to Smart Treasury · now earning`);
+        } else {
+          setHistory((prev) => [{ id, type: 'withdraw', desc: 'Smart Treasury → Available (notice)', amount: `-$${fmtUsd(parsedAmount)}`, amountNum: -parsedAmount, date: nowLabel(), status: 'pending' }, ...prev]);
+          showToast('Withdrawal requested · funds in Available in 1–3 business days');
+        }
+        setAmount('');
+      })
+      .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Move failed'))
+      .finally(() => setLoading(false));
   }
 
   const previewSource = validAmount ? Math.max(0, sourceBalance - parsedAmount) : null;

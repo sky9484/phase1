@@ -117,20 +117,12 @@ function formatChatTime(date: Date = new Date()): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FloatingCopilot() {
-  const { short: greeting, opening } = getGreeting();
-
+  const [greeting,  setGreeting]  = useState('Hello');
   const [open,      setOpen]      = useState(false);
   const [input,     setInput]     = useState('');
   const [thinking,  setThinking]  = useState(false);
   const [streaming, setStreaming] = useState(false);
-  const [messages,  setMessages]  = useState<Message[]>([
-    {
-      id: 1,
-      role: 'assistant',
-      text: opening,
-      time: formatChatTime(),
-    },
-  ]);
+  const [messages,  setMessages]  = useState<Message[]>([]);
 
   const msgIdRef          = useRef(1);
   const fallbackRef       = useRef(0);
@@ -139,6 +131,15 @@ export default function FloatingCopilot() {
   const inputRef          = useRef<HTMLInputElement>(null);
 
   const busy = thinking || streaming;
+
+  // Time-aware greeting + opening message — populated on the client only, so the
+  // server-rendered HTML (UTC/stable) matches first paint and avoids a hydration
+  // mismatch. getGreeting()/formatChatTime() depend on the local clock/timezone.
+  useEffect(() => {
+    const g = getGreeting();
+    setGreeting(g.short);
+    setMessages((prev) => (prev.length ? prev : [{ id: 1, role: 'assistant', text: g.opening, time: formatChatTime() }]));
+  }, []);
 
   // Auto-scroll on new messages
   useEffect(() => {

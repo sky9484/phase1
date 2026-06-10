@@ -111,6 +111,8 @@ export default function DashboardOverview() {
   const [balance, setBalance]     = useState(11140.00);
   const [yieldEarned, setYield]   = useState(98.72);
   const [copilotDismissed, setCopilotDismissed] = useState(false);
+  const [treasuryPrincipal, setTreasuryPrincipal] = useState(24500);
+  const [treasuryRateLabel, setTreasuryRateLabel] = useState('USDY · variable');
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -124,6 +126,22 @@ export default function DashboardOverview() {
       setYield((v) => v + Math.random() * 0.015);
     }, 5000);
     return () => window.clearInterval(id);
+  }, []);
+
+  // Real two-bucket balances from the treasury ledger.
+  useEffect(() => {
+    let active = true;
+    fetch('/api/treasury')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d) return;
+        if (typeof d.available === 'number') setBalance(d.available);
+        if (typeof d.treasuryPrincipal === 'number') setTreasuryPrincipal(d.treasuryPrincipal);
+        if (typeof d.treasuryYield === 'number') setYield(d.treasuryYield);
+        if (d.rate?.label) setTreasuryRateLabel(d.rate.label);
+      })
+      .catch(() => {});
+    return () => { active = false; };
   }, []);
 
   return (
@@ -414,13 +432,13 @@ export default function DashboardOverview() {
                 </div>
               </div>
               <span className="rounded-full bg-[#D9A441]/15 px-2 py-0.5 text-[10px] font-bold text-[#9a6f15]">
-                USDY · variable
+                {treasuryRateLabel}
               </span>
             </div>
 
             <div className="mt-3">
               <p className="text-[11px] uppercase tracking-wide text-[#326273]/45">Treasury Balance</p>
-              <p className="mt-0.5 text-2xl font-extrabold text-[#1F4452]">$24,500.00</p>
+              <p className="mt-0.5 text-2xl font-extrabold text-[#1F4452]">${fmt(treasuryPrincipal)}</p>
               <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
                 <TrendingUp size={11} />
                 +${yieldEarned.toFixed(2)} earned this month
