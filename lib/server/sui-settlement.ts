@@ -400,8 +400,12 @@ export async function recordSingleTransferOnSui(input: {
     '--split-coins', 'gas', `[${paymentMist}]`,
     '--assign', 'payment',
     // 3. Settle — assert_pegged reads the freshly-updated PegState from step 1.
-    //    fee_bps is passed as a u64 so the contract collects the corridor-
-    //    specific fee (E_FEE_EXCEEDED if > 200).
+    //    NOTE: the deployed package (v1, see move/Published.toml) does NOT take a
+    //    fee_bps argument. Its on-chain signature is
+    //    settle_payment<T>(pool, business_account, peg_state, payment, recipient, clock).
+    //    The corridor fee is still applied off-chain in the quote engine; feeBps
+    //    is retained here only for logging/audit until the contract is re-published
+    //    with the fee_bps parameter (then re-add it before `@0x6`).
     '--move-call',
     `${SPLASH_PACKAGE_ID}::settlement::settle_payment`,
     `<${USDC_TYPE}>`,
@@ -410,7 +414,6 @@ export async function recordSingleTransferOnSui(input: {
     `@${SPLASH_PEG_STATE_ID}`,
     'payment.0',
     `@${recipientAddress}`,
-    feeBps.toString(),
     '@0x6',
     '--gas-coin', `@${primaryId}`,
     '--gas-budget', gasBudget,
@@ -524,17 +527,19 @@ export async function recordBatchSettlementOnSui(input: {
     `[${paymentObjects.map((_, index) => `payment_${index}`).join(',')}]`,
     '--assign',
     'payments',
+    // NOTE: the deployed package (v1, see move/Published.toml) settle_batch takes
+    // settle_batch<T>(pool, business_account, peg_state, payments, clock) — it is
+    // NOT AdminCap-gated and takes NO fee_bps. The AdminCap gate and fee_bps were
+    // added to the source later but never re-published. The corridor fee is still
+    // applied off-chain in the quote engine. Re-add `@${SPLASH_ADMIN_CAP_ID}`
+    // (first) and feeBps (before `@0x6`) once the contract is re-published.
     '--move-call',
     `${SPLASH_PACKAGE_ID}::settlement::settle_batch`,
     `<${USDC_TYPE}>`,
-    // settle_batch is AdminCap-gated: only the operator that holds the cap can
-    // draw payouts from the shared settlement pool (see settlement.move).
-    `@${SPLASH_ADMIN_CAP_ID}`,
     `@${SPLASH_TREASURY_ID}`,
     `@${SPLASH_BUSINESS_ACCOUNT_ID}`,
     `@${SPLASH_PEG_STATE_ID}`,
     'payments',
-    feeBps.toString(),
     '@0x6',
     '--gas-budget',
     gasBudget,
