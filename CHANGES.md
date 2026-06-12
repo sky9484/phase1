@@ -78,3 +78,8 @@
 
 - Added a $5,000 sweep-versus-hold simulator that separates fees removed by
   internal netting from fees relocated to the eventual external payout.
+
+## QA
+
+- Deduplicated MemWal recall cards and safely backfilled missing behavior slots
+  to prevent duplicate React keys in the operating desk.
