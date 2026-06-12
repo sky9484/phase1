@@ -180,7 +180,7 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
           <Row label="You send" value={`$${state.amount.value}`} />
         </HoverPopup>
         <HoverPopup title="Splash fees" content="1.4% transaction fee + $4.50 fixed fee per transfer.">
-          <Row label="Splash fees" value={`$${state.quote.fee}`} />
+          <Row label="Splash fees" value={state.deliveryTier === 'STORED_BALANCE' ? '$0.00 transfer fee' : `$${state.quote.fee}`} />
         </HoverPopup>
         <HoverPopup title="Live FX rate" content="Real-time exchange rate updated every 5 seconds. Rate may fluctuate until authorization.">
           <div className="flex justify-between gap-4 items-center">
@@ -201,6 +201,7 @@ export default function StepQuote({ state, set, prev, next }: { state: TransferS
           <Info className="h-3 w-3" />
           Quote valid for 30 seconds. AI can suggest timing, but you always sign before value moves.
         </div>
+        <Row label="Delivery" value={state.deliveryTier === 'PAYOUT_ONLY' ? 'Bank payout' : state.deliveryTier === 'SWEEP_ACCOUNT' ? 'Receive account + auto-sweep' : 'Splash balance'} bold />
       </div>
       <div className="rounded-xl border border-[#5C9EAD]/20 bg-[#5C9EAD]/10 p-4 text-sm text-[#326273]/75">
         <div className="flex gap-3">

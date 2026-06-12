@@ -8,6 +8,8 @@ import StepBeneficiary from '@/components/transfer/StepBeneficiary';
 import StepQuote from '@/components/transfer/StepQuote';
 import StepReceipt from '@/components/transfer/StepReceipt';
 import StepStatus from '@/components/transfer/StepStatus';
+import StepDelivery from '@/components/transfer/StepDelivery';
+import type { RecipientTier } from '@/lib/server/operations';
 
 // Target-currency display metadata for the settlement-flow corridor node.
 const CURRENCY_META: Record<string, { flag: string; country: string }> = {
@@ -22,7 +24,7 @@ const CURRENCY_META: Record<string, { flag: string; country: string }> = {
 };
 
 export type TransferState = {
-  step: 1 | 2 | 3 | 4;
+  step: 1 | 2 | 3 | 4 | 5;
   recipient: {
     name: string;
     country: 'MY' | 'PH' | 'ID' | 'SG' | 'VN' | 'TH' | 'EU' | 'GB';
@@ -35,15 +37,17 @@ export type TransferState = {
   txStatus?: 'pending' | 'success' | 'failed';
   transferIntentId?: string;
   receiptObjectId?: string;
+  deliveryTier: RecipientTier;
 };
 
 const initial: TransferState = {
   step: 1,
   recipient: { name: '', country: 'PH', rail: 'bank' },
   amount: { value: '', sourceCurrency: 'USD', targetCurrency: 'PHP' },
+  deliveryTier: 'PAYOUT_ONLY',
 };
 
-const stepLabels = ['Beneficiary', 'Quote & Send', 'Status', 'Receipt'] as const;
+const stepLabels = ['Beneficiary', 'Delivery', 'Quote & Send', 'Status', 'Receipt'] as const;
 
 const sidePanels = [
   {
@@ -83,7 +87,7 @@ export default function TransferPage() {
           </p>
         </div>
         <div className="rounded-[11px] border border-[#326273]/15 bg-white/70 px-3 py-2 text-xs font-bold text-[#326273]">
-          Step {state.step} of 4 · {stepLabels[state.step - 1]}
+          Step {state.step} of 5 · {stepLabels[state.step - 1]}
         </div>
       </header>
 
@@ -104,9 +108,10 @@ export default function TransferPage() {
       <section className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         <div className="dash-surface p-6 md:p-8">
           {state.step === 1 && <StepBeneficiary state={state} set={set} next={() => go(2)} />}
-          {state.step === 2 && <StepQuote state={state} set={set} prev={() => go(1)} next={() => go(3)} />}
-          {state.step === 3 && <StepStatus state={state} set={set} next={() => go(4)} />}
-          {state.step === 4 && <StepReceipt state={state} reset={() => setState(initial)} />}
+          {state.step === 2 && <StepDelivery state={state} set={set} prev={() => go(1)} next={() => go(3)} />}
+          {state.step === 3 && <StepQuote state={state} set={set} prev={() => go(2)} next={() => go(4)} />}
+          {state.step === 4 && <StepStatus state={state} set={set} next={() => go(5)} />}
+          {state.step === 5 && <StepReceipt state={state} reset={() => setState(initial)} />}
         </div>
 
         <aside className="space-y-4">
@@ -154,7 +159,7 @@ function Pill({ label, value }: { label: string; value: string }) {
 
 function Stepper({ current }: { current: number }) {
   return (
-    <ol className="dash-surface grid grid-cols-4 gap-0 overflow-hidden">
+    <ol className="dash-surface grid grid-cols-5 gap-0 overflow-hidden">
       {stepLabels.map((label, index) => {
         const step = index + 1;
         const active = step === current;

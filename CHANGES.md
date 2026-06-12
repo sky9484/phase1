@@ -18,3 +18,10 @@
   vault, secure pay-link creation, and issuer settlement confirmation.
 - Added the public bank-transfer payment request and counterparty acquisition
   flow with payer recipient creation, KYB-invite stub, and analytics summary.
+
+## P0-5 / P0-6
+
+- Added the three-rung recipient delivery ladder to the send wizard and persisted
+  the selected delivery tier through authorization.
+- Added the PDAX adapter, settlement-completion sweep engine, stored-balance
+  credits, paired ledger entries, and held-duration API fields.
