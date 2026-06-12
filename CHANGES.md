@@ -30,3 +30,9 @@
 
 - Added the five-panel 0xWal invoice-to-payment workspace, access checks,
   extraction recommendation route, invoice-prefilled transfer handoff, and chat link.
+
+## P0-8
+
+- Added linked audit-trail views with Walrus retrieval, Seal decryption, document
+  hash verification, Seal allowlist and extraction evidence, Sui proof, sweep proof,
+  and full status history.
