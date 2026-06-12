@@ -25,3 +25,8 @@
   the selected delivery tier through authorization.
 - Added the PDAX adapter, settlement-completion sweep engine, stored-balance
   credits, paired ledger entries, and held-duration API fields.
+
+## P0-7
+
+- Added the five-panel 0xWal invoice-to-payment workspace, access checks,
+  extraction recommendation route, invoice-prefilled transfer handoff, and chat link.

@@ -3,7 +3,13 @@ import { z } from 'zod';
 
 import { createIntercompanyTransfer } from '@/lib/server/intercompany';
 import { convertUsdToUsdc, usdCentsToUsdcMicro } from '@/lib/server/labuan-settlement';
-import { createRecipient, createTransferIntent, updateTransferIntent } from '@/lib/server/operations';
+import {
+  createRecipient,
+  createTransferIntent,
+  updateAuditReceipt,
+  updateInvoice,
+  updateTransferIntent,
+} from '@/lib/server/operations';
 import { pythAdapter } from '@/lib/server/pyth';
 import { calculateQuote } from '@/lib/server/quote';
 import { selectStablecoin } from '@/lib/server/stable-router';
@@ -76,6 +82,11 @@ export async function POST(request: Request) {
     daxTier: conversion?.tier ?? null,
     pegChecked: true,
   });
+  updateAuditReceipt(intent.id, {
+    approvedBy: 'dashboard-operator',
+    approvedAt: new Date().toISOString(),
+  });
+  if (body.invoiceId) updateInvoice(body.invoiceId, { transferIntentId: intent.id });
 
   if (conversion?.success && conversion.labuanSettlementId) {
     createIntercompanyTransfer({ transferIntentId: intent.id, amountUsd: conversion.usdAmount, usdToUsdcRate: conversion.usdToUsdcRate });

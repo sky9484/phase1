@@ -42,7 +42,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'Treasury',   href: '/dashboard/treasury', icon: TrendingUp, badge: '4.8%' },
       { label: 'Invoices',   href: '/dashboard/invoices', icon: FileText },
-      { label: '0xWal', href: '/dashboard/copilot',  icon: Bot,        badge: 'AI' },
+      { label: '0xWal', href: '/dashboard/0xwal',  icon: Bot,        badge: 'AI' },
     ],
   },
   {

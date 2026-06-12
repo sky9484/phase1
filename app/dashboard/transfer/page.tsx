@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Check, ShieldCheck, Sparkles, Timer } from 'lucide-react';
 import SettlementEngineFlow from '@/components/dashboard/SettlementEngineFlow';
 
@@ -25,6 +25,7 @@ const CURRENCY_META: Record<string, { flag: string; country: string }> = {
 
 export type TransferState = {
   step: 1 | 2 | 3 | 4 | 5;
+  invoiceId?: string;
   recipient: {
     name: string;
     country: 'MY' | 'PH' | 'ID' | 'SG' | 'VN' | 'TH' | 'EU' | 'GB';
@@ -75,6 +76,22 @@ export default function TransferPage() {
   const go = useCallback((step: TransferState['step']) => {
     set({ step });
   }, [set]);
+
+  useEffect(() => {
+    const invoiceId = new URLSearchParams(window.location.search).get('invoiceId');
+    if (!invoiceId) return;
+    void fetch(`/api/invoices/${invoiceId}`).then((response) => response.json()).then((invoice: { payerOrgName?: string; amountUsd?: string; targetCurrency?: TransferState['amount']['targetCurrency']; id?: string }) => {
+      if (!invoice.id) return;
+      setState((current) => ({
+        ...current,
+        step: 2,
+        invoiceId: invoice.id,
+        recipient: { ...current.recipient, name: invoice.payerOrgName ?? current.recipient.name, country: 'PH' },
+        amount: { ...current.amount, value: invoice.amountUsd ?? current.amount.value, targetCurrency: invoice.targetCurrency ?? current.amount.targetCurrency },
+        deliveryTier: invoice.targetCurrency === 'PHP' ? 'SWEEP_ACCOUNT' : 'PAYOUT_ONLY',
+      }));
+    });
+  }, []);
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
