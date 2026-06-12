@@ -12,11 +12,14 @@ import {
   ArrowRight,
   Loader2,
   History,
+  Download,
 } from 'lucide-react';
 import Link from 'next/link';
+import Papa from 'papaparse';
 
 import StatusBadge from '@/components/StatusBadge';
 import type { TransferIntentRecord, TransferIntentState } from '@/lib/server/operations';
+import { getCorridorFeeBps } from '@/lib/fx/corridors';
 
 type FilterType = 'all' | 'pending' | 'successful' | 'failed';
 
@@ -256,6 +259,40 @@ export default function HistoryPage() {
     failed: failed.length,
   };
 
+  async function exportReconciliation(format: 'csv' | 'json') {
+    const response = await fetch('/api/transfers?filter=all&export=true');
+    if (!response.ok) return;
+    const body = (await response.json()) as ApiResponse;
+    const rows = body.items.map((record) => {
+      const grossUsd = Number(record.sourceAmountUsd) || 0;
+      const feeUsd = record.deliveryTier === 'STORED_BALANCE'
+        ? 0
+        : grossUsd * (getCorridorFeeBps(record.targetCurrency) / 10_000) + 4.5;
+      return {
+        date: record.createdAt,
+        counterparty: record.recipientName,
+        grossUsd: Number(grossUsd.toFixed(2)),
+        feeUsd: Number(feeUsd.toFixed(2)),
+        fxRate: Number(record.exchangeRate ?? 0),
+        targetAmount: Number(record.targetAmount) || 0,
+        reference: record.invoiceId ?? record.id,
+        suiTxDigest: record.suiTxDigest ?? '',
+        tier: record.deliveryTier,
+      };
+    });
+    const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+    const content = format === 'csv' ? Papa.unparse(rows) : JSON.stringify(rows, null, 2);
+    const blob = new Blob([content], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `splash-reconciliation-${date}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
       {/* Header */}
@@ -268,6 +305,22 @@ export default function HistoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void exportReconciliation('csv')}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#326273]/15 bg-white px-3 py-2 text-xs font-semibold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]/40"
+          >
+            <Download size={14} />
+            Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => void exportReconciliation('json')}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#326273]/15 bg-white px-3 py-2 text-xs font-semibold text-[#326273] shadow-sm transition-colors hover:border-[#5C9EAD]/40"
+          >
+            <Download size={14} />
+            Export JSON
+          </button>
           <button
             type="button"
             onClick={() => void fetchTransfers(filter, true)}

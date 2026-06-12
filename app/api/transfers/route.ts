@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const filter = searchParams.get('filter') ?? 'all';
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10));
-  const perPage = 20;
+  const perPage = searchParams.get('export') === 'true' ? Number.MAX_SAFE_INTEGER : 20;
 
   let records = [...operations.transfers.values()].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),

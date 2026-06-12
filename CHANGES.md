@@ -68,3 +68,8 @@
 
 - Replaced the dashboard's first generic metric with a live 0xWal operating
   summary for detected invoices, same-corridor batchability, and approval work.
+
+## P1-5
+
+- Added full-store CSV and JSON reconciliation exports with deterministic
+  accounting fields and dated `splash-reconciliation-{yyyymmdd}` filenames.
