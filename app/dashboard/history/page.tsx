@@ -20,7 +20,7 @@ import type { TransferIntentRecord, TransferIntentState } from '@/lib/server/ope
 type FilterType = 'all' | 'pending' | 'successful' | 'failed';
 
 type ApiResponse = {
-  items: TransferIntentRecord[];
+  items: Array<TransferIntentRecord & { heldDurationMs?: number | null }>;
   total: number;
   page: number;
   perPage: number;
@@ -34,6 +34,9 @@ const STATE_ORDER: TransferIntentState[] = [
   'QUEUED',
   'SETTLING',
   'SETTLED',
+  'SWEEPING',
+  'DISBURSED',
+  'CREDITED',
 ];
 
 function stateIndex(state: TransferIntentState) {
@@ -42,7 +45,7 @@ function stateIndex(state: TransferIntentState) {
 }
 
 function StateIcon({ state }: { state: TransferIntentState }) {
-  if (state === 'SETTLED' || state === 'DISBURSED') {
+  if (state === 'SETTLED' || state === 'DISBURSED' || state === 'CREDITED') {
     return <CheckCircle2 className="text-[#5C9EAD]" size={18} />;
   }
   if (state === 'FAILED' || state === 'REFUNDED') {
@@ -55,7 +58,7 @@ function StateIcon({ state }: { state: TransferIntentState }) {
 }
 
 function StateBadge({ state }: { state: TransferIntentState }) {
-  if (state === 'SETTLED' || state === 'DISBURSED') {
+  if (state === 'SETTLED' || state === 'DISBURSED' || state === 'CREDITED') {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-[#5C9EAD]/10 px-2.5 py-0.5 text-xs font-semibold text-[#5C9EAD]">
         <CheckCircle2 size={11} /> {state}
@@ -86,7 +89,7 @@ function StateBadge({ state }: { state: TransferIntentState }) {
 function ProgressSteps({ state }: { state: TransferIntentState }) {
   if (state === 'FAILED' || state === 'REFUNDING' || state === 'REFUNDED') return null;
   const current = stateIndex(state);
-  const steps = ['Authorized', 'Deposit Confirmed', 'Exchanging', 'Exchanged', 'Queued', 'Settling', 'Settled'];
+  const steps = ['Authorized', 'Deposit Confirmed', 'Exchanging', 'Exchanged', 'Queued', 'Settling', 'Settled', 'Sweeping', 'Delivered', 'Credited'];
 
   return (
     <div className="mt-3 flex items-center gap-0.5 overflow-x-auto pb-1">
@@ -112,7 +115,7 @@ function ProgressSteps({ state }: { state: TransferIntentState }) {
   );
 }
 
-function TransferCard({ record }: { record: TransferIntentRecord }) {
+function TransferCard({ record }: { record: TransferIntentRecord & { heldDurationMs?: number | null } }) {
   const suiScanUrl = record.suiTxDigest
     ? `https://suiscan.xyz/testnet/tx/${record.suiTxDigest}`
     : null;
@@ -184,6 +187,12 @@ function TransferCard({ record }: { record: TransferIntentRecord }) {
         </div>
       )}
 
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-foreground/8 px-2.5 py-1 text-[11px] font-black text-foreground/60">{record.deliveryTier.replaceAll('_', ' ')}</span>
+        {record.heldDurationMs != null && <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-black text-primary">Held: {(record.heldDurationMs / 1000).toFixed(1)}s</span>}
+        <Link href={`/dashboard/audit/${record.id}`} className="rounded-full border border-primary/20 px-2.5 py-1 text-[11px] font-black text-primary">Audit</Link>
+      </div>
+
       <div className="mt-3 flex items-center justify-between text-[11px] text-[#326273]/40">
         <span>{new Date(record.createdAt).toLocaleString()}</span>
         {record.exchangeRate && <span>Rate: {record.exchangeRate}</span>}
@@ -233,9 +242,9 @@ export default function HistoryPage() {
   }, [filter, fetchTransfers]);
 
   const pending = data?.items.filter(
-    (r) => r.state !== 'SETTLED' && r.state !== 'DISBURSED' && r.state !== 'FAILED' && r.state !== 'REFUNDED' && r.state !== 'REFUNDING',
+    (r) => r.state !== 'SETTLED' && r.state !== 'DISBURSED' && r.state !== 'CREDITED' && r.state !== 'FAILED' && r.state !== 'REFUNDED' && r.state !== 'REFUNDING',
   ) ?? [];
-  const successful = data?.items.filter((r) => r.state === 'SETTLED' || r.state === 'DISBURSED') ?? [];
+  const successful = data?.items.filter((r) => r.state === 'SETTLED' || r.state === 'DISBURSED' || r.state === 'CREDITED') ?? [];
   const failed = data?.items.filter((r) => r.state === 'FAILED' || r.state === 'REFUNDING' || r.state === 'REFUNDED') ?? [];
 
   const counts: Record<FilterType, number> = {
