@@ -83,3 +83,5 @@
 
 - Deduplicated MemWal recall cards and safely backfilled missing behavior slots
   to prevent duplicate React keys in the operating desk.
+- Moved corridor batch prefill behind the initial render to keep server and
+  client summary counts identical while preserving one-click batch staging.

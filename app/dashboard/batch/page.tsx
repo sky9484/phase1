@@ -154,20 +154,20 @@ function screenRows(rows: Array<Omit<BatchRow, "status" | "checks">>): BatchRow[
   });
 }
 
-function getInitialRows(): BatchRow[] {
-  if (typeof window === "undefined") return [];
-  const corridor = new URLSearchParams(window.location.search).get("corridor")?.toUpperCase();
-  if (!corridor) return [];
-  const matchingRows = sampleCsvRows.filter((row) => row.country === corridor || (corridor === "PHP" && row.country === "PH"));
-  return screenRows(matchingRows);
-}
-
 export default function BatchPage() {
-  const [rows, setRows] = useState<BatchRow[]>(getInitialRows);
+  const [rows, setRows] = useState<BatchRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [totp, setTotp] = useState("");
   const [batchId, setBatchId] = useState<string | null>(null);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
+
+  useEffect(() => {
+    const corridor = new URLSearchParams(window.location.search).get("corridor")?.toUpperCase();
+    if (!corridor) return;
+    const matchingRows = sampleCsvRows.filter((row) => row.country === corridor || (corridor === "PHP" && row.country === "PH"));
+    const timeout = setTimeout(() => setRows(screenRows(matchingRows)), 0);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const pollBatch = useCallback(async (id: string) => {
     try {
