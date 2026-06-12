@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   TrendingUp,
   Upload,
-  Wallet,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -33,7 +32,7 @@ function bpsToPct(bps: number) {
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const TOP_STATS = [
-  { label: 'Operating Balance', value: null, icon: Wallet, accent: 'text-[#5C9EAD]', bg: 'bg-[#5C9EAD]/10', id: 'balance' },
+  { label: '0xWal operating scan', value: null, icon: Bot, accent: 'text-[#E39774]', bg: 'bg-[#E39774]/10', id: '0xwal' },
   { label: 'Volume (30d)', value: '$39,120', delta: '+12.4%', icon: ArrowUpRight, accent: 'text-[#326273]', bg: 'bg-[#326273]/10', id: 'volume' },
   { label: 'Yield Earned (30d)', value: null, icon: TrendingUp, accent: 'text-emerald-600', bg: 'bg-emerald-100', id: 'yield' },
   { label: 'Active Corridors', value: '8 / 8', delta: 'All live', icon: Globe, accent: 'text-[#5C9EAD]', bg: 'bg-[#5C9EAD]/10', id: 'corridors' },
@@ -109,10 +108,10 @@ function TxPill({ status }: { status: TxStatus }) {
 
 export default function DashboardOverview() {
   const [corridors, setCorridors] = useState(INITIAL_CORRIDORS);
-  const [balance, setBalance]     = useState(11140.00);
   const [yieldEarned, setYield]   = useState(98.72);
   const [copilotDismissed, setCopilotDismissed] = useState(false);
   const [treasuryPrincipal, setTreasuryPrincipal] = useState(24500);
+  const [walSummary, setWalSummary] = useState({ detected: 0, batchable: 0, needsApproval: 0 });
   const [treasuryRateLabel, setTreasuryRateLabel] = useState('USDY · variable');
 
   useEffect(() => {
@@ -123,7 +122,6 @@ export default function DashboardOverview() {
           rate: Math.max(c.rate * (1 + (Math.random() - 0.49) * 0.001), 0.001),
         }))
       );
-      setBalance((v) => Math.max(v + (Math.random() - 0.5) * 40, 0));
       setYield((v) => v + Math.random() * 0.015);
     }, 5000);
     return () => window.clearInterval(id);
@@ -136,13 +134,25 @@ export default function DashboardOverview() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!active || !d) return;
-        if (typeof d.available === 'number') setBalance(d.available);
         if (typeof d.treasuryPrincipal === 'number') setTreasuryPrincipal(d.treasuryPrincipal);
         if (typeof d.treasuryYield === 'number') setYield(d.treasuryYield);
         if (d.rate?.label) setTreasuryRateLabel(d.rate.label);
       })
       .catch(() => {});
     return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    void fetch('/api/copilot/summary')
+      .then((response) => response.json())
+      .then((summary: { detected?: number; batchable?: number; needsApproval?: number }) => {
+        setWalSummary({
+          detected: summary.detected ?? 0,
+          batchable: summary.batchable ?? 0,
+          needsApproval: summary.needsApproval ?? 0,
+        });
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -184,15 +194,29 @@ export default function DashboardOverview() {
       {/* Top stats row */}
       <section className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-3 xl:grid-cols-5">
         {TOP_STATS.map(({ label, value, icon: Icon, accent, bg, id }) => {
+          if (id === '0xwal') {
+            return (
+              <Link key={label} href="/dashboard/0xwal" className="dash-block dash-block-interactive p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#326273]/55">{label}</span>
+                  <div className={cn('rounded-lg p-1.5', bg)}>
+                    <Icon size={14} className={accent} />
+                  </div>
+                </div>
+                <div className="mt-2 text-sm font-extrabold leading-5 text-[#0c3e48]">
+                  {walSummary.detected} invoices detected · {walSummary.batchable} batchable · {walSummary.needsApproval} needs approval
+                </div>
+                <div className="mt-1 text-[11px] font-semibold text-[#E39774]">Open 0xWal →</div>
+              </Link>
+            );
+          }
           const displayValue =
-            id === 'balance' ? `$${fmt(balance)}` :
             id === 'yield'   ? `$${yieldEarned.toFixed(2)}` :
             value ?? '—';
           const delta =
-            id === 'balance' ? 'Reconciled' :
             id === 'yield'   ? 'USDY · variable' :
             (TOP_STATS.find((s) => s.id === id) as { delta?: string })?.delta ?? '';
-          const deltaGreen = id === 'yield' || id === 'corridors' || id === 'sla' || id === 'balance' || id === 'volume';
+          const deltaGreen = id === 'yield' || id === 'corridors' || id === 'sla' || id === 'volume';
 
           return (
             <div key={label} className="dash-block dash-block-interactive p-4">

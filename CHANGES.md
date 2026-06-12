@@ -63,3 +63,8 @@
 
 - Added server-owned 48-hour rate holds, an active-hold countdown desk, and a
   quote-step workflow that creates and reuses a selected hold with authorization.
+
+## P1-4
+
+- Replaced the dashboard's first generic metric with a live 0xWal operating
+  summary for detected invoices, same-corridor batchability, and approval work.
