@@ -327,12 +327,13 @@ const INITIAL_SUGGESTIONS: SuggestionCard[] = [
   },
 ];
 
-type ApiSuggestion = { suggestionId: string; type: string; title: string; description: string; confidence: number };
+type ApiSuggestion = { suggestionId: string; type: string; title: string; description: string; confidence: number; suggestedAction?: string };
 
 function mapSuggestion(s: ApiSuggestion): SuggestionCard {
   const conf = Math.round((s.confidence ?? 0.6) * 100);
   const urgency: SuggestionCard['urgency'] = conf >= 80 ? 'high' : conf >= 65 ? 'medium' : 'low';
-  const href = s.type === 'treasury' ? '/dashboard/treasury' : s.type === 'batch' ? '/dashboard/batch' : s.type === 'invoice' ? '/dashboard/invoices' : '/dashboard';
+  const batchCurrency = s.suggestedAction?.startsWith('batch:') ? s.suggestedAction.split(':')[1] : null;
+  const href = s.type === 'treasury' ? '/dashboard/treasury' : s.type === 'batch' ? `/dashboard/batch${batchCurrency ? `?corridor=${batchCurrency}` : ''}` : s.type === 'invoice' ? '/dashboard/invoices' : '/dashboard';
   const action = s.type === 'treasury' ? 'Open Treasury' : s.type === 'batch' ? 'Draft batch' : s.type === 'invoice' ? 'Open invoices' : 'View';
   const corridor = s.type === 'timing' ? 'FX timing' : s.type.charAt(0).toUpperCase() + s.type.slice(1);
   return { id: s.suggestionId, title: s.title, body: s.description, corridor, action, href, confidence: conf, urgency };

@@ -53,3 +53,8 @@
 
 - Added privacy-bounded MemWal behavior recall cards to the operating desk and
   0xWal workspace, with safe demo behavior seeds and no PII-bearing memories.
+
+## P1-2
+
+- Added live open-invoice batch recommendations to 0xWal, with corridor-aware
+  savings estimates and one-click pre-staging in the batch compliance desk.
