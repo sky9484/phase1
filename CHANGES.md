@@ -11,3 +11,10 @@
 
 - Rebuilt the Walrus adapter with ciphertext-only validation, mock round-trip
   storage, live publisher/aggregator support, and typed network failures.
+
+## P0-3 / P0-4
+
+- Added validated invoice APIs, Seal + Walrus document flow, a live invoice
+  vault, secure pay-link creation, and issuer settlement confirmation.
+- Added the public bank-transfer payment request and counterparty acquisition
+  flow with payer recipient creation, KYB-invite stub, and analytics summary.
