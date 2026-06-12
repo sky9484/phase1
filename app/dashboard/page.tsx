@@ -21,6 +21,7 @@ import HoverPopup from '@/components/HoverPopup';
 import LiveExchangeTicker from '@/components/LiveExchangeTicker';
 import SettlementEngineFlow from '@/components/dashboard/SettlementEngineFlow';
 import StatusBadge, { type Status } from '@/components/StatusBadge';
+import MemWalBehaviorCard from '@/components/MemWalBehaviorCard';
 import { cn } from '../../lib/utils';
 import { getCorridorFeeBps } from '@/lib/fx/corridors';
 
@@ -177,6 +178,8 @@ export default function DashboardOverview() {
 
       {/* Signature: animated settlement-engine flow */}
       <SettlementEngineFlow variant="settlement" className="dash-reveal" />
+
+      <MemWalBehaviorCard />
 
       {/* Top stats row */}
       <section className="grid grid-cols-2 gap-3 dash-reveal-stagger md:grid-cols-3 xl:grid-cols-5">

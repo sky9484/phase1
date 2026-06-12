@@ -48,3 +48,8 @@
 - Completed the exact demo dataset across invoices, all three recipient tiers,
   completed swept transfer and audit chain, Cebu stored balance, and active PHP
   rate hold; wired recipients to the live store and applied DEMO badges.
+
+## P1-1
+
+- Added privacy-bounded MemWal behavior recall cards to the operating desk and
+  0xWal workspace, with safe demo behavior seeds and no PII-bearing memories.

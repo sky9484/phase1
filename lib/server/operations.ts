@@ -1,4 +1,5 @@
 import { getContractConfig } from '@/lib/server/contract-config';
+import { analyzeAndRemember } from '@/lib/server/memwal';
 
 export type RecipientTier = 'PAYOUT_ONLY' | 'SWEEP_ACCOUNT' | 'STORED_BALANCE';
 
@@ -553,6 +554,9 @@ export function listTransactions(): TransactionRecord[] {
 function seedDemoData() {
   if (operations.demoSeeded || process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') return;
   operations.demoSeeded = true;
+  void analyzeAndRemember('Pays PH suppliers weekly');
+  void analyzeAndRemember('Batches on Friday');
+  void analyzeAndRemember('Prefers USD settlement');
 
   const acme = createRecipient({
     name: 'Acme PH',
