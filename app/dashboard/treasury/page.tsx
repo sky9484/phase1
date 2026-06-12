@@ -47,6 +47,7 @@ type TreasurySnapshot = {
   available: number;
   treasuryPrincipal: number;
   treasuryYield: number;
+  executionEnabled: boolean;
   rate: { apy: number; label: string; introductory: boolean };
   notices: Array<{ id: string; amount: number; availableAt: string }>;
 };
@@ -111,7 +112,8 @@ export default function TreasuryPage() {
   const [available, setAvailable]     = useState(11140.0); // USDC · 0% · instant
   const [balance, setBalance]         = useState(24500.0); // USDY · Smart Treasury
   const [yield30d, setYield30d]       = useState(98.72);
-  const [rate, setRate]               = useState<TreasuryRateView>({ apy: 3.5, label: '≈3.50% APY · variable', introductory: false });
+  const [rate, setRate]               = useState<TreasuryRateView>({ apy: 0, label: 'Variable rate loading...', introductory: false });
+  const [executionEnabled, setExecutionEnabled] = useState(false);
   const [history, setHistory]         = useState<HistoryEntry[]>(SEED_HISTORY);
   const [notices, setNotices]         = useState<WithdrawalNotice[]>([]);
   const [tab, setTab]                 = useState<'toTreasury' | 'toAvailable'>('toTreasury');
@@ -127,6 +129,7 @@ export default function TreasuryPage() {
     setAvailable(d.available);
     setBalance(d.treasuryPrincipal);
     setYield30d(d.treasuryYield);
+    setExecutionEnabled(d.executionEnabled === true);
     if (d.rate?.apy) setRate({ apy: d.rate.apy, label: d.rate.label, introductory: d.rate.introductory });
     setNotices((d.notices ?? []).map((n) => ({ id: n.id, amount: n.amount, availableAt: n.availableAt })));
   }
@@ -138,7 +141,6 @@ export default function TreasuryPage() {
       .then((d) => { if (active && d) applySnapshot(d); })
       .catch(() => {});
     return () => { active = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Gentle live tick on accrued yield (cosmetic).
@@ -151,7 +153,6 @@ export default function TreasuryPage() {
   }, [balance, rate.apy]);
 
   const dailyYield  = balance * (rate.apy / 100) / 365;
-  const projMonthly = dailyYield * 30;
   const projAnnual  = balance * (rate.apy / 100);
 
   const bars        = chartRange === '7d' ? DAILY_BARS_7D : DAILY_BARS_30D;
@@ -172,6 +173,10 @@ export default function TreasuryPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!executionEnabled) {
+      showToast('Projection only - execution disabled pending regulatory approval.');
+      return;
+    }
     if (!validAmount) return;
     if (parsedAmount > sourceBalance) {
       showToast(tab === 'toTreasury' ? 'Insufficient Available balance' : 'Insufficient Smart Treasury balance');
@@ -230,6 +235,12 @@ export default function TreasuryPage() {
           )}
         </div>
       </header>
+      <div className="dash-block border-accent/30 bg-accent/10 p-4 text-sm font-bold text-foreground">
+        Projection only — execution disabled pending regulatory approval.
+        <span className="mt-1 block text-xs font-medium text-foreground/65">
+          Customer funds are held 1:1 in segregated custody, never commingled, never lent, reconciled daily.
+        </span>
+      </div>
 
       {/* Signature: treasury flow */}
       <SettlementEngineFlow variant="treasury" className="dash-reveal" />
@@ -433,6 +444,7 @@ export default function TreasuryPage() {
                 <button
                   key={t}
                   type="button"
+                  disabled={!executionEnabled}
                   onClick={() => { setTab(t); setAmount(''); }}
                   className={cn('flex-1 rounded-md py-1.5 text-xs font-bold transition-colors', tab === t ? 'bg-white text-[#1F4452] shadow-sm' : 'text-[#326273]/50 hover:text-[#326273]')}
                 >
@@ -450,11 +462,12 @@ export default function TreasuryPage() {
                     type="text"
                     inputMode="decimal"
                     value={amount}
+                    disabled={!executionEnabled}
                     onChange={(e) => { const v = e.target.value; if (v === '' || /^\d*\.?\d{0,2}$/.test(v)) setAmount(v); }}
                     placeholder="0.00"
                     className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#1F4452] placeholder-[#326273]/30 outline-none"
                   />
-                  <button type="button" onClick={() => setAmount(String(Math.floor(sourceBalance)))} className="shrink-0 rounded-md bg-[#326273]/10 px-2 py-0.5 text-[10px] font-bold text-[#326273]/60 transition-colors hover:bg-[#326273]/20 hover:text-[#326273]">MAX</button>
+                  <button type="button" disabled={!executionEnabled} onClick={() => setAmount(String(Math.floor(sourceBalance)))} className="shrink-0 rounded-md bg-[#326273]/10 px-2 py-0.5 text-[10px] font-bold text-[#326273]/60 transition-colors hover:bg-[#326273]/20 hover:text-[#326273] disabled:cursor-not-allowed disabled:opacity-40">MAX</button>
                 </div>
               </div>
 
@@ -471,13 +484,13 @@ export default function TreasuryPage() {
 
               <button
                 type="submit"
-                disabled={loading || !validAmount}
+                disabled={!executionEnabled || loading || !validAmount}
                 className={cn(
                   'w-full rounded-lg py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50',
                   tab === 'toTreasury' ? 'bg-[#C99A2E] hover:bg-[#b3881f]' : 'bg-[#5C9EAD] hover:bg-[#4a8a99]',
                 )}
               >
-                {loading ? 'Processing…' : tab === 'toTreasury' ? '→ Move to Smart Treasury' : '← Request withdrawal'}
+                {!executionEnabled ? 'Execution disabled' : loading ? 'Processing…' : tab === 'toTreasury' ? '→ Move to Smart Treasury' : '← Request withdrawal'}
               </button>
             </form>
           </div>

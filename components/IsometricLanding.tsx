@@ -50,7 +50,7 @@ const operatingLayers = [
     copy: 'Treasury automation keeps liquidity available and moves idle USD toward yield.',
     image: '/isometric/treasury.svg',
     imageAlt: 'Isometric smart treasury card',
-    meta: '4.8% projected APY',
+    meta: 'Variable USDY projection',
   },
 ];
 
@@ -87,7 +87,7 @@ const flowSteps = [
 const marqueeItems = [
   ['8 corridors', 'one operating layer'],
   ['400ms', 'Sui settlement finality'],
-  ['3-5%', 'USDY T-bill yield'],
+  ['Variable', 'USDY T-bill yield'],
   ['4 layers', 'AI treasury copilot'],
   ['7 years', 'verifiable audit proof'],
 ];
@@ -165,7 +165,7 @@ const fallbackYieldBenchmarks: YieldBenchmarks = {
   bank: 0.38,
   broker: 3.12,
   wise: 3.14,
-  splash: 4.8,
+  splash: 0,
   asOf: '',
 };
 
@@ -303,7 +303,7 @@ const phaseOneTools = [
     href: '/dashboard/treasury',
     image: '/isometric/op-treasury.svg',
     imageAlt: 'Isometric treasury controls illustration',
-    metric: '4.80% APY',
+    metric: 'Variable USDY rate',
     result: 'Keep payout liquidity productive',
     facts: ['Watch corridor inventory', 'Separate available cash', 'Route idle USD to yield'],
   },

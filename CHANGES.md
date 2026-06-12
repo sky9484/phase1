@@ -36,3 +36,9 @@
 - Added linked audit-trail views with Walrus retrieval, Seal decryption, document
   hash verification, Seal allowlist and extraction evidence, Sui proof, sweep proof,
   and full status history.
+
+## P0-9
+
+- Added the compliance-copy CI guard, removed hardcoded visible treasury-rate
+  defaults, removed the static nav yield badge, and made treasury execution fail
+  closed in both the API and interface with the required projection disclosure.
