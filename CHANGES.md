@@ -73,3 +73,8 @@
 
 - Added full-store CSV and JSON reconciliation exports with deterministic
   accounting fields and dated `splash-reconciliation-{yyyymmdd}` filenames.
+
+## P1-6
+
+- Added a $5,000 sweep-versus-hold simulator that separates fees removed by
+  internal netting from fees relocated to the eventual external payout.
