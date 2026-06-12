@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import StatusBadge from '@/components/StatusBadge';
 import type { TransferIntentRecord, TransferIntentState } from '@/lib/server/operations';
 
 type FilterType = 'all' | 'pending' | 'successful' | 'failed';
@@ -189,6 +190,7 @@ function TransferCard({ record }: { record: TransferIntentRecord & { heldDuratio
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-foreground/8 px-2.5 py-1 text-[11px] font-black text-foreground/60">{record.deliveryTier.replaceAll('_', ' ')}</span>
+        {record.demo && <StatusBadge status="demo" />}
         {record.heldDurationMs != null && <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-black text-primary">Held: {(record.heldDurationMs / 1000).toFixed(1)}s</span>}
         <Link href={`/dashboard/audit/${record.id}`} className="rounded-full border border-primary/20 px-2.5 py-1 text-[11px] font-black text-primary">Audit</Link>
       </div>

@@ -40,6 +40,7 @@ export type TransferIntentRecord = {
   recipientId?: string;
   invoiceId?: string;
   sweepJobId?: string;
+  demo?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -111,6 +112,7 @@ export type LedgerEntry = {
   refType: 'TRANSFER' | 'SWEEP' | 'FEE' | 'YIELD_SIM' | 'SEED';
   refId: string;
   suiTxDigest?: string;
+  demo?: boolean;
   createdAt: string;
 };
 
@@ -127,6 +129,7 @@ export type SweepJob = {
   partnerPayoutRef?: string;
   createdAt: string;
   completedAt?: string;
+  demo?: boolean;
 };
 
 export type RateHold = {
@@ -139,6 +142,7 @@ export type RateHold = {
   alertRule?: { direction: 'STRENGTHENS_PAST' | 'WEAKENS_PAST'; threshold: string };
   state: 'ACTIVE' | 'EXECUTED' | 'EXPIRED' | 'CANCELLED';
   transferIntentId?: string;
+  demo?: boolean;
   createdAt: string;
 };
 
@@ -155,6 +159,7 @@ export type AuditReceipt = {
   sweepJobId?: string;
   auditHash?: string;
   auditAnchorId?: string;
+  demo?: boolean;
   statusHistory: Array<{ state: string; at: string }>;
 };
 
@@ -230,6 +235,7 @@ export function createTransferIntent(input: {
   deliveryTier?: RecipientTier;
   recipientId?: string;
   invoiceId?: string;
+  demo?: boolean;
 }) {
   const now = new Date().toISOString();
   const record: TransferIntentRecord = {
@@ -254,6 +260,7 @@ export function createTransferIntent(input: {
     deliveryTier: input.deliveryTier ?? 'PAYOUT_ONLY',
     recipientId: input.recipientId,
     invoiceId: input.invoiceId,
+    demo: input.demo,
     createdAt: now,
     updatedAt: now,
   };
@@ -261,6 +268,7 @@ export function createTransferIntent(input: {
   operations.auditReceipts.set(record.id, {
     transferIntentId: record.id,
     invoiceId: input.invoiceId,
+    demo: input.demo,
     statusHistory: [{ state: record.state, at: now }],
   });
   return record;
@@ -597,6 +605,7 @@ function seedDemoData() {
     exchangeRate: '56.5',
     deliveryTier: 'SWEEP_ACCOUNT',
     pegChecked: true,
+    demo: true,
   });
   updateTransferIntent(transfer.id, { state: 'SETTLED', suiTxDigest: '0xDEMO_SETTLEMENT_DIGEST' });
   const job = createSweepJob({
@@ -610,6 +619,7 @@ function seedDemoData() {
     heldDurationMs: 4200,
     partnerPayoutRef: 'pdax_mock_demo_4200',
     completedAt: new Date().toISOString(),
+    demo: true,
   });
   updateTransferIntent(transfer.id, { state: 'DISBURSED', sweepJobId: job.id });
   updateAuditReceipt(transfer.id, {
@@ -620,10 +630,11 @@ function seedDemoData() {
     approvedAt: new Date().toISOString(),
     suiTxDigest: transfer.suiTxDigest ?? undefined,
     sweepJobId: job.id,
+    demo: true,
   });
   updateInvoice(invoice.id, { transferIntentId: transfer.id });
-  createLedgerEntry({ accountId: cebu.id, direction: 'CREDIT', amountUsdcMicro: 5_000_000_000, refType: 'SEED', refId: 'demo_seed' });
-  createRateHold({ corridorCurrency: 'PHP', rate: '56.5', feeBps: 80 });
+  createLedgerEntry({ accountId: cebu.id, direction: 'CREDIT', amountUsdcMicro: 5_000_000_000, refType: 'SEED', refId: 'demo_seed', demo: true });
+  createRateHold({ corridorCurrency: 'PHP', rate: '56.5', feeBps: 80, demo: true });
 }
 
 seedDemoData();

@@ -42,3 +42,9 @@
 - Added the compliance-copy CI guard, removed hardcoded visible treasury-rate
   defaults, removed the static nav yield badge, and made treasury execution fail
   closed in both the API and interface with the required projection disclosure.
+
+## P0-10
+
+- Completed the exact demo dataset across invoices, all three recipient tiers,
+  completed swept transfer and audit chain, Cebu stored balance, and active PHP
+  rate hold; wired recipients to the live store and applied DEMO badges.
