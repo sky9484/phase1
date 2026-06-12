@@ -85,3 +85,5 @@
   to prevent duplicate React keys in the operating desk.
 - Moved corridor batch prefill behind the initial render to keep server and
   client summary counts identical while preserving one-click batch staging.
+- Added a client-side MemWal normalization boundary so repeated or malformed
+  recalled behaviors cannot create duplicate React keys or duplicate cards.

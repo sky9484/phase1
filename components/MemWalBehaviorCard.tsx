@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BrainCircuit, CheckCircle2, LockKeyhole } from 'lucide-react';
 
 import StatusBadge from '@/components/StatusBadge';
@@ -14,9 +14,25 @@ export default function MemWalBehaviorCard({ compact = false }: { compact?: bool
     let active = true;
     void fetch('/api/memwal/behaviors')
       .then((response) => response.json())
-      .then((result: { memories: Memory[] }) => { if (active) setMemories(result.memories); });
+      .then((result: { memories?: Memory[] }) => {
+        if (active) setMemories(Array.isArray(result.memories) ? result.memories : []);
+      });
     return () => { active = false; };
   }, []);
+
+  const displayMemories = useMemo(() => {
+    const seen = new Set<string>();
+    return memories.filter((memory) => {
+      const normalized = typeof memory.text === 'string' ? memory.text.trim().toLowerCase() : '';
+      if (!normalized || seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    });
+  }, [memories]);
+
+  const memoryCards = displayMemories.length > 0
+    ? displayMemories
+    : [{ text: 'Recalling behavior patterns...', confidence: 0, demo: false }];
 
   return (
     <section className="dash-surface p-5">
@@ -28,11 +44,11 @@ export default function MemWalBehaviorCard({ compact = false }: { compact?: bool
             <p className="mt-1 text-xs text-foreground/55">Safe operating patterns that sharpen suggestions.</p>
           </div>
         </div>
-        {memories.some((memory) => memory.demo) && <StatusBadge status="demo" />}
+        {displayMemories.some((memory) => memory.demo) && <StatusBadge status="demo" />}
       </div>
       <div className={`mt-4 grid gap-2 ${compact ? '' : 'sm:grid-cols-3'}`}>
-        {(memories.length > 0 ? memories : [{ text: 'Recalling behavior patterns...', confidence: 0, demo: false }]).map((memory) => (
-          <div key={memory.text} className="rounded-xl bg-muted/55 p-3">
+        {memoryCards.map((memory) => (
+          <div key={memory.text.trim().toLowerCase()} className="rounded-xl bg-muted/55 p-3">
             <div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><strong className="text-sm">{memory.text}</strong></div>
             {memory.confidence > 0 && <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] text-foreground/40">{Math.round(memory.confidence * 100)}% pattern confidence</div>}
           </div>
