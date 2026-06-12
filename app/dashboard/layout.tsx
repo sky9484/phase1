@@ -15,6 +15,7 @@ import {
   Phone,
   Send,
   Settings,
+  Timer,
   TrendingUp,
   UserCircle,
   X,
@@ -34,6 +35,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'Overview',     href: '/dashboard',          icon: LayoutDashboard },
       { label: 'Transfer',     href: '/dashboard/transfer', icon: Send },
+      { label: 'Rate holds',   href: '/dashboard/transfers', icon: Timer },
       { label: 'Batch Payout', href: '/dashboard/batch',    icon: Layers },
     ],
   },

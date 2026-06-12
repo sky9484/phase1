@@ -497,6 +497,11 @@ export function listRateHolds() {
   return [...operations.rateHolds.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export function readRateHold(holdId: string) {
+  listRateHolds();
+  return operations.rateHolds.get(holdId) ?? null;
+}
+
 export function readAuditReceipt(intentId: string) {
   return operations.auditReceipts.get(intentId) ?? null;
 }

@@ -58,3 +58,8 @@
 
 - Added live open-invoice batch recommendations to 0xWal, with corridor-aware
   savings estimates and one-click pre-staging in the batch compliance desk.
+
+## P1-3
+
+- Added server-owned 48-hour rate holds, an active-hold countdown desk, and a
+  quote-step workflow that creates and reuses a selected hold with authorization.

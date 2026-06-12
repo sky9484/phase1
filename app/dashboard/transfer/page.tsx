@@ -39,6 +39,14 @@ export type TransferState = {
   transferIntentId?: string;
   receiptObjectId?: string;
   deliveryTier: RecipientTier;
+  rateHold?: {
+    id: string;
+    corridorCurrency: string;
+    rate: string;
+    feeBps: number;
+    holdUntil: string;
+    state: 'ACTIVE' | 'EXECUTED' | 'EXPIRED' | 'CANCELLED';
+  };
 };
 
 const initial: TransferState = {
@@ -78,19 +86,32 @@ export default function TransferPage() {
   }, [set]);
 
   useEffect(() => {
-    const invoiceId = new URLSearchParams(window.location.search).get('invoiceId');
-    if (!invoiceId) return;
-    void fetch(`/api/invoices/${invoiceId}`).then((response) => response.json()).then((invoice: { payerOrgName?: string; amountUsd?: string; targetCurrency?: TransferState['amount']['targetCurrency']; id?: string }) => {
-      if (!invoice.id) return;
-      setState((current) => ({
-        ...current,
-        step: 2,
-        invoiceId: invoice.id,
-        recipient: { ...current.recipient, name: invoice.payerOrgName ?? current.recipient.name, country: 'PH' },
-        amount: { ...current.amount, value: invoice.amountUsd ?? current.amount.value, targetCurrency: invoice.targetCurrency ?? current.amount.targetCurrency },
-        deliveryTier: invoice.targetCurrency === 'PHP' ? 'SWEEP_ACCOUNT' : 'PAYOUT_ONLY',
-      }));
-    });
+    const params = new URLSearchParams(window.location.search);
+    const invoiceId = params.get('invoiceId');
+    const holdId = params.get('holdId');
+    if (invoiceId) {
+      void fetch(`/api/invoices/${invoiceId}`).then((response) => response.json()).then((invoice: { payerOrgName?: string; amountUsd?: string; targetCurrency?: TransferState['amount']['targetCurrency']; id?: string }) => {
+        if (!invoice.id) return;
+        setState((current) => ({
+          ...current,
+          step: 2,
+          invoiceId: invoice.id,
+          recipient: { ...current.recipient, name: invoice.payerOrgName ?? current.recipient.name, country: 'PH' },
+          amount: { ...current.amount, value: invoice.amountUsd ?? current.amount.value, targetCurrency: invoice.targetCurrency ?? current.amount.targetCurrency },
+          deliveryTier: invoice.targetCurrency === 'PHP' ? 'SWEEP_ACCOUNT' : 'PAYOUT_ONLY',
+        }));
+      });
+    }
+    if (holdId) {
+      void fetch(`/api/rate-holds?id=${encodeURIComponent(holdId)}`).then((response) => response.json()).then((hold: TransferState['rateHold']) => {
+        if (!hold?.id || hold.state !== 'ACTIVE') return;
+        setState((current) => ({
+          ...current,
+          rateHold: hold,
+          amount: { ...current.amount, targetCurrency: hold.corridorCurrency as TransferState['amount']['targetCurrency'] },
+        }));
+      });
+    }
   }, []);
 
   return (
