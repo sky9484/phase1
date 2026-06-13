@@ -197,7 +197,7 @@ export default function TreasuryPage() {
         applySnapshot(d);
         if (action === 'move') {
           setHistory((prev) => [{ id, type: 'deposit', desc: 'Available → Smart Treasury', amount: `+$${fmtUsd(parsedAmount)}`, amountNum: parsedAmount, date: nowLabel(), status: 'confirmed' }, ...prev]);
-          showToast(`$${fmtUsd(parsedAmount)} moved to Smart Treasury · now earning`);
+          showToast(`$${fmtUsd(parsedAmount)} treasury allocation approved`);
         } else {
           setHistory((prev) => [{ id, type: 'withdraw', desc: 'Smart Treasury → Available (notice)', amount: `-$${fmtUsd(parsedAmount)}`, amountNum: -parsedAmount, date: nowLabel(), status: 'pending' }, ...prev]);
           showToast('Withdrawal requested · funds in Available in 1–3 business days');
@@ -230,7 +230,7 @@ export default function TreasuryPage() {
           <span className="dash-kicker">Smart treasury</span>
           <h1 className="dash-title mt-2">Smart Treasury</h1>
           <p className="mt-1 text-xs font-medium text-[#326273]/60">
-            Two buckets: Available USDC stays instant at 0%; Smart Treasury earns real T-bill yield via Ondo USDY.
+            Two-bucket simulation: Available USDC stays instant at 0%; Smart Treasury models a variable USDY return.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -265,10 +265,10 @@ export default function TreasuryPage() {
           </div>
         </div>
 
-        {/* Smart Treasury — gold accent, USDY, variable, T+1–3 */}
+        {/* Smart Treasury projection — gold accent, USDY, variable, T+1–3 */}
         <div className="dash-block dash-block-accent dash-block-interactive p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9a6f15]">Smart Treasury</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9a6f15]">Smart Treasury projection</span>
             <div className="rounded-lg bg-[#D9A441]/18 p-1.5"><TrendingUp size={14} className="text-[#C99A2E]" /></div>
           </div>
           <div className="dash-num mt-2 text-3xl font-extrabold text-[#0c3e48]">${fmtUsd(balance)}</div>
@@ -277,7 +277,7 @@ export default function TreasuryPage() {
             <span className="text-[#326273]/55">{rate.label} · withdrawals 1–3 business days</span>
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[#4F9C88]">
-            <Sparkles size={11} /> +${yield30d.toFixed(2)} yield earned (30d) · ~${dailyYield.toFixed(3)}/day
+            <Sparkles size={11} /> +${yield30d.toFixed(2)} modeled yield (30d) · ~${dailyYield.toFixed(3)}/day
           </div>
         </div>
       </section>
@@ -427,8 +427,8 @@ export default function TreasuryPage() {
           {/* Activity */}
           <div className="dash-surface overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-4 py-3">
-              <h2 className="text-sm font-bold text-[#1F4452]">Treasury Activity</h2>
-              <span className="text-[11px] font-semibold text-[#326273]/45">USDC ↔ USDY · yield accrual</span>
+              <h2 className="text-sm font-bold text-[#1F4452]">Modeled Treasury Activity</h2>
+              <span className="text-[11px] font-semibold text-[#326273]/45">USDC ↔ USDY · simulation ledger</span>
             </div>
             <div className="divide-y divide-[#326273]/5">
               {history.slice(0, 10).map((tx) => (
@@ -452,14 +452,14 @@ export default function TreasuryPage() {
             <div className="flex items-center justify-between border-b border-[#326273]/8 px-5 py-3">
               <div className="flex items-center gap-2">
                 <Sprout size={14} className="text-[#4F9C88]" />
-                <h2 className="text-sm font-bold text-[#1F4452]">How Smart Treasury works</h2>
+                <h2 className="text-sm font-bold text-[#1F4452]">How the treasury model works</h2>
               </div>
               <span className="rounded-full bg-[#D9A441]/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9a6f15]">T-bill yield</span>
             </div>
             <div className="relative grid gap-0 sm:grid-cols-4">
               <div className="pointer-events-none absolute left-5 right-5 top-[3.25rem] hidden h-px bg-gradient-to-r from-[#5C9EAD]/0 via-[#D9A441] to-[#E39774]/40 sm:block" />
               {[
-                { step: '01', title: 'Move from Available', desc: 'Idle USDC swaps to USDY on a Sui DEX (slippage-guarded). Instant in.', icon: CreditCard, accent: '#5C9EAD', bg: 'bg-[#5C9EAD]/10', tag: 'USDC → USDY' },
+                { step: '01', title: 'Prepare recommendation', desc: '0xWal models an allocation from Available USDC. Your business must approve it.', icon: CreditCard, accent: '#5C9EAD', bg: 'bg-[#5C9EAD]/10', tag: 'Human approval' },
                 { step: '02', title: 'Ondo USDY (T-bills)', desc: 'USDY is backed by short-dated US Treasuries — real, off-chain yield.', icon: Landmark, accent: '#C99A2E', bg: 'bg-[#D9A441]/15', tag: 'T-bill backed' },
                 { step: '03', title: 'Yield accrues', desc: 'USDY redemption price rises daily. Floating net rate — never fixed.', icon: Sprout, accent: '#4F9C88', bg: 'bg-[#6FB4A0]/18', tag: rate.label.replace(' · variable', '') },
                 { step: '04', title: 'T+1–T+3 withdraw', desc: 'Request a withdrawal; USDY→USDC swaps and lands in Available in 1–3 business days.', icon: PiggyBank, accent: '#E39774', bg: 'bg-[#E39774]/10', tag: 'Notice required' },
