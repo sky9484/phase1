@@ -1,0 +1,35 @@
+# splash_evidence — the evidence layer that publishes BEFORE splash_core.
+#
+# Two modules, no value, no power over any account:
+#
+#   allowlist — the Seal access policy for an evidence bundle (an invoice, a
+#               transfer's receipt, a corridor payout). Seal key servers dry-run
+#               `seal_approve`; the parties named on the list (issuer, payer,
+#               recipient, a corridor partner, a time-boxed auditor) can decrypt,
+#               nobody else can. Removing any party revokes every time-boxed
+#               grant — an authority change is a revocation, by construction.
+#
+#   anchor    — a 32-byte digest, a kind, and a timestamp, frozen. Nothing about
+#               the payment itself is on chain: no amount, no counterparty, no
+#               memo (the WS5 commitment rule).
+#
+# Why a separate package: splash_core publishes IMMUTABLE and only after an
+# independent review, and that is the right bar for a settlement contract. The
+# evidence layer has no such stakes — it holds nothing and it decides nothing
+# about money — so it publishes UPGRADEABLE under the cold multisig now, and
+# every USDC transfer gets a real mainnet anchor while core waits for its
+# review. `scripts/check-core-no-balance.mjs` must cover this package too: it
+# is the same promise, that no struct here can accumulate value.
+#
+# NO third-party dependencies, for the same reason as splash_core.
+[package]
+name = "splash_evidence"
+version = "0.0.1"
+edition = "2024.beta"
+license = "Apache-2.0"
+authors = ["Splash Finance"]
+
+[dependencies]
+
+[addresses]
+splash_evidence = "0x0"
