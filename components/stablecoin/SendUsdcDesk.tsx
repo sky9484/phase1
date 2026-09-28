@@ -42,6 +42,8 @@ import {
   isSignCancelled,
   signWithPasskey,
   signWithWallet,
+  signWithZkLogin,
+  storedZkLoginSigner,
   type AcceptedWallet,
 } from '@/lib/wallet/sui-signers';
 
@@ -71,8 +73,10 @@ type Lane = {
 
 type WalletView = {
   address: string | null;
-  source: 'SPLASH_PASSKEY' | 'EXTERNAL';
+  source: 'SPLASH_WALLET' | 'SPLASH_PASSKEY' | 'EXTERNAL';
   passkey?: { publicKey: string; rpId: string } | null;
+  /** The business multisig (v15 §4), when the org has one. */
+  wallet?: { version: number; threshold: number; memberCount: number; signers: { passkey: boolean; zklogin: boolean } } | null;
   usdcMinor?: string;
   suiMist?: string;
   gasLow?: boolean;
@@ -386,8 +390,19 @@ export default function SendUsdcDesk() {
     try {
       let signed: { bytes: string; signature: string };
       if (source === 'SPLASH') {
-        if (!splash?.passkey) throw new Error('Your Splash wallet needs its passkey. Create one in Settings → Security.');
-        signed = await signWithPasskey(splash.passkey, quote.transactionBytes);
+        // The business wallet signs with whichever member key this browser
+        // holds: the sign-in key (cached proof, no prompt) first, else the
+        // passkey (biometric prompt). Either alone meets the threshold.
+        const zk = splash?.wallet?.signers.zklogin ? storedZkLoginSigner() : null;
+        if (zk) {
+          signed = await signWithZkLogin(zk, quote.transactionBytes);
+        } else if (splash?.passkey) {
+          signed = await signWithPasskey(splash.passkey, quote.transactionBytes);
+        } else if (splash?.wallet?.signers.zklogin) {
+          throw new Error('Your sign-in key can sign this wallet, but its session proof has lapsed. Sign in again, or use the backup passkey.');
+        } else {
+          throw new Error('Your Splash wallet needs its passkey. Create one in Settings → Security.');
+        }
       } else {
         if (!external) throw new Error('Connect the wallet you quoted from.');
         try {

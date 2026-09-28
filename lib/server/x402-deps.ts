@@ -12,6 +12,7 @@ export async function liveX402Deps(): Promise<X402Deps | null> {
     db: send.db,
     chain: send.chain,
     approval: send.approval,
+    multisig: send.multisig,
     get: (url, init) => safeGet(url, { headers: init?.headers, timeoutMs: init?.timeoutMs }),
     screen: (address) => screenWalletAddress(address),
   };

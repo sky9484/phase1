@@ -303,6 +303,83 @@ export const passkeyCredentials = pgTable('passkey_credentials', {
 ]);
 
 /**
+ * The business wallet — one Sui multisig per organization (v15 §4).
+ *
+ * `members` is the wallet's whole definition: `[{kind, role, publicKey,
+ * weight, userId?, label}]`, validated by lib/wallet/org-wallet-rules.ts,
+ * whose `deriveOrgWalletAddress(members)` must equal `address` on every row —
+ * the address is stored because every money path filters by it, and derived
+ * on write because a row that disagrees with its members is a wallet nobody
+ * can sign for.
+ *
+ * Changing members changes the address, so a membership change is a NEW row
+ * (version + 1) and the old one retires: `status` is the lifecycle
+ * (active → migrating during a recovery notice → retired), and the partial
+ * unique index makes "the org's wallet" a single answer while history stays
+ * queryable. Funds move in the migration transaction, not in SQL.
+ */
+export const orgWallets = pgTable('org_wallets', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  /** The multisig address. Every money path reads the wallet from here. */
+  address: text('address').notNull(),
+  members: jsonb('members').notNull(),
+  threshold: integer('threshold').notNull(),
+  version: integer('version').notNull().default(1),
+  status: text('status').notNull().default('active'),
+  /**
+   * The pending Splash-assisted recovery, while one exists: `{requestedBy,
+   * requestedAt, noticeEndsAt, proposedMembers, cancelledAt?}` — see
+   * lib/wallet/org-wallet-recovery.ts. On the row rather than a table because
+   * a wallet has at most one live recovery, the 72-hour notice mirrors
+   * `business_account.move`'s pending recovery, and history belongs to the
+   * retired rows the migration leaves behind.
+   */
+  recovery: jsonb('recovery'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  /* One CURRENT wallet per org — active, or migrating during a recovery
+     notice (the funds are still there) — so a parallel wallet cannot be
+     minted mid-recovery. Retired rows keep the history without occupying
+     the slot (same shape as the passkey tombstones). */
+  uniqueIndex('org_wallets_one_current').on(table.orgId).where(sql`${table.status} in ('active', 'migrating')`),
+  /* Receiving lookups: "is this address one of ours?" */
+  index('org_wallets_address_idx').on(table.address),
+]);
+
+/**
+ * Encrypted zkLogin salts (v15 §3). Enoki is the salt authority; this is
+ * Splash's copy, envelope-encrypted by lib/server/salt-vault.ts, so an Enoki
+ * outage does not lock anyone out and the fallback prover provably receives
+ * the SAME salt. Losing a salt loses that wallet member permanently, which is
+ * why the row exists; leaking one links an OAuth subject to an address, which
+ * is why only the ciphertext is stored.
+ *
+ * Keyed by the JWT triple (iss, aud, sub) — the identity zkLogin derives
+ * from — not by user id, so a re-created user account cannot silently mint a
+ * second salt for the same Google identity.
+ */
+export const userSalts = pgTable('user_salts', {
+  id: text('id').primaryKey(),
+  issuer: text('issuer').notNull(),
+  audience: text('audience').notNull(),
+  subject: text('subject').notNull(),
+  /** iv ‖ tag ‖ ciphertext, base64 — never the salt itself. */
+  saltCiphertext: text('salt_ciphertext').notNull(),
+  /** The zkLogin address this salt derives, kept for the round-trip check. */
+  address: text('address').notNull(),
+  /** Who vouched for the salt: 'enoki' today. */
+  authority: text('authority').notNull().default('enoki'),
+  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('user_salts_identity_unique').on(table.issuer, table.audience, table.subject),
+  index('user_salts_user_idx').on(table.userId),
+]);
+
+/**
  * Wallet spec §2.3 — per-human zkLogin signer ↔ record mapping.
  *
  * One org has ONE on-chain BusinessAccount but MANY individual signers: a

@@ -83,6 +83,14 @@ export const RATE_LIMITS = {
   stepUpRequestUser: { bucket: 'step-up-request:user', limit: 10, windowMs: 15 * MINUTE },
   // Wrong codes are also capped per code (5); this caps them per person.
   stepUpVerifyUser: { bucket: 'step-up-verify:user', limit: 60, windowMs: 15 * MINUTE },
+
+  /** ZK proofs are provider-metered (Shinami allows two per address per
+   *  minute), and one per epoch is all a session needs — the client caches. */
+  zkProveUser: { bucket: 'zk-prove:user', limit: 10, windowMs: 15 * MINUTE },
+
+  /** Its own bucket, never shared with proving: an admin must be able to
+   *  cancel a hostile recovery however many proofs their browser burned. */
+  walletRecoveryUser: { bucket: 'wallet-recovery:user', limit: 30, windowMs: 15 * MINUTE },
   // The public demo x402 seller simulates and broadcasts on each paid call.
   x402DemoIp: { bucket: 'x402-demo:ip', limit: 60, windowMs: 15 * MINUTE },
   // Wallet activity pages through the Sui indexer (up to four queries each).

@@ -19,7 +19,7 @@ import {
   type X402PaymentRequired,
 } from '@/lib/payments/x402-sui';
 import type { SafeResponse } from '@/lib/server/safe-fetch';
-import type { SendDeps } from '@/lib/server/stablecoin-send';
+import { walletSignatureFor, type SendDeps } from '@/lib/server/stablecoin-send';
 import { bindOutflowDigest, closeOutflow, confirmOutflow, readOutflow, reserveOutflow } from '@/lib/server/stablecoin-outflows';
 import { stablecoinTransferSubject } from '@/lib/server/step-up-subjects';
 import type { WalletScreening } from '@/lib/server/wallet-screening';
@@ -46,7 +46,7 @@ import type { WalletScreening } from '@/lib/server/wallet-screening';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
 
-export interface X402Deps extends Pick<SendDeps, 'chain' | 'approval' | 'now'> {
+export interface X402Deps extends Pick<SendDeps, 'chain' | 'approval' | 'now' | 'multisig'> {
   db: Db;
   get(url: string, init?: { headers?: Record<string, string>; timeoutMs?: number }): Promise<SafeResponse>;
   screen(address: string): Promise<WalletScreening>;
@@ -203,6 +203,12 @@ export async function payX402(
   if (!signer || normaliseSuiAddress(signer) !== normaliseSuiAddress(row.senderAddress)) {
     return fail(400, 'wrong_sender', 'This payment was prepared for a different wallet than the one that signed it.');
   }
+  // From the business multisig, the seller must receive the COMBINED wallet
+  // signature — the bare member partial would be refused wherever it is
+  // executed — weighed before the approval is spent, as for transfers.
+  const walletSig = await walletSignatureFor(deps, row.senderAddress, input.signature);
+  if (!walletSig.ok) return walletSig;
+  const signature = walletSig.signature;
 
   const expected: ExpectedTransfer = {
     sender: row.senderAddress,
@@ -272,7 +278,7 @@ export async function payX402(
     return fail(409, 'already_sent', 'Another payment was sent for this quote first. Refresh to see where it stands.');
   }
 
-  const header = paymentHeader(probe.pr, probe.accept, { transaction: toBase64(bytes), signature: input.signature });
+  const header = paymentHeader(probe.pr, probe.accept, { transaction: toBase64(bytes), signature });
   let res: SafeResponse;
   try {
     res = await deps.get(String(row.resource), { headers: { [header.name]: header.value }, timeoutMs: 60_000 });

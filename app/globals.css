@@ -8234,7 +8234,10 @@ button.iso-product-row {
 
 .iso-settings-head { margin: 26px 0 30px; }
 
-.iso-settings-head h1 {
+/* h2 included: a page section (the wallet, under the page's one h1) keeps
+   the same look without a second h1 in the document outline. */
+.iso-settings-head h1,
+.iso-settings-head h2 {
   margin: 10px 0 14px;
   color: var(--iso-ink);
   font-size: clamp(28px, 3.2vw, 38px);

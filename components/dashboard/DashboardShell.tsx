@@ -150,6 +150,10 @@ export default function DashboardShell({ children, session, kyb, locks, sweepOn,
   const pathname = usePathname();
 
   async function logout() {
+    // The cached zkLogin signer is a live wallet member key (tab-scoped) —
+    // it dies with the session, before the cookie does.
+    const { clearZkLoginSigner } = await import('@/lib/wallet/sui-signers');
+    clearZkLoginSigner();
     await fetch('/api/auth/logout', { method: 'POST' });
     router.replace('/login');
     router.refresh();

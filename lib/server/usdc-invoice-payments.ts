@@ -86,8 +86,17 @@ export async function invoiceUsdcBySlug(db: Db, slug: string): Promise<InvoiceUs
   return row ? { ...row, amountMinor: BigInt(row.amountMinor) } : null;
 }
 
-/** Where this issuer receives USDC, or null when its main admin has no Splash wallet yet. */
+/**
+ * Where this issuer receives USDC: the organisation's business wallet
+ * (org_wallets, v15 §4) when it has one, else — the pre-v15 model — its main
+ * admin's passkey address; null when neither exists yet.
+ */
 export async function issuerUsdcAddress(db: Db, orgId: string, rpId: string): Promise<string | null> {
+  // Active or migrating: during a recovery notice the business still
+  // receives at its own wallet, never at someone's personal passkey.
+  const { readCurrentOrgWallet } = await import('../wallet/org-wallet.ts');
+  const wallet = await readCurrentOrgWallet(db, orgId);
+  if (wallet) return normaliseSuiAddress(wallet.address);
   const admin = await mainAdmin(db, orgId);
   if (!admin) return null;
   const credential = await findCredential(db, { userId: admin.userId, rpId });

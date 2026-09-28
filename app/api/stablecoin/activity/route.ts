@@ -52,13 +52,22 @@ export async function GET(request: Request) {
       if (error instanceof UnauthorizedError) return NextResponse.json({ error: 'No workspace membership yet.' }, { status: 403 });
       throw error;
     }
-    const { findCredential, relyingPartyId } = await import('@/lib/auth/passkey');
+    // The business wallet when the org has one (v15 §4), else the caller's
+    // own passkey address — the same resolution as GET /api/stablecoin/wallet.
+    const { readCurrentOrgWallet } = await import('@/lib/wallet/org-wallet');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const credential = await findCredential(db as any, { userId, rpId: relyingPartyId() });
-    if (!credential) {
-      return NextResponse.json({ address: null, available: true, movements: [], olderCursor: null, reason: 'No Splash wallet yet: create or restore a passkey in Settings → Security.' });
+    const orgWallet = await readCurrentOrgWallet(db as any, accountCheck.account.orgId);
+    if (orgWallet) {
+      address = normaliseSuiAddress(orgWallet.address);
+    } else {
+      const { findCredential, relyingPartyId } = await import('@/lib/auth/passkey');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const credential = await findCredential(db as any, { userId, rpId: relyingPartyId() });
+      if (!credential) {
+        return NextResponse.json({ address: null, available: true, movements: [], olderCursor: null, reason: 'No Splash wallet yet: create or restore a passkey in Settings → Security.' });
+      }
+      address = normaliseSuiAddress(credential.suiAddress);
     }
-    address = normaliseSuiAddress(credential.suiAddress);
   }
 
   const page = await readUsdcActivity(address, { before, limit: 15 });

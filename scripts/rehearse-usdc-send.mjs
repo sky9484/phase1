@@ -197,6 +197,45 @@ try {
   check('an empty wallet is told in plain words', !said.startsWith('The transfer could not be prepared'), said);
 }
 
+// 6. The business multisig (v15 §4), when its member set is supplied:
+//    --members <file.json> is the org_wallets.members array. The address must
+//    derive to --sender, section 1 above already proved Sui accepts a gasless
+//    transfer FROM that address (if it refused, this run stopped there — do
+//    not fall back to paid gas), and any --partial-sig is combined and
+//    weighed. Weighing is arithmetic on the members; the network verifies the
+//    cryptography at execution, which this script never does.
+const membersPath = arg('members');
+if (membersPath) {
+  console.log('');
+  const { readFileSync } = await import('node:fs');
+  const { combineAndWeigh, deriveOrgWalletAddress, ORG_WALLET_THRESHOLD, ROLE_WEIGHT } = await import('../lib/wallet/org-wallet-rules.ts');
+  let members;
+  try {
+    members = JSON.parse(readFileSync(membersPath, 'utf8'));
+    const derived = deriveOrgWalletAddress(members);
+    check('the members derive the sender address', derived.toLowerCase() === sender.toLowerCase(), derived);
+    console.log(members.map((m) => `      ${m.role.padEnd(12)} weight ${ROLE_WEIGHT[m.role]}  ${m.kind}`).join('\n'));
+  } catch (error) {
+    check('the members file is a valid wallet', false, error instanceof Error ? error.message : String(error));
+  }
+  const partials = process.argv.flatMap((v, i) => (process.argv[i - 1] === '--partial-sig' ? [v] : []));
+  if (members && partials.length) {
+    try {
+      // The same weighing submit uses, so this rehearsal proves that code.
+      const { weight } = combineAndWeigh(members, partials);
+      check(
+        `the partial signature${partials.length > 1 ? 's weigh' : ' weighs'} ${weight} of threshold ${ORG_WALLET_THRESHOLD}`,
+        weight >= ORG_WALLET_THRESHOLD,
+        weight >= ORG_WALLET_THRESHOLD ? 'the network would accept this set — signature validity is checked there, at execution' : 'below the threshold: the network would refuse this set',
+      );
+    } catch (error) {
+      check('the partial signatures belong to wallet members', false, error instanceof Error ? error.message : String(error));
+    }
+  } else if (members) {
+    skip('partial-signature weighing', 'pass --partial-sig <base64> (repeatable) to weigh a member signature against the threshold.');
+  }
+}
+
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} checks passed.`);
 process.exit(failed ? 1 : 0);

@@ -9,10 +9,12 @@ import {
   hashSubjectForLog,
   verifyZkLoginJwt,
   zkLoginEnabled,
-  deriveZkLoginAddress,
 } from '@/lib/auth/zklogin';
+import { ensureWalletForAdminLogin } from '@/lib/wallet/org-wallet';
 import { markEmailVerified, readCredentialVersion } from '@/lib/auth/accounts';
 import { ensureUserForIdentity, upsertWalletIdentity } from '@/lib/db/wallet-identities';
+import { ZkLoginProverError } from '@/lib/auth/zklogin-prover';
+import { resolveUserSalt } from '@/lib/auth/zklogin-salt';
 import { createCustomerSessionFromIdentity } from '@/lib/auth/customer-session';
 import { setCustomerSessionCookie } from '@/lib/server/customer-auth';
 import { readJsonBody } from '@/lib/server/http';
@@ -78,12 +80,13 @@ export async function POST(request: Request) {
     }
 
     // Identity is proven — persist it (wallet spec §2.3) so maker-checker can
-    // attribute a signature to a named human. Requires a salt to derive the
-    // address; without one we still mint a session, we just have no signer to
-    // record yet.
+    // attribute a signature to a named human. The salt is PER USER now
+    // (v15 WS1): the stored copy in user_salts, else Enoki, the salt
+    // authority — never the retired global ZKLOGIN_USER_SALT, which derived
+    // one shared address family. Without a salt from either source we still
+    // mint a session; there is simply no signer to record yet.
     let suiAddress: string | undefined;
     let credentialVersion: number | undefined;
-    const userSalt = (process.env.ZKLOGIN_USER_SALT ?? '').trim();
     if (process.env.DATABASE_URL) {
       try {
         const { getDb } = await import('@/lib/db/client');
@@ -105,10 +108,25 @@ export async function POST(request: Request) {
           await markEmailVerified(db, email);
         }
 
-        // Deriving the address needs the salt; without one the identity row
-        // exists and we simply have no signer to record yet.
-        if (userSalt) {
-          suiAddress = await deriveZkLoginAddress(jwt, userSalt);
+        let resolved: Awaited<ReturnType<typeof resolveUserSalt>> = null;
+        try {
+          resolved = await resolveUserSalt(db, {
+            jwt,
+            identity: { issuer: claims.iss, audience: claims.aud, subject: claims.sub },
+            userId,
+          });
+        } catch (error) {
+          // The salt authority being DOWN is not an identity conflict: a
+          // first-time user signs in with no signer yet (the next sign-in
+          // stores one). A diverging salt still refuses, below.
+          if (!(error instanceof ZkLoginProverError)) throw error;
+          console.warn('[zklogin] salt authority unavailable; session without a signer', {
+            service: error.service,
+            status: error.status ?? null,
+          });
+        }
+        if (resolved) {
+          suiAddress = resolved.address;
           await upsertWalletIdentity(db, {
             userId,
             orgId: workspace.orgId,
@@ -118,14 +136,20 @@ export async function POST(request: Request) {
             oauthAud: claims.aud,
             emailAtLogin: email,
           });
+          // The silent wallet step (v15 §3): an admin's first signed-in visit
+          // gives the workspace its multisig. Membership-gated so a mere
+          // signer cannot mint the org's wallet around the admin, and
+          // non-fatal — sign-in must survive a wallet hiccup.
+          await ensureWalletForAdminLogin(db, { userId, orgId: workspace.orgId });
         }
 
         // The session is bound to the row's credential version, so a later
         // verification or reset ends it from the server side.
         credentialVersion = (await readCredentialVersion(db, email)) ?? undefined;
       } catch (error) {
-        // A rebind conflict is a real signal, not noise — surface it rather
-        // than minting a session against an identity we could not record.
+        // A rebind conflict or a diverging salt is a real signal, not noise —
+        // surface it rather than minting a session against an identity we
+        // could not record.
         console.error('[zklogin] wallet identity persistence failed', error);
         return NextResponse.json(
           { error: 'Your wallet identity could not be verified. Contact support.', code: 'identity_conflict' },

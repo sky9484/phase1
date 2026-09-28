@@ -34,6 +34,13 @@ export async function liveSendDeps(): Promise<SendDeps | null> {
     readRecipient,
     feeAddress: () => process.env.SPLASH_FEE_ADDRESS_MAINNET,
     isSplashWallet: (address) => isSplashWallet(db, address),
+    multisig: {
+      bySender: async (address) => {
+        const { orgWalletByAddress } = await import('@/lib/wallet/org-wallet');
+        const wallet = await orgWalletByAddress(db, address);
+        return wallet ? { members: wallet.members } : null;
+      },
+    },
     chain: {
       build: (input) => buildTransferBytes(laneClient(), input),
       simulate: (bytes) => simulateTransfer(laneClient(), bytes),
@@ -49,14 +56,24 @@ export async function liveSendDeps(): Promise<SendDeps | null> {
 }
 
 /**
- * A Splash wallet is the Sui address of a Splash user's passkey — the main
- * admin's, or anyone's. A revoked passkey's address still counts: the money
- * still reaches a Splash user, who can restore the passkey.
+ * A Splash wallet is an organisation's multisig (org_wallets — active or
+ * migrating, since a migrating wallet's funds still sit at its address), or
+ * the Sui address of a Splash user's passkey — the main admin's, or
+ * anyone's. A revoked passkey's address still counts: the money still
+ * reaches a Splash user, who can restore the passkey.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function isSplashWallet(db: any, address: string): Promise<boolean> {
-  const { passkeyCredentials } = await import('@/lib/db/schema');
-  const { eq } = await import('drizzle-orm');
+  const [{ passkeyCredentials, orgWallets }, { eq, and, inArray }] = await Promise.all([
+    import('@/lib/db/schema'),
+    import('drizzle-orm'),
+  ]);
+  const wallets = await db
+    .select({ id: orgWallets.id })
+    .from(orgWallets)
+    .where(and(eq(orgWallets.address, address.toLowerCase()), inArray(orgWallets.status, ['active', 'migrating'])))
+    .limit(1);
+  if (wallets.length > 0) return true;
   const rows = await db
     .select({ id: passkeyCredentials.id })
     .from(passkeyCredentials)

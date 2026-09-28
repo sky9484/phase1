@@ -105,9 +105,23 @@ test('production: vendor keys are demanded only when mocks and demo mode are bot
   assert.ok(!keys.includes('ENOKI_API_KEY'), 'ENOKI_API_KEY is optional');
 });
 
-test('production: FEATURE_ZKLOGIN=true requires the client id and the salt', () => {
+test('production: FEATURE_ZKLOGIN=true requires the client id, the salt authority and the vault key', () => {
   const keys = keysOf(() => parseEnv({ ...PROD_OK, FEATURE_ZKLOGIN: 'true' }));
-  assert.deepEqual(keys.sort(), ['ZKLOGIN_GOOGLE_CLIENT_ID', 'ZKLOGIN_USER_SALT']);
+  assert.deepEqual(keys.sort(), ['ENOKI_API_KEY', 'SALT_ENCRYPTION_KEY', 'ZKLOGIN_GOOGLE_CLIENT_ID']);
+});
+
+test('production: the retired global salt is named when still set (v15 WS1: salts are per user)', () => {
+  const keys = keysOf(() =>
+    parseEnv({
+      ...PROD_OK,
+      FEATURE_ZKLOGIN: 'true',
+      ZKLOGIN_GOOGLE_CLIENT_ID: 'client',
+      ENOKI_API_KEY: 'enoki',
+      SALT_ENCRYPTION_KEY: 'a'.repeat(64),
+      ZKLOGIN_USER_SALT: '123456789',
+    }),
+  );
+  assert.deepEqual(keys, ['ZKLOGIN_USER_SALT']);
 });
 
 test('a Seal key that moved into config/ is refused by name if still set, in any mode', () => {

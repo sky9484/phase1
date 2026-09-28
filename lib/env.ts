@@ -265,7 +265,25 @@ export const envSchema = z.object({
   FEATURE_ZKLOGIN: flag('false'),
   ZKLOGIN_GOOGLE_CLIENT_ID: optional,
   ZKLOGIN_MICROSOFT_CLIENT_ID: optional,
+  /* Retired by v15 WS1: salts are per user, from Enoki, with an encrypted
+     copy in user_salts. A value here is a stale environment — boot names it
+     so the global-salt address family is never silently revived. */
   ZKLOGIN_USER_SALT: optional,
+  /* zkLogin proving (lib/auth/zklogin-prover.ts). Enoki is the salt
+     authority and primary prover; Shinami is the fallback prover, fed the
+     SAME stored salt so the address cannot move mid-outage. */
+  ENOKI_API_URL: httpsUrl,
+  SHINAMI_ACCESS_KEY: optional,
+  SHINAMI_ZKPROVER_URL: httpsUrl,
+  /* Envelope key for user_salts.salt_ciphertext (lib/server/salt-vault.ts).
+     32 bytes, hex or base64. Losing it strands every stored salt copy —
+     treat it like a signing key in backups. */
+  SALT_ENCRYPTION_KEY: optional,
+  /* The Splash cold recovery key's PUBLIC half (flag-prefixed base64, as
+     `sui keytool list` prints it) — the weight-1 member of every business
+     wallet (lib/wallet/org-wallet-rules.ts). The private key is
+     ceremony-held offline and never on a server. */
+  SPLASH_RECOVERY_PUBKEY: optional,
 
   /**
    * WebAuthn relying-party id. A credential is bound to it and the browser
@@ -509,8 +527,10 @@ function productionIssues(env: Env): Issue[] {
     need('PDAX_API_KEY', 'PHP payout is live (USE_MOCK_APIS and NEXT_PUBLIC_DEMO_MODE are both off)');
     need('WALRUS_PUBLISHER_URL', 'audit proofs are live');
     need('WALRUS_AGGREGATOR_URL', 'audit proofs are live');
-    // Not ENOKI_API_KEY: nothing calls Enoki. USDC transfers carry no gas
-    // (lib/payments/stablecoin-lane.ts, Gas) and settlement pays its own.
+    // Not ENOKI_API_KEY here: it belongs to FEATURE_ZKLOGIN below, as the
+    // salt authority and prover — not to vendor liveness. USDC transfers
+    // carry no gas (lib/payments/stablecoin-lane.ts, Gas) and settlement
+    // pays its own.
   }
   if (env.CARD_FUNDING_ENABLED || (vendorsLive && env.FUNDING_PROVIDER_STRIPE_ENABLED)) {
     need('STRIPE_SECRET_KEY', env.CARD_FUNDING_ENABLED ? 'CARD_FUNDING_ENABLED=true' : 'Stripe funding is enabled and mocks are off');
@@ -522,7 +542,16 @@ function productionIssues(env: Env): Issue[] {
   }
   if (env.FEATURE_ZKLOGIN) {
     need('ZKLOGIN_GOOGLE_CLIENT_ID', 'FEATURE_ZKLOGIN=true — and it is part of address derivation, so decide it once per environment');
-    need('ZKLOGIN_USER_SALT', 'FEATURE_ZKLOGIN=true');
+    need('ENOKI_API_KEY', 'FEATURE_ZKLOGIN=true — Enoki is the salt authority and primary prover (v15 WS1)');
+    need('SALT_ENCRYPTION_KEY', 'FEATURE_ZKLOGIN=true — the stored salt copies are what survive an Enoki outage');
+    if (env.ZKLOGIN_USER_SALT !== undefined) {
+      issues.push({
+        key: 'ZKLOGIN_USER_SALT',
+        message:
+          'ZKLOGIN_USER_SALT is retired (v15 WS1): salts are per user via Enoki with an encrypted copy in user_salts. ' +
+          'Unset it — a global salt derives a different address family than the per-user path.',
+      });
+    }
   }
   if ((env.MEMWAL_PRIVATE_KEY === undefined) !== (env.MEMWAL_ACCOUNT_ID === undefined)) {
     issues.push({ key: 'MEMWAL_PRIVATE_KEY', message: 'MEMWAL_PRIVATE_KEY and MEMWAL_ACCOUNT_ID must be set together or not at all' });

@@ -15,9 +15,12 @@ import SplashLoading from '@/components/SplashLoading';
  * trusted because it arrived here, it is trusted because the server checked
  * its signature against Google's JWKS and recomputed the nonce.
  *
- * The ephemeral key material is read back from sessionStorage and cleared
- * immediately, whatever the outcome. A stale ephemeral key in a tab is a
- * signing key nobody is watching.
+ * The pending ephemeral material is read back from sessionStorage and cleared
+ * immediately, whatever the outcome. On success it graduates into
+ * `splash.zklogin.signer` together with this epoch's proof (v15 §4): the
+ * sign-in key IS a wallet member now, so the browser keeps exactly one
+ * session-scoped signer, useless past maxEpoch and never paired with the JWT,
+ * which is not stored.
  */
 export default function ZkLoginCallbackPage() {
   const router = useRouter();
@@ -36,6 +39,9 @@ export default function ZkLoginCallbackPage() {
 
       const pendingRaw = sessionStorage.getItem('splash.zklogin.pending');
       sessionStorage.removeItem('splash.zklogin.pending');
+      // A signer cached by an EARLIER session must not survive into this
+      // sign-in attempt, whatever its outcome.
+      sessionStorage.removeItem('splash.zklogin.signer');
 
       if (oauthError) {
         if (!cancelled) setError('Google sign-in was cancelled.');
@@ -46,7 +52,7 @@ export default function ZkLoginCallbackPage() {
         return;
       }
 
-      let pending: { maxEpoch: number; randomness: string; ephemeralPublicKey: string };
+      let pending: { maxEpoch: number; randomness: string; ephemeralPublicKey: string; ephemeralSecret?: string };
       try {
         pending = JSON.parse(pendingRaw) as typeof pending;
       } catch {
@@ -71,6 +77,39 @@ export default function ZkLoginCallbackPage() {
           const body = (await res.json().catch(() => ({}))) as { error?: string };
           if (!cancelled) setError(body.error ?? 'Sign-in could not be verified.');
           return;
+        }
+
+        // The sign-in key doubles as a wallet member (v15 §4): fetch this
+        // epoch's proof now, while the token is still in hand, and cache the
+        // signer for the send screen. Best-effort — a prover hiccup must not
+        // cost the sign-in, and the backup passkey still signs. The JWT
+        // itself is never stored.
+        if (pending.ephemeralSecret) {
+          try {
+            const prove = await fetch('/api/auth/zklogin/prove', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jwt,
+                ephemeralPublicKey: pending.ephemeralPublicKey,
+                maxEpoch: pending.maxEpoch,
+                randomness: pending.randomness,
+              }),
+            });
+            if (prove.ok) {
+              const { inputs, maxEpoch, validUntilMs } = (await prove.json()) as {
+                inputs: unknown;
+                maxEpoch: number;
+                validUntilMs: number;
+              };
+              sessionStorage.setItem(
+                'splash.zklogin.signer',
+                JSON.stringify({ ephemeralSecret: pending.ephemeralSecret, maxEpoch, validUntilMs, inputs }),
+              );
+            }
+          } catch {
+            // No signer cached; the wallet screen falls back to the passkey.
+          }
         }
 
         // Identity is established. Authority is not — and neither is the

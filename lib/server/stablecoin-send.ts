@@ -27,6 +27,7 @@ import {
 } from '@/lib/server/stablecoin-outflows';
 import { walletSendable } from '@/lib/server/wallet-screening';
 import { stablecoinTransferSubject } from '@/lib/server/step-up-subjects';
+import { combineAndWeigh, type OrgWalletMember } from '@/lib/wallet/org-wallet-rules';
 
 /**
  * A wallet transfer, end to end: quote → the business signs → submit.
@@ -78,6 +79,12 @@ export interface SendDeps {
   feeAddress(): string | undefined;
   /** Is this address a Splash user's wallet? Transfers to one are always free. */
   isSplashWallet(address: string): Promise<boolean>;
+  /**
+   * The business multisig owning a sender address (org_wallets), when one
+   * does. A member's browser signature is a PARTIAL signature of it; submit
+   * wraps it into the combined form the network verifies (v15 §4).
+   */
+  multisig?: { bySender(address: string): Promise<{ members: OrgWalletMember[] } | null> };
   /** The audit-anchor fee on transfers out of Splash; off unless switched on. */
   anchorFeeOn?: () => boolean;
   /** Gasless wallet transfers; on unless STABLECOIN_GASLESS=off. */
@@ -258,6 +265,37 @@ export async function quoteWalletTransfer(
 
 // ─── Submit ─────────────────────────────────────────────────────────────────
 
+/**
+ * The signature the network verifies for a sender. A business wallet is a
+ * multisig: the browser signed as ONE member, and it is combined here into
+ * the multisig form — public-key arithmetic, not authority. The threshold is
+ * WEIGHED here too, before any caller spends an approval: a set below it is
+ * a transaction the network would refuse, and it must be refused while
+ * nothing has been spent on it. Shared by transfers and x402.
+ */
+export async function walletSignatureFor(
+  deps: Pick<SendDeps, 'multisig'>,
+  senderAddress: string,
+  partial: string,
+): Promise<{ ok: true; signature: string } | SendFailure> {
+  const wallet = await deps.multisig?.bySender(normaliseSuiAddress(senderAddress));
+  if (!wallet) return { ok: true, signature: partial };
+  let weighed: ReturnType<typeof combineAndWeigh>;
+  try {
+    weighed = combineAndWeigh(wallet.members, [partial]);
+  } catch {
+    return fail(400, 'not_a_member', 'This signature does not belong to any key of the business wallet. Sign with your sign-in key or the backup passkey.');
+  }
+  if (!weighed.meetsThreshold) {
+    return fail(
+      400,
+      'below_threshold',
+      'This key cannot move the business wallet by itself. The main admin’s sign-in key or the backup passkey can — recovery keys only ever act together, in a recovery.',
+    );
+  }
+  return { ok: true, signature: weighed.signature };
+}
+
 export async function submitWalletTransfer(
   deps: SendDeps,
   input: { orgId: string; role: UserRole; outflowId: string; transactionBytes: string; signature: string },
@@ -285,6 +323,10 @@ export async function submitWalletTransfer(
   if (!signedSender || normaliseSuiAddress(signedSender) !== normaliseSuiAddress(row.senderAddress)) {
     return fail(400, 'wrong_sender', 'This transaction was prepared for a different wallet than the one that signed it. Connect the quoted wallet, or start again.');
   }
+
+  const walletSig = await walletSignatureFor(deps, row.senderAddress, input.signature);
+  if (!walletSig.ok) return walletSig;
+  const signature = walletSig.signature;
 
   const expected: ExpectedTransfer = {
     sender: row.senderAddress,
@@ -357,7 +399,7 @@ export async function submitWalletTransfer(
 
   let executed: Observed;
   try {
-    executed = await deps.chain.execute(bytes, input.signature);
+    executed = await deps.chain.execute(bytes, signature);
   } catch (error) {
     // The submission may have landed even though the answer was lost.
     const landed = await deps.chain.read(digest).catch(() => null);

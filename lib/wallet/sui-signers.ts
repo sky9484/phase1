@@ -134,6 +134,84 @@ export async function signWithPasskey(
   return keypair.signTransaction(fromBase64(transactionBytesB64));
 }
 
+// ─── The sign-in key: zkLogin as a wallet member (v15 §4) ────────────────────
+
+/**
+ * What the login callback caches after fetching a proof, one per epoch:
+ * everything a zkLogin signature needs except the bytes. The ephemeral secret
+ * never leaves this browser's sessionStorage; the proof is public-ish
+ * (it authorises nothing without the ephemeral signature).
+ */
+export type ZkLoginSigner = {
+  /** Bech32 `suiprivkey…` of the session's ephemeral Ed25519 key. */
+  ephemeralSecret: string;
+  maxEpoch: number;
+  /** When maxEpoch nominally ends (ms since 1970), from the prove route. */
+  validUntilMs: number;
+  /** The Groth16 input block from /api/auth/zklogin/prove. */
+  inputs: {
+    proofPoints: { a: string[]; b: string[][]; c: string[] };
+    issBase64Details: { value: string; indexMod4: number };
+    headerBase64: string;
+    addressSeed: string;
+  };
+};
+
+export const ZKLOGIN_SIGNER_KEY = 'splash.zklogin.signer';
+
+/** The cached signer, if this session stored one, it can still be read, and
+ *  its epoch has not run out. A lapsed one is dropped: the network would
+ *  refuse its signature, and the person should be sent to sign in again, not
+ *  to a failed transfer. */
+export function storedZkLoginSigner(nowMs: number = Date.now()): ZkLoginSigner | null {
+  try {
+    const raw = sessionStorage.getItem(ZKLOGIN_SIGNER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ZkLoginSigner;
+    if (!parsed?.ephemeralSecret || !parsed?.inputs?.proofPoints) return null;
+    if (!Number.isFinite(parsed.validUntilMs) || nowMs >= parsed.validUntilMs) {
+      sessionStorage.removeItem(ZKLOGIN_SIGNER_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** Drop the cached signer. Called on every sign-out: a signing key must not
+ *  outlive the session that minted it, even tab-scoped. */
+export function clearZkLoginSigner(): void {
+  try {
+    sessionStorage.removeItem(ZKLOGIN_SIGNER_KEY);
+  } catch {
+    // Storage unavailable means nothing was cached either.
+  }
+}
+
+/**
+ * Sign a transfer with the sign-in key: the ephemeral key signs the bytes,
+ * and the proof wraps that into the zkLogin signature — which the server
+ * combines into the business wallet's multisig form.
+ */
+export async function signWithZkLogin(
+  signer: ZkLoginSigner,
+  transactionBytesB64: string,
+): Promise<{ bytes: string; signature: string }> {
+  const [{ Ed25519Keypair }, { getZkLoginSignature }] = await Promise.all([
+    import('@mysten/sui/keypairs/ed25519'),
+    import('@mysten/sui/zklogin'),
+  ]);
+  const keypair = Ed25519Keypair.fromSecretKey(signer.ephemeralSecret);
+  const { signature: userSignature } = await keypair.signTransaction(fromBase64(transactionBytesB64));
+  const signature = getZkLoginSignature({
+    inputs: signer.inputs,
+    maxEpoch: signer.maxEpoch,
+    userSignature,
+  });
+  return { bytes: transactionBytesB64, signature };
+}
+
 /** Confirm an approval: the passkey signs the text the server asked for. */
 export async function signApprovalWithPasskey(
   passkey: { publicKey: string; rpId: string },
