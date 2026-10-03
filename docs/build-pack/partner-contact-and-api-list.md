@@ -30,17 +30,31 @@ Draft. None of these is a signed partner; do not name any externally. Order = pr
 | LI.FI | Multi-route quotes | portal.li.fi | Fee schedule for stablecoin pairs; share of integrator fees |
 | Socket / Bungee | Multi-route quotes | docs.socket.tech; API key | Which provider serves Sui USDC |
 | Sumsub | KYB + reusable KYC share tokens | sumsub.com sales | Business-verification price; share-token recipient setup for Due/Noah |
-| KYT vendor (pay-per-check) | Wallet and transaction screening | Chainalysis, TRM, Elliptic or pay-per-check vendor | Lowest tier price |
+| KYT vendor (pay-per-check now) | Wallet and transaction screening | Pay-per-check vendor now; **Elliptic** next, through Sui (Overflow 2026 link) | Per-check price; Elliptic credits and expiry via Sui Foundation |
 | Enoki / Shinami | Sui gas sponsorship | Enoki portal; Shinami dashboard | Per-request fees; caps |
 | Kora (Solana) | Fee relayer | Open source | Squads compatibility |
 | Pimlico / Alchemy | Arbitrum paymaster | Dashboards | Gas markup (Alchemy 8%) |
 | Walrus / Seal | Evidence storage and access | Run own publisher; Seal key servers (8 operators) | Key-server pricing; committee mode on mainnet |
 | Anthropic | Zeke models | Console | Zero data retention; DPO/PDPA terms |
 
+## Licensed Malaysian fiat rail (added 4 Oct)
+
+| Provider | Use | Access | Ask in writing | Status |
+|---|---|---|---|---|
+| **Airwallex** (Malaysia) Sdn Bhd | Licensed MYR/PH/ID payout and collection rail behind the stablecoin off-ramp | airwallex.com/my sales; Platform APIs + Connected Accounts (MY supported) | Can Splash onboard MY businesses as Connected Accounts? DuitNow payouts? Stablecoin funding into MY accounts (today USDC is payout-only)? Crypto-linked platform policy; pricing | Class A MSB + e-money, verified on BNM |
+| TerraPay | Wholesale backup | Partnerships team | Stablecoin funding (Fipto) for MY-origin flows; sponsor model for unlicensed platforms | Class B (self-reported) |
+| Tranglo / SUNRATE | Crypto-adjacent BNM licensees | BD | Stablecoin settlement for MY businesses | Unverified |
+| ~~Wise~~ | — | — | — | Its rules ban crypto businesses. Don't partner. |
+| XTransfer | Watch | — | Launch date | Conditional approval only |
+
+## First clients
+
+See `potential-clients-2026-10-04.md` (10 companies, public business contacts).
+
 ## Legal
 
 | Who | Ask |
 |---|---|
-| Ethos / Malaysian counsel | Is a BNM-licensed party needed when a Malaysian business pays out through Noah/Due? MSBA remittance (K10); SC exchange perimeter for in-app swaps and on-ramps; percentage vs flat fees; USDC as foreign-currency asset |
+| Ethos / Malaysian counsel (**engage: Sky approved**) | Is a BNM-licensed party needed when a Malaysian business pays out through Noah/Due? Does "Noah sells USDC → Airwallex pays MYR/PHP/IDR" satisfy it? MSBA remittance (K10); SC exchange perimeter for in-app swaps and on-ramps; percentage vs flat fees; USDC as foreign-currency asset |
 | Philippine counsel | SEC CASP rules vs non-custodial software |
 | Indonesian counsel | Foreign provision ban; BI "forwarding payment instructions" |

@@ -157,7 +157,7 @@ Philippines: PDAX (InstaPay/PESONet, GCash), Coins.ph, Noah, Due. Indonesia: Noa
 
 - **Remove or disable:** operator-signed payment path (`lib/server/composed-payment.ts`; `LAUNCH_SCOPE` default `full` in `lib/env.ts:186`); server-derived deposit keys (`lib/server/funding-sessions.ts`); `confirmed: true` Stripe/Airwallex stubs; Seal mock key fallback (`seal.ts:72`); free-text `anchor_audit_hash` path.
 - **Change:** `receipt_v2::create_receipt` must bind to a real intent and coin movement; Walrus uploads send `epochs` and `permanent=true`; Seal decryption by allowlisted Sui addresses, not the operator key; Splash multisig key weight 0 or time-locked recovery; zkLogin salt decided (server vs Enoki) before any real business address.
-- **Add:** `splash_evidence` package (find commit `7c8b363`); call `confirm_with_approval` from TypeScript; batched Merkle anchor via authenticated events; route engine (`RouteQuote` with `acceptedTokens`, net local amount, policy tag); partner adapters (Noah first, then Due, PDAX); Sumsub KYB + share tokens; KYT per route; receipt `splash.receipt.v1`.
+- **Add:** `splash_evidence` package (now on branch `feat/v15-splash-evidence`, see §13); call `confirm_with_approval` from TypeScript; batched Merkle anchor via authenticated events; route engine (`RouteQuote` with `acceptedTokens`, net local amount, policy tag); partner adapters (Noah first, then Due, PDAX); Sumsub KYB + share tokens; KYT per route; receipt `splash.receipt.v1`.
 - **Keep:** `splash_core` (no balance-holding struct, `check:core`), four separate caps, approval flow in Move, lane guard, 1,099 passing tests.
 
 ## 9. Zeke
@@ -180,13 +180,59 @@ Philippines: PDAX (InstaPay/PESONet, GCash), Coins.ph, Noah, Due. Indonesia: Noa
 - Copy: become a sponsor's flagship (Sui zkLogin/gasless, Circle CCTP V2, Solana Kora); turn each hackathon into an incubator ask within two weeks; public line-itemed grant proposals; capped allowlisted pilot; data-led content; a senior angel from a protocol you depend on.
 - Don't copy: yield/LP framing; seven-chain sprawl; implied momentum without numbers. Public sources show grants (US$50k from 1inch), incubators and an angel round in progress, not a large raise.
 
-## 12. Open questions for Sky
+## 12. Decisions from Sky (4 Oct 2026)
 
-1. Which partner gets the first signed corridor: Noah (MY), PDAX (PH) or Due?
-2. Splash's key in the business wallet: remove, or disclose joint control?
-3. Where is `splash_evidence` (commit `7c8b363`)?
-4. Server salt or Enoki salt for zkLogin, before 6 Oct?
-5. How much Solana work is dated after 14 Sep, and how many forwarder LOIs by 12 Oct?
-6. Approve the I7 rewording for USDT?
-7. KYT budget: pay-per-check or a Chainalysis-tier contract?
-8. Counsel: does a Malaysian payer using a foreign payout partner (Noah, Due) need a BNM-licensed party in the chain?
+| # | Question | Sky's answer | Status | Pushback |
+|---|---|---|---|---|
+| 1 | First corridors | Noah (MY, ID, PH); PDAX or GCash (PH); DurianPay (ID) | Decided | GCash is not a B2B API you can sign directly; reach it through PDAX/Toku or Noah. Noah's MY payout licensee is still unnamed. |
+| 2 | Splash key in the wallet | Joint control as an opt-in company setting: default 1 signature, 2 signatures when switched on | Decided | The second signer must be a **company member**, never Splash. See §13. |
+| 3 | `splash_evidence` | On `sky9484/phase1` branch `feat/v15-splash-evidence` (7c8b363) | Found | Reviewed in §13. `mega-ideas/latest-splash` has nothing newer than 3f78f5a. |
+| 4 | zkLogin salt | Sebastian builds Enoki before 6 Oct; server salt until then | Decided | `feat/v15-wallet` already resolves Enoki first and keeps a sealed copy. Don't create real business wallets on server salt; addresses change when you switch. |
+| 5 | First clients | Find 10 and contact them | Done | See `potential-clients-2026-10-04.md`. Only 3 are strong fits. |
+| 6 | I7 wording for USDT | Approved | Decided | USDT is not gasless on Sui; the client carries depeg risk, and the UI must say so before funding. |
+| 7 | Screening (KYT) | Pay-per-check now; Elliptic later, with Sui's help via Overflow 2026 | Decided | Screen both payer and recipient wallets on every payout, not just onboarding. Check whether Elliptic credits from Overflow have an expiry date. |
+| 8 | Counsel / BNM | Needed. Sky suggests Wise, Airwallex, TerraPay, XTransfer | Decided; checked in §14 | Only Airwallex fits as an API partner. |
+
+## 13. Review of Sky's new branches (sky9484/phase1, CI green, no PRs open)
+
+**`feat/v15-splash-evidence` (7c8b363): keep, with two fixes.**
+- Good: holds no value (no `Coin`/`Balance`); frozen anchors; `anchor_for` requires bundle membership; grants are revoked when any member is removed; the namespace stops one bundle's list opening another. 21/21 tests on CLI 1.77.2.
+- **Privacy leak:** `Allowlist.members` is a public vector on a shared object. Payer, recipient and partner addresses for each bundle are readable by anyone, so the chain shows who pays whom. That breaks the WS5 "commitments only" rule. Fix: list members as the org multisig addresses (not people) and accept the counterparty link, or make the recipient member a per-bundle derived address.
+- **Cost at scale:** one frozen object per anchor means storage that never gets rebated. Fine for pilots; switch to batched Merkle roots in events past ~1k receipts a day.
+- Still needs Sebastian's sign-off; extend `check-core-no-balance.mjs` to cover this package.
+
+**`feat/v15-wallet` (a5ab2e5): good base, one honesty issue.**
+- Today: threshold 2; admin 2 and backup 2 (each can sign alone); recovery contact 1; Splash cold key 1.
+- **Flaw:** a Sui multisig signs any transaction, not just "migration". So recovery contact plus Splash's cold key can move funds, and the 72-hour notice is only enforced by our server. That is co-signing, so disclose it in the terms and the wallet screen. Do not call it "Splash can never move funds".
+- **Dual control (Sky's #2), proposed weights:**
+
+| Mode | Threshold | Admin | Second approver | Recovery contact | Splash cold |
+|---|---|---|---|---|---|
+| Single (default) | 2 | 2 | (backup 2) | 1 | 1 |
+| Dual control | 4 | 2 | 2 | 3 | 1 |
+
+- Check of the dual mode: admin + approver = 4 ✓; admin + Splash = 3 ✗; approver + Splash = 3 ✗; recovery + Splash = 4 (the recovery path, same risk as today); Splash alone = 1 ✗. Splash plus one employee can never pay.
+- **Switching mode is a wallet migration** (members and threshold set the address), so it means a new address and a sweep. Turning dual control **off** must need both signatures, or one admin can quietly remove the second.
+
+**`feat/v15-approval-dead-end` (1367e07): merge.** It refuses approvals that can only fail before anyone signs.
+
+**`feat/v15-sui-skills` (8ef7d2c): merge after removing `.agents/skills/your-skill-name/`**, which is an empty template.
+
+## 14. BNM-licensed parties for the ringgit leg (checked 4 Oct)
+
+| Provider | Verified Malaysian status | Takes USDC in? | Platform API for MY businesses | Verdict |
+|---|---|---|---|---|
+| **Airwallex** (Malaysia) Sdn Bhd | **Class A MSB, active on BNM** (approved 31 Mar–1 Apr 2026); e-money issuer; merchant acquirer | No. USDC payouts out (Ethereum, early access) only | **Yes.** Connected Accounts support Malaysia, with KYB via API | **Best fiat partner.** The business sells USDC → MYR at an SC exchange or Noah, then Airwallex pays PH/ID/MY. Ask about stablecoin funding. |
+| Wise Payments Malaysia Sdn Bhd | e-money issuer on BNM; remittance licence (class unverified); direct PayNet since 30 Jul 2026 | No | Wise Platform sells to banks and fintechs; otherwise each business opens its own account | **Avoid as a partner.** Its rules ban businesses that exchange or trade crypto, so Splash risks closure. "80% instant" is really 77% within 20s, globally. |
+| TerraPay | Class B, per its own release (4 Jun 2025); not confirmed on BNM | Yes, at network level (Fipto, PalWallet); not confirmed for MY | Wholesale only, to banks and licensed firms | Only usable behind a licensed partner or once Splash has its own MSB licence. |
+| XTransfer | **Conditional approval only** (26 Feb 2026) for Class A + e-money; not live | Plans stablecoin collection | None in MY yet | Not usable. Watch it. |
+
+- **Better answer for #8:** keep Noah as the stablecoin off-ramp and add **Airwallex as the licensed MYR/PH/ID payout rail**. Ask counsel whether "Noah sells USDC → Airwallex pays" puts a BNM licensee on the ringgit leg in the right place.
+- Also worth one email: **Tranglo** (Ripple holds 40%) and **SUNRATE**. Both are BNM-licensed and close to crypto; neither has verified stablecoin flows.
+
+## 15. Still open
+
+1. Noah: the named licensee paying MYR, and whether third-party B2B payouts are allowed.
+2. Circle: a date for CCTP V2 on Sui before 31 Oct.
+3. Solana work dated after 14 Sep, and forwarder LOIs by 12 Oct (Colosseum).
+4. Counsel engagement letter (Ethos or similar) with the questions in the contact list.
