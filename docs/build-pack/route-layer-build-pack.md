@@ -530,3 +530,35 @@ The repo is closer to this target than the stress test makes it look. The approv
 5. Get one Philippine venue to commit in writing to per-payment deposit addresses.
 
 That single signed exit decides which chain Splash really runs on, which no amount of route-picking can.
+
+## I. Addendum (3 Oct, evening): Noah as the bank-payout rail
+
+Sky's note: in Jupiter Global, DCS handles merchant QR scans and Noah handles bank off-ramps. Checked against primary pages the same evening.
+
+**What holds**
+- DCS is the card issuer for Jupiter's QR Pay. That matches section A: it is on the payer side, so it is still not a ringgit on-ramp for Splash.
+- Noah's own docs list payouts in MYR, PHP and IDR, among 60+ countries ([Noah Global Payouts](https://docs.noah.com/products/global-payouts-api)).
+- Noah allows "first or third party transactions to businesses and customers", covering "offramping, remittance and B2B settlements" ([Noah docs](https://docs.noah.com/llms-full.txt)). That is the third-party payout no SC-registered exchange offers.
+- Automated Payouts: the payer deposits to "a unique wallet address you provide", and the fiat payout triggers from there ([Noah Automated Payouts](https://docs.noah.com/products/automated-payouts)). Paid straight from the payer's wallet, this fits "Splash never holds funds".
+- Noah's "Standard Model": "Noah enters into a contractual relationship with your customer". The payer business becomes Noah's customer, not Splash ([Noah docs](https://docs.noah.com/llms-full.txt)). That is the referral/technology model this pack recommends.
+
+**What breaks or is unknown**
+- The Jupiter pages read today (remittance, onramp) do not name Noah. The Noah link is plausible but not confirmed from Jupiter's docs.
+- Noah's networks: Ethereum, Solana, Polygon, Base, Tron, Celo, Gnosis and others. **Not Sui. Not Arbitrum.** Sui money must bridge first; Arbitrum money must move to Base or Polygon via CCTP V2.
+- Licences: the site shows Noah US, Inc., NMLS 2696057. Who executes MYR, PHP and IDR payouts locally, and under which licence, is not disclosed.
+- No fee schedule is published ("mid-market rates", "volume discounts").
+- Malaysian rail not named (DuitNow, IBG or RENTAS).
+
+**Effect on the plan (proposal, unconfirmed)**
+- Noah becomes the lead candidate for a single payout API across Malaysia, the Philippines and Indonesia, on **Solana** first. That strengthens the Solana rail and the Colosseum entry.
+- Arbitrum needs a Base/Polygon hop for Noah; keep it as the PDAX/Coins.ph rail only.
+- Sui stays the record and evidence layer; payout money does not need to touch Sui.
+- Do not name Noah externally until signed.
+
+**Ask Noah (in writing)**
+1. Which licensed entity pays out MYR, PHP and IDR, and over which rails?
+2. Can each Malaysian payer business onboard under the Standard Model by API, with Splash as a technology partner only?
+3. Is the deposit address unique per payout, and can a payer's own Squads vault pay it directly?
+4. Fee and FX spread per corridor at US$5k, US$25k and US$100k tickets; minimums; settlement times.
+5. Originator and beneficiary data required (Travel Rule), webhook statuses, and the return path for failed payouts.
+6. Any plan for Sui or Arbitrum.
