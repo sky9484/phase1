@@ -6,9 +6,11 @@ import type { ProposalExplain, SimulationResult, UnsignedProposal } from '@/lib/
 import { getOxwalProposalStore } from '@/lib/agent/oxwal';
 import { resolveAuthorityForSession, UnauthorizedError } from '@/lib/auth/authority';
 import { ensureProposalStoreHydrated } from '@/lib/queue/proposal-persistence';
+import { approvalDeadEnd } from '@/lib/queue/approval-dead-end';
 import { buildApprovalQueue, queueLanes, type QueueLane } from '@/lib/queue/approval-queue';
 import { readyToSend, type QueueViewer } from '@/lib/queue/ready-to-send';
 import { getCustomerSession } from '@/lib/server/customer-auth';
+import { custodyPhaseEnabled } from '@/lib/server/custody-phase';
 import ApprovalCodeCard from '@/components/queue/ApprovalCodeCard';
 import ApprovalQueueBoard, { type QueueItem, type QueueLaneData } from '@/components/queue/ApprovalQueueBoard';
 import ReadyToSendLane, { type ReadyToSendItem } from '@/components/queue/ReadyToSendLane';
@@ -226,10 +228,15 @@ export default async function QueuePage() {
   const now = new Date();
   const proposalStore = getOxwalProposalStore();
   await ensureProposalStoreHydrated(proposalStore);
+  const custodyEnabled = custodyPhaseEnabled();
   const liveProposals: QueueItem[] = proposalStore
     .list()
     .filter((item) => item.orgId === orgId)
     .filter((item) => item.status === 'SIMULATED' || item.status === 'POLICY_EVALUATED' || item.status === 'PENDING_APPROVAL')
+    // Not one no approval could carry out, such as a payment Zeke drafted: the
+    // gate refuses it, so offering it here only invites approvers to try. The
+    // chat that drafted it says where the payment can be made instead.
+    .filter((item) => !approvalDeadEnd(item, { custodyEnabled }))
     .map((item) => ({
       id: item.id,
       recommendation: item.explain.recommendation,

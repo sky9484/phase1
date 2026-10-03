@@ -172,6 +172,15 @@ export function interpretSubmitResponse(status: number, body: Body, decision: Qu
     return { kind: 'closed', message: error || 'This proposal is no longer open for a decision.' };
   }
 
+  // No approval could carry it out (lib/queue/approval-dead-end.ts), so none
+  // was taken. Closed rather than refused: asking again cannot change it.
+  if (status === 409 && (code === 'AGENT_DRAFT_NOT_SENDABLE' || code === 'REQUEST_NOT_ON_RECORD')) {
+    return {
+      kind: 'closed',
+      message: `${error || 'No approval could carry this proposal out.'} Nothing was approved or sent.`,
+    };
+  }
+
   if (status === 409 && code === 'compliance_hold') {
     const reasons = Array.isArray(body?.holdReasons)
       ? (body?.holdReasons as unknown[]).filter((reason): reason is string => typeof reason === 'string')

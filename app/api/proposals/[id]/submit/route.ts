@@ -11,8 +11,10 @@ import { requireCustomerRequest } from '@/lib/server/customer-auth';
 import { requireActiveOrg } from '@/lib/server/kyb-gate';
 import { readJsonBody } from '@/lib/server/http';
 import { evaluateAtApproval, rejectUnlessReleased, releaseApproved } from '@/lib/queue/approval-walk';
+import { ApprovalDeadEndError } from '@/lib/queue/approval-dead-end';
 import { APPROVAL_NOT_SAVED, executeApprovedProposal } from '@/lib/server/approval-execution';
 import { closeApprovalClaim } from '@/lib/server/approved-proposal';
+import { custodyPhaseEnabled } from '@/lib/server/custody-phase';
 import { AGENT_ACTOR_ID } from '@/lib/agent/identity';
 import { kindInScope, launchScope, LAUNCH_SCOPE_CODE, LAUNCH_SCOPE_REASON } from '@/lib/server/launch-scope';
 
@@ -141,6 +143,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       actor,
       policy: ctx.policy,
       compliance: resolveComplianceForProposal,
+      custodyEnabled: custodyPhaseEnabled(),
       signatureRef: parsed.data.signatureRef,
       now,
     });
@@ -225,6 +228,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return json({ proposal: store.get(submitted.id) ?? submitted, policyDecision, execution: outcome });
   } catch (error) {
     await store.flush();
+    // No approval could carry this one out, and none was recorded. The code
+    // tells the queue to close it rather than offer it again.
+    if (error instanceof ApprovalDeadEndError) {
+      return json({ error: error.message, code: error.deadEnd.code }, 409);
+    }
     return json({ error: error instanceof Error ? error.message : 'Proposal submission blocked' }, 409);
   }
 }

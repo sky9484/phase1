@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, RotateCcw } from 'lu
 import ActionCard from '@/components/oxwal/ActionCard';
 import type { ActionCardProposal } from '@/lib/agent/action-card';
 import type { OxwalChatApproval, OxwalThreadItem } from '@/lib/oxwal/use-oxwal-thread';
+import type { ApprovalDeadEnd } from '@/lib/queue/approval-dead-end';
 
 /**
  * How one turn of a Zeke conversation looks, everywhere it appears.
@@ -82,6 +83,31 @@ export function StreamingRow({ text, compact = false }: { text: string; compact?
           aria-hidden="true"
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * A draft no approval could send (lib/queue/approval-dead-end.ts): why, and a
+ * link to where the same payment can be made. It stands where "Approve now"
+ * would, which used to collect approvals for a payment that could only fail.
+ */
+function DeadEndNotice({ deadEnd, className = '' }: { deadEnd: ApprovalDeadEnd; className?: string }) {
+  return (
+    <div
+      className={`flex flex-wrap items-center gap-2 rounded-lg border border-[#E39774]/55 bg-[#E39774]/12 px-3 py-2.5 text-[13px] font-semibold leading-5 text-[#9A4A2D] ${className}`}
+    >
+      <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{deadEnd.detail}</span>
+      {deadEnd.sendFrom ? (
+        <Link
+          href={deadEnd.sendFrom.href}
+          className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-md bg-[#1F4452] px-3 py-2 text-[13px] font-bold text-white transition hover:bg-[#326273] focus-ring"
+        >
+          {deadEnd.sendFrom.label}
+          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -205,6 +231,7 @@ export default function ThreadRow({
   }
 
   const proposal = item.proposal;
+  const deadEnd = item.deadEnd;
   const approval = chatApprovals[proposal.id];
   const remainingMs = approval ? approval.expiresAt - clockMs : 0;
 
@@ -215,17 +242,21 @@ export default function ThreadRow({
     return (
       <div className="rounded-lg border border-[#efc46f]/60 bg-[#efc46f]/12 px-3 py-2.5">
         <div className="font-mono text-[12px] font-semibold uppercase tracking-[0.12em] text-[#9A4A2D]">
-          Unsigned proposal
+          {deadEnd ? 'Draft only' : 'Unsigned proposal'}
         </div>
         <p className="mt-1 text-[13px] font-semibold leading-5 text-[#1F4452]">
           {proposal.explain.recommendation}
         </p>
-        <Link
-          href="/queue"
-          className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[#1F4452] px-2.5 py-1.5 text-[13px] font-bold text-white transition hover:bg-[#326273]"
-        >
-          Review and approve
-        </Link>
+        {deadEnd ? (
+          <DeadEndNotice deadEnd={deadEnd} className="mt-2" />
+        ) : (
+          <Link
+            href="/queue"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[#1F4452] px-2.5 py-1.5 text-[13px] font-bold text-white transition hover:bg-[#326273]"
+          >
+            Review and approve
+          </Link>
+        )}
       </div>
     );
   }
@@ -236,10 +267,13 @@ export default function ThreadRow({
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 pl-8">
         <span className="inline-flex items-center gap-1.5 rounded-md border border-[#efc46f]/60 bg-[#efc46f]/15 px-2 py-1 font-mono text-[12px] font-semibold uppercase tracking-[0.12em] text-[#9A4A2D]">
-          {approval?.state === 'approved' ? 'Signed · queued for settlement' : 'Unsigned proposal'}
+          {approval?.state === 'approved' ? 'Signed · queued for settlement' : deadEnd ? 'Draft only' : 'Unsigned proposal'}
         </span>
       </div>
       <ActionCard key={proposal.id} proposal={proposal} readOnly />
+
+      {/* No approval could send this one, so none is asked for. */}
+      {deadEnd && <DeadEndNotice deadEnd={deadEnd} />}
 
       {approval?.state === 'waiting' && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#326273]/14 bg-white px-3 py-2.5">
@@ -271,7 +305,7 @@ export default function ThreadRow({
       )}
 
       {/* No window was opened on this surface — the queue is the only route. */}
-      {!approval && (
+      {!approval && !deadEnd && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#326273]/14 bg-[#F6F0ED] px-3 py-2.5 text-[13px] font-semibold text-[#326273]">
           <Clock3 className="h-4 w-4 shrink-0 text-[#326273]/90" />
           Prepared and waiting in the maker-checker queue.

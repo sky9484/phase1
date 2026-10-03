@@ -68,6 +68,7 @@ import {
   type ExecutionContext,
   type ExecutionOutcome,
 } from '@/lib/server/approval-execution';
+import { custodyPhaseEnabled } from '@/lib/server/custody-phase';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DrizzleDb = PgDatabase<any, typeof schemaModule, any>;
@@ -127,6 +128,8 @@ export type SettleDeps = {
   store: InMemoryProposalStore;
   db: DrizzleDb;
   compliance: (proposal: UnsignedProposal) => ComplianceResult;
+  /** `custodyPhaseEnabled()`, for the approval gate (lib/queue/approval-walk.ts). */
+  custodyEnabled: boolean;
   /** The KYB money gate, for the payment's org. Checked before anything is
    *  signed: the replayed route would refuse later, after the approval had
    *  been spent on the attempt. */
@@ -317,6 +320,7 @@ export async function settleBallots(
       actor,
       policy,
       compliance: deps.compliance,
+      custodyEnabled: deps.custodyEnabled,
       signatureRef,
       now,
     });
@@ -359,7 +363,7 @@ export async function settleBallots(
     // A policy block (nothing moved), or a transition the state machine
     // refused. The submit route's answer, in the approver's words.
     await store.flush();
-    const reason = error instanceof Error ? error.message : 'the approval could not be applied';
+    const reason = error instanceof Error ? error.message.replace(/\.\s*$/, '') : 'the approval could not be applied';
     return outcome('BLOCKED', `Approved, but the payment cannot go: ${reason}.`);
   }
   // Saved before anything moves, as in the submit route: an approval held only
@@ -425,6 +429,7 @@ export async function settleFullyApprovedProposal(
         store,
         db: getDb() as unknown as DrizzleDb,
         compliance: resolveComplianceForProposal,
+        custodyEnabled: custodyPhaseEnabled(),
         canMoveMoney: orgCanMoveMoney,
         execute: (proposal, context) => executeApprovedProposal(proposal, proposal.executionPayload ?? null, context),
         closeClaim: closeApprovalClaim,

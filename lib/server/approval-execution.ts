@@ -35,6 +35,7 @@ import 'server-only';
 import type { UnsignedProposal } from '@/lib/agent/types';
 import { x402SettlementAvailability } from '@/lib/agent/x402';
 import { CUSTODY_PHASE_WHY } from '@/lib/custody-phase-rules';
+import { nothingToReplay } from '@/lib/queue/approval-dead-end';
 import { closeApprovalClaim } from '@/lib/server/approved-proposal';
 import { custodyPhaseEnabled } from '@/lib/server/custody-phase';
 import { kindInScope, launchScope, LAUNCH_SCOPE_NOT_SENT } from '@/lib/server/launch-scope';
@@ -95,20 +96,21 @@ export async function executeApprovedProposal(
   }
 }
 
+/**
+ * A kind that replays its request, reached without one. The approval gate
+ * refuses these before anyone approves them (lib/queue/approval-dead-end.ts);
+ * one that gets here was approved before that check existed, and is given the
+ * same reason: an agent's draft never had a request, anything else lost it.
+ */
+function nothingSent(proposal: UnsignedProposal): ExecutionOutcome {
+  return { state: 'FAILED', detail: nothingToReplay(proposal).detail };
+}
+
 async function carryOut(
   proposal: UnsignedProposal,
   payload: Record<string, unknown> | null,
   context: ExecutionContext,
 ): Promise<ExecutionOutcome> {
-  if (!payload) {
-    return {
-      state: 'FAILED',
-      detail:
-        'The payment details for this approval could not be found, so nothing was sent. ' +
-        'Re-authorize the payment to try again.',
-    };
-  }
-
   // The backstop for an approval that reached the executor anyway (approved
   // before the scope was set, or a caller that skipped the gate): recorded,
   // named, not carried out (lib/launch-scope-rules.ts).
@@ -116,11 +118,18 @@ async function carryOut(
     return { state: 'SKIPPED', detail: `Approved and recorded, not executed. ${LAUNCH_SCOPE_NOT_SENT}` };
   }
 
+  // Only the kinds replayed through a money route need the request they were
+  // filed with. This used to be checked first for every kind, so an approved
+  // x402 request, FX conversion, netting run or internal transfer from Zeke,
+  // none of which carries or needs one, was reported as a payment whose
+  // details were lost.
   try {
     switch (proposal.kind) {
       case 'PAYMENT':
+        if (!payload) return nothingSent(proposal);
         return await executeTransfer(proposal, payload, context);
       case 'BATCH_PAYOUT':
+        if (!payload) return nothingSent(proposal);
         return await executeBatch(proposal, payload, context);
       case 'X402_PAYMENT':
         // There is no path that settles x402, so the default's "settles
@@ -140,6 +149,7 @@ async function carryOut(
         // from its approval branch, and are replayed through it as a payment
         // is through the transfer route. They used to be proposed as PAYMENT,
         // and replayed into the transfer route, which refused them.
+        if (!payload) return nothingSent(proposal);
         return await executeTreasuryMove(proposal, payload, context);
       default:
         // An agent-drafted FX, netting or internal-transfer proposal has its

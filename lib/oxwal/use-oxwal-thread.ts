@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ActionCardProposal } from '@/lib/agent/action-card';
 import { DEFAULT_ASSISTANT_NAME } from '@/lib/agent/assistant-name-shared';
+import type { ApprovalDeadEnd } from '@/lib/queue/approval-dead-end';
 import { recordPendingProposals } from '@/lib/oxwal-notify';
 
 /**
@@ -44,7 +45,8 @@ export type OxwalThreadItem =
   | { kind: 'activity'; id: string; label: string; tone: 'read' | 'propose' }
   | { kind: 'notice'; id: string; text: string; retryPrompt?: string }
   | { kind: 'session-expired'; id: string }
-  | { kind: 'proposal'; id: string; proposal: ActionCardProposal }
+  /** `deadEnd`: no approval could carry it out, and where to make it instead. */
+  | { kind: 'proposal'; id: string; proposal: ActionCardProposal; deadEnd?: ApprovalDeadEnd }
   /** A USDC transfer Zeke prepared for the operator to review and send. */
   | { kind: 'handoff'; id: string; handoff: OxwalHandoff };
 
@@ -75,7 +77,7 @@ type OxwalStreamEvent =
   | { type: 'delta'; text: string }
   | { type: 'tool'; name: string; category: 'READ' | 'PROPOSE' }
   | { type: 'warning'; warning: { code: string; message: string; ref?: string } }
-  | { type: 'proposal'; proposal: ActionCardProposal }
+  | { type: 'proposal'; proposal: ActionCardProposal; deadEnd?: ApprovalDeadEnd }
   | { type: 'handoff'; handoff: OxwalHandoff }
   | { type: 'done'; source: 'claude' | 'local' | 'scripted' };
 
@@ -177,16 +179,23 @@ export function useOxwalThread(options: UseOxwalThreadOptions = {}) {
     return () => window.clearInterval(interval);
   }, [hasOpenWindow]);
 
+  // What an approval could still carry out. A draft that none could is not
+  // pending: nobody is going to approve it (lib/queue/approval-dead-end.ts).
+  const approvable = useMemo(
+    () => thread.flatMap((item) => (item.kind === 'proposal' && !item.deadEnd ? [item.proposal] : [])),
+    [thread],
+  );
+
   // Let the floating Zeke remind the operator elsewhere in the app. A proposal
   // stays pending until approved — in chat or in the queue.
   useEffect(() => {
     if (proposals.length === 0) return;
-    const unresolved = proposals.filter((p) => chatApprovals[p.id]?.state !== 'approved');
+    const unresolved = approvable.filter((p) => chatApprovals[p.id]?.state !== 'approved');
     recordPendingProposals({
       count: unresolved.length,
       label: unresolved[unresolved.length - 1]?.explain.recommendation ?? null,
     });
-  }, [proposals, chatApprovals]);
+  }, [proposals, approvable, chatApprovals]);
 
   const submitPrompt = useCallback(
     async (rawPrompt: string) => {
@@ -290,7 +299,10 @@ export function useOxwalThread(options: UseOxwalThreadOptions = {}) {
             if (event.type === 'proposal') {
               flushAssistant();
               const proposalId = event.proposal.id;
-              if (allowInlineApproval) {
+              const deadEnd = event.deadEnd;
+              // No window for a draft no approval could send: the card says
+              // where to make the payment instead.
+              if (allowInlineApproval && !deadEnd) {
                 setChatApprovals((current) => ({
                   ...current,
                   [proposalId]: {
@@ -301,7 +313,9 @@ export function useOxwalThread(options: UseOxwalThreadOptions = {}) {
               }
               setThread((current) => [
                 ...current,
-                { kind: 'proposal', id: newId('proposal'), proposal: event.proposal },
+                deadEnd
+                  ? { kind: 'proposal', id: newId('proposal'), proposal: event.proposal, deadEnd }
+                  : { kind: 'proposal', id: newId('proposal'), proposal: event.proposal },
               ]);
             }
 

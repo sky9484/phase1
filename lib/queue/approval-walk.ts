@@ -31,6 +31,7 @@
 import type { ComplianceResult, OrgPolicy, ProposalStatus, UnsignedProposal, UserRole } from '../agent/types.ts';
 import type { PolicyDecision } from '../policy/evaluate.ts';
 import { authorizeProposalSubmission } from '../safety/submit-guard.ts';
+import { ApprovalDeadEndError, approvalDeadEnd } from './approval-dead-end.ts';
 import {
   canRoleApprove,
   ProposalStateError,
@@ -50,6 +51,9 @@ export type GateInput = {
   policy: OrgPolicy;
   /** Screening, resolved from server-held records for the live proposal. */
   compliance: (proposal: UnsignedProposal) => ComplianceResult;
+  /** `custodyPhaseEnabled()`: with custody on, a treasury move is carried out
+   *  from its request too (lib/queue/approval-dead-end.ts). */
+  custodyEnabled: boolean;
   signatureRef: string;
   now: Date;
 };
@@ -67,7 +71,9 @@ function live(store: InMemoryProposalStore, proposalId: string): UnsignedProposa
  * PENDING_APPROVAL, or → APPROVED when policy asks for no approver at all.
  *
  * Throws `ProposalStateError` when policy blocks, before any transition, so a
- * blocked proposal stays exactly where it was.
+ * blocked proposal stays exactly where it was. Before policy, throws
+ * `ApprovalDeadEndError` for a proposal no approval could carry out, such as a
+ * payment Zeke drafted: approved in full, it could only fail.
  */
 export function evaluateAtApproval(
   store: InMemoryProposalStore,
@@ -77,6 +83,8 @@ export function evaluateAtApproval(
   if (!proposal.simulation) {
     throw new ProposalStateError('proposal must be simulated before it can be approved');
   }
+  const deadEnd = approvalDeadEnd(proposal, { custodyEnabled: input.custodyEnabled });
+  if (deadEnd) throw new ApprovalDeadEndError(deadEnd);
 
   const decision = authorizeProposalSubmission({
     proposal,
