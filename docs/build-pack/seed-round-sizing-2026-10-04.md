@@ -4,6 +4,23 @@
 
 **Labels:** VERIFIED = primary page read; REPORTED = secondary or founder claim; ESTIMATE = my arithmetic or judgement; PLACEHOLDER = no quote or source found. All arithmetic was run in code (USD/MYR 4.0849, 2 Oct 2026). Month 1 = Nov 2026, month 20 = Jun 2028.
 
+## Update, 4 Oct 08:00 MYT: MFCA corrected to US$14,500 and model rerun
+
+Sky corrected MFCA to **US$14,500 (fourteen thousand five hundred)**. Added as a one-time fee at month 3 in every scenario (ESTIMATE on timing; regime still unidentified). Everything else is unchanged.
+
+| 20-month total, Labuan parked (US$k) | Before | After | Change |
+|---|---|---|---|
+| Lean | 709 | 725 | +16 |
+| Base | 1,219 | 1,235 | +17 |
+| Safe | 1,887 | 1,904 | +17 |
+| Base + 3-month buffer | 1,424 | 1,440 | +17 |
+| Base + Labuan | 1,649 | 1,666 | +17 |
+| Safe + Labuan + buffer | 2,595 | 2,613 | +17 |
+
+Months funded at US$2.0M: Base 31.2 (was 31.4), Base + Labuan 24.6 (was 24.9), Safe 21.1 (was 21.3), Safe + Labuan 16.4 (was 16.6). **The recommendation does not change: US$2.0M, post-money SAFE, US$10M post.** The US$1.2M first close now sits US$35k below the Base need (US$1.235M), so size the first close at US$1.25M.
+
+**OtterSec:** the Sui audit line is still an ESTIMATE (US$50k Base, US$100k Safe). OtterSec publishes no rate card, and no quote has been seen in this work. Replace the line with the real figure once Sky has it.
+
 ## 1. Budget: Base is US$1.22M over 20 months, 80% of it payroll and infra
 
 ### Assumptions
@@ -66,7 +83,7 @@ These are established-company ranges. Seed hires paid at or above the top is gen
 
 | Founder item | Verified or reported reality | Nature | Fund? |
 |---|---|---|---|
-| "MFCA US$14,500k" | Unidentified. US$14.5M = RM59M, above any payments regime found | Unknown | Do not model |
+| "MFCA US$14,500" (corrected by Sky 4 Oct: US$14.5k, not 14.5M) | Regime still unidentified; treated as a one-time fee at M3 in the Legal line (assumption: fee, not capital) | One-time fee | Yes, modelled (+US$14.5k, +US$16.7k with Base contingency) |
 | Labuan "RM1.5M incl. digital assets" | RM1.5M paid-up (**VERIFIED**, [Labuan FSA](https://www.labuanfsa.gov.my/clients/asset_717D5286-17F8-4620-B852-83CA4FFCC30C/contentms/img/documents/regulations/guidelines/other-business/Guidelines-on-the-Establishment-of-Money-Broking-Business-in-Labuan-IBFC_09092024.pdf)) = US$367k, not a fee. Plus US$350 application, US$10k/yr licence, US$1k/yr company fee | Capital + fees | **Defer** |
 | Fund manager "RM350k" | RM2M full / RM500k boutique (REPORTED) | Capital | No |
 | E-money "RM500k" | RM1M Standard / RM5M Eligible or 8% of liabilities (REPORTED) | Capital | No, if never holding value |
@@ -209,7 +226,7 @@ Months funded (burn after M20 held at the M20 rate; Labuan capital in M6):
 - **Milestone line:** "By month 20: 50 business LOIs, 4 signed payout partners (6 in contract talks), 2-3 live integrations and first live USD volume, with 24+ months of runway."
 
 **Sky must still confirm (and the quote that fixes each):**
-1. **"MFCA 14,500k USD":** what it is and which regulator. Do not use US$14.5M.
+1. **MFCA US$14,500:** now modelled as a one-time fee. Still tell me which regulator and regime it is, and whether it is a fee or capital, and whether it recurs yearly.
 2. **Hire dates, salaries, 13th month, payroll vs director fees:** Base assumes M4, M7, M10. A tax agent decides the founders' route.
 3. **Elliptic "norm" email:** paste the exact wording and the quoted price. Only US$50k/US$100k per year is verified.
 4. **Labuan decision:** parked in v15; the perimeter-opinion quote and conclusion decide.
