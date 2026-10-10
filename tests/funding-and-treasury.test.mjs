@@ -28,25 +28,25 @@ test('USDC on Sui goes straight to the Splash wallet; there is no native USDT on
   assert.match(usdt.reason, /no native USDT on Sui/);
 });
 
-test('Ethereum, Arbitrum, Base and Solana reach Sui over CCTP V1, domain 8, with the phase-out stated', () => {
-  for (const source of ['ETHEREUM', 'ARBITRUM', 'BASE', 'SOLANA']) {
+test('Ethereum, Arbitrum, Base, Solana and Aptos reach Sui over CCTP V2, domain 8, with the V1 cut-off stated', () => {
+  for (const source of ['ETHEREUM', 'ARBITRUM', 'BASE', 'SOLANA', 'APTOS']) {
     const plan = planFunding({ source, asset: 'USDC', amount: '1000', destination: WALLET });
     assert.equal(plan.available, true, source);
-    assert.equal(plan.route, 'CCTP_V1');
+    assert.equal(plan.route, 'CCTP_V2');
     assert.equal(plan.cctp.destinationDomain, SUI_CCTP_DOMAIN);
     assert.equal(plan.cctp.sourceDomain, FUNDING_CHAINS[source].cctpDomain);
     assert.equal(plan.cctp.mintRecipient, WALLET);
-    assert.equal(plan.arrivesMinor, usdc('1000'), 'CCTP mints 1:1; Circle charges no fee on V1');
-    assert.ok(plan.warnings.some((w) => /phasing V1 out since 31 July 2026/.test(w)));
+    assert.equal(plan.arrivesMinor, usdc('1000'), 'CCTP mints 1:1; Circle charges no fee on Standard Transfer');
+    assert.ok(plan.warnings.some((w) => /1 December 2026/.test(w)));
+    assert.ok(plan.steps.some((st) => /CCTP V2 Standard Transfer/.test(st.action)));
   }
   assert.deepEqual([FUNDING_CHAINS.ETHEREUM.cctpDomain, FUNDING_CHAINS.ARBITRUM.cctpDomain, FUNDING_CHAINS.BASE.cctpDomain, FUNDING_CHAINS.SOLANA.cctpDomain], [0, 3, 6, 5]);
 });
 
-test('Aptos has no CCTP route to Sui: V2 only there, V1 only on Sui', () => {
+test('Aptos now reaches Sui: both are on CCTP V2', () => {
   const plan = planFunding({ source: 'APTOS', asset: 'USDC', amount: '100', destination: WALLET });
-  assert.equal(plan.available, false);
-  assert.match(plan.reason, /do not interoperate/);
-  assert.ok(plan.alternatives.length >= 2);
+  assert.equal(plan.available, true);
+  assert.equal(plan.cctp.sourceDomain, 9);
 });
 
 test('USDT is swapped to USDC first, and the plan carries the slippage floor', () => {

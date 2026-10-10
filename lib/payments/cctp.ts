@@ -5,23 +5,25 @@ import { formatUsdc, parseUsdcMinor } from './stablecoin-lane.ts';
  * bridge. It says whether a route exists, what the person does on each side,
  * how long it waits, and what arrives. It moves nothing.
  *
- * ─── The facts it encodes (Circle developer docs, read 2026-09-24) ───────────
+ * ─── The facts it encodes (Circle developer docs, re-read 2026-10-10) ────────
  *
  * - CCTP burns USDC on one chain and mints native USDC on another. It carries
  *   USDC only: USDT must be swapped to USDC on the source chain first.
- * - Sui is on CCTP **V1 (legacy) only**, domain 8. CCTP V2 is the canonical
- *   version everywhere else, and V1 has been in a manual phase-out since
- *   31 July 2026, ending in a full contract pause.
- * - V1 and V2 do not interoperate. Aptos is on V2 only, so there is **no
- *   CCTP route from Aptos to Sui** today.
- * - Ethereum (0), Arbitrum (3), Base (6) and Solana (5) still have V1
- *   contracts during the phase-out, so a V1 transfer to Sui is possible from
- *   them — for now. Circle can pause V1 on any of them; a large transfer
- *   should be checked against Circle's status first.
- * - V1 waits for hard finality on the source chain before Circle attests:
- *   about 13–20 minutes from Ethereum and the Ethereum rollups, well under a
- *   minute from Solana. Circle charges no fee on V1; each side's gas is paid
- *   by the person (SUI on the Sui side, to claim the mint).
+ * - Sui is on **CCTP V2**, domain 8: Circle's release note of 2026-10-08 added
+ *   Sui mainnet and testnet, and its supported-chains table lists Sui with
+ *   Standard Transfer (Fast Transfer N/A as a source). Package ids are in
+ *   `cctp-v2-sui.ts`.
+ * - V1 (legacy) deprecation begins 31 October 2026 and completes 1 December
+ *   2026. V1 and V2 don't interoperate, so every route here is V2.
+ * - Standard Transfer waits for the source chain's finality before Circle
+ *   attests: about 13–20 minutes from Ethereum and the Ethereum rollups, well
+ *   under a minute from Solana. Circle charges no fee on Standard Transfer.
+ *   Fast Transfer (Ethereum, Arbitrum, Base, Solana as sources) attests in
+ *   seconds for a variable Circle fee; read it from Circle's fee endpoint
+ *   before offering it.
+ * - Someone must submit the mint on Sui (Circle has no Forwarding Service into
+ *   Sui). Splash's relayer will submit it with Enoki-sponsored gas; until that
+ *   is live, the person claims it with a little SUI.
  *
  * The recommended funding route stays the simplest one: send native USDC on
  * Sui straight to the Splash wallet address.
@@ -37,22 +39,22 @@ interface ChainFacts {
   cctpDomain: number | null;
   /** Which CCTP versions have live contracts on this chain. */
   versions: ReadonlyArray<'V1' | 'V2'>;
-  /** Rough wait for Circle's attestation on V1 (hard finality). */
-  v1FinalityLabel: string;
+  /** Rough wait for Circle's Standard Transfer attestation (source-chain finality). */
+  finalityLabel: string;
   /** Wallets that sign on this chain. */
   wallet: string;
 }
 
 export const FUNDING_CHAINS: Record<Exclude<FundingChain, 'SUI'>, ChainFacts> = {
-  ETHEREUM: { label: 'Ethereum', cctpDomain: 0, versions: ['V1', 'V2'], v1FinalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
-  ARBITRUM: { label: 'Arbitrum', cctpDomain: 3, versions: ['V1', 'V2'], v1FinalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
-  BASE: { label: 'Base', cctpDomain: 6, versions: ['V1', 'V2'], v1FinalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
-  SOLANA: { label: 'Solana', cctpDomain: 5, versions: ['V1', 'V2'], v1FinalityLabel: 'under a minute', wallet: 'a Solana wallet (Phantom, Solflare, or MetaMask for Solana)' },
-  APTOS: { label: 'Aptos', cctpDomain: 9, versions: ['V2'], v1FinalityLabel: '—', wallet: 'an Aptos wallet (Petra)' },
+  ETHEREUM: { label: 'Ethereum', cctpDomain: 0, versions: ['V1', 'V2'], finalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
+  ARBITRUM: { label: 'Arbitrum', cctpDomain: 3, versions: ['V1', 'V2'], finalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
+  BASE: { label: 'Base', cctpDomain: 6, versions: ['V1', 'V2'], finalityLabel: 'about 13–20 minutes', wallet: 'MetaMask' },
+  SOLANA: { label: 'Solana', cctpDomain: 5, versions: ['V1', 'V2'], finalityLabel: 'under a minute', wallet: 'a Solana wallet (Phantom, Solflare, or MetaMask for Solana)' },
+  APTOS: { label: 'Aptos', cctpDomain: 9, versions: ['V2'], finalityLabel: '—', wallet: 'an Aptos wallet (Petra)' },
 };
 
-/** Sui supports V1 only (Circle's supported-blockchains page). */
-const SUI_VERSIONS: ReadonlyArray<'V1' | 'V2'> = ['V1'];
+/** Sui is on CCTP V2 (Circle release note 2026-10-08). V1 routes are no longer planned. */
+const SUI_VERSIONS: ReadonlyArray<'V1' | 'V2'> = ['V2'];
 
 export interface FundingStep {
   where: string;
@@ -62,7 +64,7 @@ export interface FundingStep {
 export type FundingPlan =
   | {
       available: true;
-      route: 'DIRECT' | 'CCTP_V1';
+      route: 'DIRECT' | 'CCTP_V2';
       source: FundingChain;
       asset: FundingAsset;
       amountMinor: bigint;
@@ -136,7 +138,7 @@ export function planFunding(input: {
       available: false,
       source: input.source,
       asset: input.asset,
-      reason: `${chain.label} is on CCTP V2 only and Sui is on CCTP V1 only; the two versions do not interoperate, so there is no CCTP route from ${chain.label} to Sui today.`,
+      reason: `${chain.label} has no CCTP V2 contracts, and Sui is on CCTP V2 only; there is no CCTP route from ${chain.label} to Sui.`,
       alternatives: [
         `Move the USDC from ${chain.label} to Ethereum, Arbitrum, Base or Solana first, then use CCTP to Sui from there.`,
         'Buy or withdraw native USDC on Sui from an exchange and send it to the Splash wallet directly.',
@@ -160,24 +162,24 @@ export function planFunding(input: {
   steps.push(
     {
       where: `${chain.label} · ${chain.wallet}`,
-      action: `Burn ${input.asset === 'USDT' ? 'the' : formatUsdc(usdcMinor)} USDC with CCTP V1 (depositForBurn): destination domain ${SUI_CCTP_DOMAIN} (Sui), mintRecipient ${mintRecipient}.`,
+      action: `Burn ${input.asset === 'USDT' ? 'the' : formatUsdc(usdcMinor)} USDC with CCTP V2 Standard Transfer (depositForBurn): destination domain ${SUI_CCTP_DOMAIN} (Sui), mintRecipient ${mintRecipient}.`,
     },
-    { where: 'Circle', action: `Wait for Circle's attestation — ${chain.v1FinalityLabel} on ${chain.label}.` },
-    { where: 'Sui · Splash wallet', action: 'Claim the mint on Sui (receiveMessage with the attestation). This needs a little SUI for gas.' },
+    { where: 'Circle', action: `Wait for Circle's attestation — ${chain.finalityLabel} on ${chain.label}.` },
+    { where: 'Sui · Splash wallet', action: 'Claim the mint on Sui (receive_message with the attestation). Splash’s relayer will do this with sponsored gas once live; until then it needs a little SUI.' },
   );
 
   return {
     available: true,
-    route: 'CCTP_V1',
+    route: 'CCTP_V2',
     source: input.source,
     asset: input.asset,
     amountMinor,
     arrivesMinor: usdcMinor,
     minUsdcAfterSwapMinor,
-    wait: chain.v1FinalityLabel,
+    wait: chain.finalityLabel,
     steps,
     warnings: [
-      'Sui is on CCTP V1 only, and Circle has been phasing V1 out since 31 July 2026 toward a full contract pause. Check Circle’s status before a large transfer — V1 on a chain can stop.',
+      'This route uses CCTP V2. CCTP V1 (legacy) is deprecated from 31 October 2026 and stops on 1 December 2026, so don’t start a V1 transfer from another app.',
       'The burn and the claim each cost gas on their own chain, paid in that chain’s native token.',
       'Sending USDC straight to the Splash wallet on Sui is faster and has no bridge step.',
     ],

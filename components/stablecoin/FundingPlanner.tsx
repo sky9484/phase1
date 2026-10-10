@@ -9,7 +9,7 @@ import { AlertTriangle, Loader2, Route } from 'lucide-react';
  */
 
 type Plan =
-  | { available: true; route: 'DIRECT' | 'CCTP_V1'; arrives: string; wait: string; steps: Array<{ where: string; action: string }>; warnings: string[] }
+  | { available: true; route: 'DIRECT' | 'CCTP_V2'; arrives: string; wait: string; steps: Array<{ where: string; action: string }>; warnings: string[] }
   | { available: false; reason: string; alternatives: string[] }
   | { error: string };
 
@@ -74,7 +74,7 @@ export default function FundingPlanner({ destination }: { destination: string })
           <p role="alert" className="mt-3 text-[13px] text-[var(--error)]">{plan.error}</p>
         ) : plan.available ? (
           <div className="mt-3 text-[13px] text-[#1F4452]">
-            <p><strong>{plan.route === 'DIRECT' ? 'Direct on Sui' : 'Circle CCTP (V1)'}</strong> · arrives: <span className="font-mono">{plan.arrives} USDC</span> · wait: {plan.wait}</p>
+            <p><strong>{plan.route === 'DIRECT' ? 'Direct on Sui' : 'Circle CCTP (V2)'}</strong> · arrives: <span className="font-mono">{plan.arrives} USDC</span> · wait: {plan.wait}</p>
             <ol className="mt-2 list-decimal space-y-1 pl-5">
               {plan.steps.map((s) => <li key={s.action}><span className="font-semibold">{s.where}:</span> {s.action}</li>)}
             </ol>
